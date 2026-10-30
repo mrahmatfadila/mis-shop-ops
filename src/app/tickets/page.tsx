@@ -102,22 +102,23 @@ function TicketsContent() {
     }
   };
 
+  // Buka otomatis tiket dari query ?id= setelah data termuat
+  useEffect(() => {
+    if (!filterId || !ticketsData) return;
+    const match = ticketsData.find((t) => t.id === Number(filterId));
+    if (match) handleOpenUpdateModal(match);
+  }, [filterId, ticketsData]);
+
   return (
     <SidebarLayout onOpenScanner={() => setIsScannerOpen(true)}>
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-              <LifeBuoy className="w-6 h-6 text-rose-600" />
-              Helpdesk & Tiket Kendala SPV Toko
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500">
-              Pantau laporan kerusakan perangkat kasir, tindak lanjuti oleh IT Support, dan catat histori perbaikan.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2.5">
+        <PageHeader
+          title="Helpdesk & Tiket Kendala SPV Toko"
+          description="Pantau laporan kerusakan perangkat kasir, tindak lanjuti oleh IT Support, dan catat histori perbaikan."
+          icon={LifeBuoy}
+          iconClassName="text-rose-600"
+          actions={
             <button
               onClick={() => setIsNewTicketOpen(true)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-md shadow-rose-500/20 active:scale-95 transition-all"
@@ -125,8 +126,8 @@ function TicketsContent() {
               <Plus className="w-4 h-4" />
               Buat Tiket Kendala Baru
             </button>
-          </div>
-        </div>
+          }
+        />
 
         {/* Filters */}
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
@@ -173,14 +174,14 @@ function TicketsContent() {
         {/* Tickets Grid / List */}
         <div className="space-y-3">
           {isLoading ? (
-            <div className="py-12 text-center text-xs text-slate-400">
-              Memuat data tiket bantuan...
-            </div>
+            <LoadingState message="Memuat data tiket bantuan..." />
           ) : tickets.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
-              <CheckCircle className="w-8 h-8 text-emerald-500" />
-              <span>Tidak ada tiket yang cocok dengan kriteria filter.</span>
-            </div>
+            <EmptyState
+              className="bg-white rounded-2xl border border-slate-200 p-12"
+              icon={CheckCircle}
+              iconClassName="text-emerald-500"
+              title="Tidak ada tiket yang cocok dengan kriteria filter."
+            />
           ) : (
             tickets.map((t) => (
               <div
@@ -193,33 +194,14 @@ function TicketsContent() {
                       {t.ticket_number}
                     </span>
 
-                    <span
-                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                        t.urgency === "DARURAT"
-                          ? "bg-rose-100 text-rose-800 animate-pulse"
-                          : t.urgency === "TINGGI"
-                          ? "bg-amber-100 text-amber-800"
-                          : t.urgency === "SEDANG"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-slate-100 text-slate-700"
-                      }`}
-                    >
-                      Urgensi: {t.urgency}
-                    </span>
+                    <StatusBadge
+                      status={t.urgency}
+                      variant="urgency"
+                      label={`Urgensi: ${t.urgency}`}
+                      className={t.urgency === "DARURAT" ? "animate-pulse" : undefined}
+                    />
 
-                    <span
-                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                        t.status === "MENUNGGU"
-                          ? "bg-amber-100 text-amber-800"
-                          : t.status === "DIPROSES"
-                          ? "bg-blue-100 text-blue-800"
-                          : t.status === "SELESAI"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-slate-100 text-slate-700"
-                      }`}
-                    >
-                      Status: {t.status}
-                    </span>
+                    <StatusBadge status={t.status} label={`Status: ${t.status}`} />
 
                     <span className="text-[11px] text-slate-400 ml-auto hidden sm:inline">
                       {t.created_at}
@@ -288,28 +270,22 @@ function TicketsContent() {
       </main>
 
       {/* IT Support Action Modal */}
-      {activeTicket && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[95vh]">
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
-                  <Wrench className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-800 text-base">Tindak Lanjuti Tiket IT</h3>
-                  <p className="text-xs text-slate-500 font-mono">{activeTicket.ticket_number}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setActiveTicket(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveTicketUpdate} className="p-5 overflow-y-auto space-y-4">
+      <Modal
+        isOpen={!!activeTicket}
+        onClose={() => setActiveTicket(null)}
+        title="Tindak Lanjuti Tiket IT"
+        description={
+          activeTicket ? (
+            <span className="font-mono">{activeTicket.ticket_number}</span>
+          ) : undefined
+        }
+        icon={Wrench}
+        iconClassName="bg-blue-100 text-blue-600"
+        size="md"
+        bodyClassName="p-0"
+      >
+        {activeTicket && (
+          <form onSubmit={handleSaveTicketUpdate} className="p-5 overflow-y-auto space-y-4">
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
                 <div className="font-bold text-slate-800">{activeTicket.problem_title}</div>
                 <div className="text-slate-500">{activeTicket.shop_location} • Aset: {activeTicket.asset_code}</div>
@@ -382,9 +358,8 @@ function TicketsContent() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* New Ticket Modal */}
       <TicketModal
