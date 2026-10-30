@@ -28,6 +28,8 @@ const ROOT = path.resolve(HERE, "..");
 const BASE_URL = (process.env.BASE_URL || "http://localhost:3000").replace(/\/+$/, "");
 const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS || 150_000);
 const SLOW_MS = Number(process.env.SMOKE_SLOW_MS || 500);
+// Budget performa: setelah warm-up, request yang lebih lambat dari ini = FAIL.
+const LATENCY_BUDGET_MS = Number(process.env.SMOKE_LATENCY_BUDGET_MS || 1500);
 
 /* ------------------------------------------------------------------ */
 /* Utilitas kecil                                                      */
@@ -144,6 +146,7 @@ async function callApi(endpoint, { method = "GET", body, expectedStatus = 200 } 
 function finalize(result, validate) {
   if (result.parseError || result.error) return result;
   if (validate) validate(result.json, result.checks, result);
+  add(result.checks, `latency ≤ ${LATENCY_BUDGET_MS}ms (budget)`, result.latencyMs <= LATENCY_BUDGET_MS, `${result.latencyMs}ms`);
   result.ok = result.httpStatus === result.expectedStatus && result.checks.every((c) => c.ok);
   return result;
 }
@@ -287,6 +290,58 @@ function validateDetail(body, checks, result) {
     if (result.endpoint.startsWith("/api/assets/")) expectArray(checks, body, "tickets");
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Kasus NEGATIF read-only: id tidak ada, query invalid, traversal.    */
+/* Kontrak error seharusnya `message` (bukan `error`) — pelanggaran     */
+/* dicatat sebagai contractViolation, tidak menggagalkan run (bug      */
+/* diketahui dan belum diperbaiki, lihat docs/BUGS.md B5).             */
+/* ------------------------------------------------------------------ */
+
+function validateNegative(body, checks, result) {
+  const spec = result.negativeSpec;
+  if (spec.expectSuccess) {
+    add(checks, "success true", body.success === true, `success=${String(body.success)}`);
+    if (spec.field) expectArray(checks, body, spec.field);
+    return;
+  }
+
+  add(checks, "success false", body.success === false, `success=${String(body.success)}`);
+  add(checks, "tidak fatal (HTTP < 500)", result.httpStatus < 500, `HTTP ${String(result.httpStatus)}`);
+
+  const hasMessage = typeof body.message === "string" && body.message.length > 0;
+  if (!hasMessage) {
+    result.contractViolation = {
+      endpoint: result.endpoint,
+      method: result.method,
+      httpStatus: result.httpStatus,
+      actualField: typeof body.error === "string" ? "error" : "(tidak ada field pesan)",
+      sample: String(body.error ?? body.message ?? "").slice(0, 140),
+    };
+  } else {
+    add(checks, "kontrak error memakai message", true);
+  }
+}
+
+const NEGATIVE_GET = [
+  { endpoint: "/api/assets/__qa_not_found__", label: "NEG detail aset tidak ada", expectedStatus: 404, expectSuccess: false },
+  { endpoint: "/api/dvr/999999", label: "NEG detail DVR tidak ada", expectedStatus: 404, expectSuccess: false },
+  { endpoint: "/api/edc/999999", label: "NEG detail EDC tidak ada", expectedStatus: 404, expectSuccess: false },
+  { endpoint: "/api/extensions/999999", label: "NEG detail ekstensi tidak ada", expectedStatus: 404, expectSuccess: false },
+  { endpoint: "/api/knowledge-base/999999", label: "NEG detail artikel tidak ada", expectedStatus: 404, expectSuccess: false },
+  { endpoint: "/api/knowledge-base/abc", label: "NEG id artikel bukan angka", expectedStatus: 400, expectSuccess: false },
+  { endpoint: "/api/office/999999", label: "NEG detail office tidak ada", expectedStatus: 404, expectSuccess: false },
+  { endpoint: "/api/pos-hardware/999999", label: "NEG detail POS tidak ada", expectedStatus: 404, expectSuccess: false },
+  { endpoint: "/api/t3-assets/999999", label: "NEG detail T3 tidak ada", expectedStatus: 404, expectSuccess: false },
+  { endpoint: "/api/users/999999", label: "NEG detail user tidak ada", expectedStatus: 404, expectSuccess: false },
+  { endpoint: "/api/assets/..%2F..%2Fpackage.json", label: "NEG traversal aset", expectedStatus: 404, expectSuccess: false },
+  { endpoint: "/api/office/..%2F..%2F..%2Fetc%2Fpasswd", label: "NEG traversal office", expectedStatus: 404, expectSuccess: false },
+  { endpoint: "/api/assets?status=%00&search=%25&shop=..%2F", label: "NEG query invalid aset tidak crash", expectedStatus: 200, expectSuccess: true, field: "data" },
+  { endpoint: "/api/monitoring?location=ZZZ&ping=false", label: "NEG lokasi tak dikenal", expectedStatus: 200, expectSuccess: true, field: "data" },
+  { endpoint: "/api/purchases?status=NGARANG", label: "NEG status purchase ngawur", expectedStatus: 200, expectSuccess: true, field: "data" },
+  { endpoint: "/api/tickets?urgency=NGARANG", label: "NEG urgensi tiket ngawur", expectedStatus: 200, expectSuccess: true, field: "data" },
+  { endpoint: "/api/knowledge-base?search=%00%25_%27&category=NGARANG", label: "NEG search KB karakter aneh", expectedStatus: 200, expectSuccess: true, field: "articles" },
+];
 
 /* ------------------------------------------------------------------ */
 /* Deteksi rute GET di filesystem (jaring pengaman rute baru)          */
@@ -447,6 +502,17 @@ async function main() {
     recorded(result);
   }
 
+  // 2b) Kasus NEGATIF read-only (tidak mengubah data): id tidak ada,
+  //     query param tidak valid, dan upaya path traversal.
+  await warmUp(NEGATIVE_GET.map((spec) => spec.endpoint), "endpoint GET negatif");
+  for (const spec of NEGATIVE_GET) {
+    const raw = await callApi(spec.endpoint, { expectedStatus: spec.expectedStatus });
+    raw.negativeSpec = spec;
+    const result = finalize(raw, validateNegative);
+    result.label = spec.label;
+    recorded(result);
+  }
+
   // 3) Endpoint opsional (mis. /api/health dari agent backend)
   for (const spec of OPTIONAL_GET) {
     const raw = await callApi(spec.endpoint);
@@ -489,6 +555,31 @@ async function main() {
   });
   wrongLogin.label = "Login salah (mis/salah)";
   recorded(wrongLogin);
+
+  // 4c) Login negatif: field kosong (400) dan user tidak terdaftar (401)
+  const missingLogin = await callApi("/api/auth/login", {
+    method: "POST",
+    body: { username: "mis" },
+    expectedStatus: 400,
+  });
+  finalize(missingLogin, (body, checks) => {
+    add(checks, "success false", body.success === false, `success=${String(body.success)}`);
+    add(checks, "message string", typeof body.message === "string" && body.message.length > 0, typeOf(body.message));
+  });
+  missingLogin.label = "Login field kosong (400)";
+  recorded(missingLogin);
+
+  const unknownLogin = await callApi("/api/auth/login", {
+    method: "POST",
+    body: { username: "user-tidak-ada-qa", password: "apa-saja" },
+    expectedStatus: 401,
+  });
+  finalize(unknownLogin, (body, checks) => {
+    add(checks, "success false", body.success === false, `success=${String(body.success)}`);
+    add(checks, "message string", typeof body.message === "string" && body.message.length > 0, typeOf(body.message));
+  });
+  unknownLogin.label = "Login user tidak terdaftar (401)";
+  recorded(unknownLogin);
 
   // 4b) Probe keamanan (informational): backdoor password "123" untuk user lain
   //     Hanya POST /api/auth/login (read-only), tidak mengubah data.
@@ -559,6 +650,15 @@ async function main() {
   }
   warnings.push("[SIDE-EFFECT] GET /api/monitoring?ping=true melakukan UPDATE monitoring_devices — smoke test sengaja TIDAK memanggil query itu.");
 
+  // Pelanggaran kontrak error (field `message`) pada kasus negatif — dicatat,
+  // bukan FAIL karena bug pre-existing belum boleh diperbaiki QA.
+  const contractViolations = results.filter((r) => r.contractViolation).map((r) => r.contractViolation);
+  for (const violation of contractViolations) {
+    warnings.push(
+      `[KONTRAK] ${violation.method} ${violation.endpoint} → HTTP ${violation.httpStatus} memakai field "${violation.actualField}" bukan "message" (contoh: ${violation.sample}).`
+    );
+  }
+
   // 7) Bandingkan dengan route.ts di filesystem (deteksi rute GET belum tercakup)
   const covered = new Set([
     ...GET_LISTS.map((s) => normalizeRoute(s.endpoint)),
@@ -600,6 +700,8 @@ async function main() {
     fail: failed.length,
     skipped: skipped.length,
     slow: slowCount,
+    negative: results.filter((r) => r.negativeSpec).length,
+    contractViolations: contractViolations.length,
     crossCheckPass: crossChecks.filter((c) => c.ok).length,
     crossCheckFail: crossChecks.filter((c) => !c.ok).length,
   };
@@ -619,7 +721,7 @@ async function main() {
   const widths = header.map((h, i) => Math.max(h.length, ...rows.map((row) => row[i].length)));
   const line = (cells) => cells.map((cell, i) => cell.padEnd(widths[i])).join(" | ");
 
-  console.log(`\nMIS SHOP OPS — API smoke test (read-only)\nBase URL : ${BASE_URL}\nWaktu     : ${startedAt.toISOString()}\nAmbang    : ${SLOW_MS}ms (ditandai LAMBAT, bukan FAIL)\nLatency   : diukur SETELAH warm-up (bukan cold compile Next.js dev)\n`);
+  console.log(`\nMIS SHOP OPS — API smoke test (read-only)\nBase URL : ${BASE_URL}\nWaktu     : ${startedAt.toISOString()}\nAmbang    : ${SLOW_MS}ms (ditandai LAMBAT)\nBudget    : ${LATENCY_BUDGET_MS}ms setelah warm-up (lebih lambat = FAIL)\nLatency   : diukur SETELAH warm-up (bukan cold compile Next.js dev)\n`);
   console.log(line(header));
   console.log(widths.map((width) => "-".repeat(width)).join("-+-"));
   for (const row of rows) {
@@ -648,7 +750,7 @@ async function main() {
 
   const durationMs = Date.now() - runStarted;
   console.log(
-    `\nHASIL: ${summary.pass} PASS · ${summary.fail} FAIL · ${summary.skipped} SKIP · ${summary.slow} lambat (>${SLOW_MS}ms)\nDurasi: ${(durationMs / 1000).toFixed(1)}s\nLaporan JSON: tests/last-run.json\n`
+    `\nHASIL: ${summary.pass} PASS · ${summary.fail} FAIL · ${summary.skipped} SKIP · ${summary.slow} lambat (>${SLOW_MS}ms) · ${summary.negative} kasus negatif · ${summary.contractViolations} pelanggaran kontrak\nBudget: ${LATENCY_BUDGET_MS}ms setelah warm-up\nDurasi: ${(durationMs / 1000).toFixed(1)}s\nLaporan JSON: tests/last-run.json\n`
   );
 
   /* ---------------- tests/last-run.json ---------------- */
@@ -657,15 +759,18 @@ async function main() {
     baseUrl: BASE_URL,
     node: process.version,
     slowThresholdMs: SLOW_MS,
-    latencyNote: "Latency diukur setelah warm-up; dev server Next.js compile on-demand.",
+    latencyBudgetMs: LATENCY_BUDGET_MS,
+    latencyNote: "Latency diukur setelah warm-up; server produksi (npm run start) pada shift 2.",
     durationMs,
     summary,
     crossChecks,
+    contractViolations,
     warnings,
     results: results.map((r) => ({
       method: r.method,
       endpoint: r.endpoint,
       label: r.label || "",
+      negative: Boolean(r.negativeSpec),
       expectedStatus: r.expectedStatus,
       httpStatus: r.httpStatus,
       latencyMs: r.latencyMs,
@@ -675,6 +780,7 @@ async function main() {
       note: r.note,
       error: r.error,
       parseError: r.parseError,
+      contractViolation: r.contractViolation || null,
       checks: r.checks,
       textPreview: r.textPreview,
     })),

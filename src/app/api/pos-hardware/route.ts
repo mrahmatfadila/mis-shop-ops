@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError, ok, parseFilters, requireFields } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -7,12 +8,19 @@ export async function GET(request: Request) {
   try {
     await initDb();
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
-    const shop = searchParams.get("shop") || "";
-    const terminal = searchParams.get("terminal") || "";
-    const zone = searchParams.get("zone") || "";
-    const brand = searchParams.get("brand") || "";
-    const status = searchParams.get("status") || "";
+    const { search, shop, terminal, zone, brand, status } = parseFilters(
+      searchParams,
+      {
+        allowed: ["search", "shop", "terminal", "zone", "brand", "status"],
+        ignoreByKey: {
+          shop: ["Semua Toko", "ALL", "Semua"],
+          terminal: ["Semua Terminal", "Semua Terminal / Lokasi", "ALL"],
+          zone: ["Semua Counter Kasir", "Semua Zona", "ALL"],
+          brand: ["Semua Brand Unit POS", "Semua Brand", "ALL"],
+          status: ["ALL", "Semua Status", "Semua"],
+        },
+      }
+    );
 
     let sql = `
       SELECT 
@@ -76,12 +84,12 @@ export async function GET(request: Request) {
     `;
     const args: any[] = [];
 
-    if (shop && shop !== "Semua Toko" && shop !== "ALL" && shop !== "Semua") {
+    if (shop) {
       sql += " AND p.shop_name = ?";
       args.push(shop);
     }
 
-    if (terminal && terminal !== "Semua Terminal" && terminal !== "Semua Terminal / Lokasi" && terminal !== "ALL") {
+    if (terminal) {
       if (terminal.toLowerCase().includes("surabaya")) {
         sql += " AND p.terminal LIKE 'Surabaya%'";
       } else {
@@ -90,17 +98,17 @@ export async function GET(request: Request) {
       }
     }
 
-    if (zone && zone !== "Semua Counter Kasir" && zone !== "Semua Zona" && zone !== "ALL") {
+    if (zone) {
       sql += " AND p.counter_zone = ?";
       args.push(zone);
     }
 
-    if (brand && brand !== "Semua Brand Unit POS" && brand !== "Semua Brand" && brand !== "ALL") {
+    if (brand) {
       sql += " AND p.pos_brand = ?";
       args.push(brand);
     }
 
-    if (status && status !== "ALL" && status !== "Semua Status" && status !== "Semua") {
+    if (status) {
       sql += " AND p.status = ?";
       args.push(status);
     }
@@ -134,12 +142,9 @@ export async function GET(request: Request) {
     sql += " ORDER BY p.shop_name ASC, p.counter_zone ASC, p.pos_code ASC, p.pos_number ASC";
 
     const result = await db.execute({ sql, args });
-    return NextResponse.json({ success: true, data: result.rows });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal memuat data perangkat POS." },
-      { status: 500 }
-    );
+    return ok(result.rows);
+  } catch (error) {
+    return jsonError(error, "Gagal memuat data perangkat POS.");
   }
 }
 
@@ -176,11 +181,10 @@ export async function POST(request: Request) {
       notes = "",
     } = body;
 
-    if (!pos_code) {
-      return NextResponse.json(
-        { success: false, message: "Kode Pos (pos_code) wajib diisi." },
-        { status: 400 }
-      );
+    const { missing } = requireFields(body, ["pos_code"]);
+
+    if (missing.length > 0) {
+      return fail("Kode Pos (pos_code) wajib diisi.", 400);
     }
 
     await db.execute({
@@ -207,11 +211,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, message: "Data perangkat POS berhasil ditambahkan!" });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal menambah data perangkat POS." },
-      { status: 500 }
-    );
+  } catch (error) {
+    return jsonError(error, "Gagal menambah data perangkat POS.");
   }
 }
 

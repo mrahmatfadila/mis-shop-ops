@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError, ok } from "@/lib/api";
 
 export async function GET(
   request: Request,
@@ -14,12 +15,12 @@ export async function GET(
     });
 
     if (result.rows.length === 0) {
-      return NextResponse.json({ success: false, message: "Data EDC tidak ditemukan" }, { status: 404 });
+      return fail("Data EDC tidak ditemukan", 404);
     }
 
-    return NextResponse.json({ success: true, data: result.rows[0] });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return ok(result.rows[0]);
+  } catch (error) {
+    return jsonError(error);
   }
 }
 
@@ -66,8 +67,8 @@ export async function PUT(
     });
 
     return NextResponse.json({ success: true, message: "Data EDC berhasil diperbarui!" });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error) {
+    return jsonError(error);
   }
 }
 
@@ -85,8 +86,8 @@ export async function DELETE(
     });
 
     return NextResponse.json({ success: true, message: "Data EDC berhasil dihapus!" });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error) {
+    return jsonError(error);
   }
 }
 

@@ -1,0 +1,108 @@
+{
+  "generatedAt": "2026-10-30T17:29:42.280Z",
+  "baseUrl": "http://localhost:3000",
+  "baselineRows": 982,
+  "durationMs": 1932,
+  "pass": true,
+  "checks": [
+    {
+      "name": "smoke test exit 0",
+      "ok": true,
+      "detail": "exit=0; 47 PASS / 0 FAIL",
+      "fatal": true
+    },
+    {
+      "name": "health 200 + success true + db ok",
+      "ok": true,
+      "detail": "HTTP 200, db=ok, tables=15, wal=wal",
+      "fatal": true
+    },
+    {
+      "name": "total baris DB = baseline 982",
+      "ok": true,
+      "detail": "actual=982 | stats (11 tabel)=784, users=43, tickets=2, role_permissions=130, server_rack_units=23",
+      "fatal": true
+    }
+  ],
+  "warnings": [
+    "[KEAMANAN] Field \"password\" masih bocor di GET /api/users (list 43 baris + detail /api/users/[id]) — belum diperbaiki, lihat docs/BUGS.md B2.",
+    "[KONTRAK] GET /api/knowledge-base/999999 → \"error\" bukan \"message\" (belum diperbaiki, BUGS B5).",
+    "[KONTRAK] GET /api/knowledge-base/abc → \"error\" bukan \"message\" (belum diperbaiki, BUGS B5)."
+  ],
+  "smoke": {
+    "exitCode": 0,
+    "generatedAt": "2026-10-30T17:29:42.449Z",
+    "summary": {
+      "total": 47,
+      "tested": 47,
+      "pass": 47,
+      "fail": 0,
+      "skipped": 0,
+      "slow": 0,
+      "negative": 17,
+      "contractViolations": 2,
+      "crossCheckPass": 11,
+      "crossCheckFail": 0
+    },
+    "contractViolations": [
+      {
+        "endpoint": "/api/knowledge-base/999999",
+        "method": "GET",
+        "httpStatus": 404,
+        "actualField": "error",
+        "sample": "Artikel panduan tidak ditemukan"
+      },
+      {
+        "endpoint": "/api/knowledge-base/abc",
+        "method": "GET",
+        "httpStatus": 400,
+        "actualField": "error",
+        "sample": "ID tidak valid"
+      }
+    ]
+  },
+  "health": {
+    "status": 200,
+    "json": {
+      "success": true,
+      "db": "ok",
+      "tables": 15,
+      "wal": "wal",
+      "uptimeSec": 26
+    },
+    "latencyMs": 182
+  },
+  "dbRows": {
+    "actual": 982,
+    "baseline": 982,
+    "match": true,
+    "components": [
+      {
+        "label": "stats (11 tabel)",
+        "value": 784
+      },
+      {
+        "label": "users",
+        "value": 43
+      },
+      {
+        "label": "tickets",
+        "value": 2
+      },
+      {
+        "label": "role_permissions",
+        "value": 130
+      },
+      {
+        "label": "server_rack_units",
+        "value": 23
+      }
+    ]
+  },
+  "passwordLeak": {
+    "detected": true,
+    "list": true,
+    "detail": true,
+    "rows": 43
+  }
+}

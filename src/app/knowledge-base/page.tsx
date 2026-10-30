@@ -1,12 +1,18 @@
 "use client";
 
-import { useState, useEffect, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
+import StatCard from "@/components/common/StatCard";
+import SearchInput from "@/components/common/SearchInput";
+import LoadingState from "@/components/common/LoadingState";
+import EmptyState from "@/components/common/EmptyState";
+import StatusBadge from "@/components/common/StatusBadge";
+import { useApiData } from "@/hooks/useApiData";
+import { formatDate, formatNumber } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { KnowledgeBaseArticle } from "@/types";
 import {
   BookOpen,
-  Search,
   Plus,
   Pin,
   CheckCircle2,
@@ -84,6 +90,22 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string
   },
 };
 
+type KbStats = {
+  total_articles: number;
+  pinned_count: number;
+  total_views: number;
+  total_helpful: number;
+};
+
+type KbPayload = { articles: KnowledgeBaseArticle[]; stats: KbStats };
+
+const EMPTY_KB_STATS: KbStats = {
+  total_articles: 0,
+  pinned_count: 0,
+  total_views: 0,
+  total_helpful: 0,
+};
+
 function KnowledgeBaseContent() {
   const { user, isAdmin, isMIS, isManager, isSPVPlazaBali, isSPVSam } = useAuth();
 
@@ -91,15 +113,26 @@ function KnowledgeBaseContent() {
   const canEdit = isMIS || isAdmin || isManager;
   const isSPV = isSPVPlazaBali || isSPVSam;
 
-  // Data states
-  const [articles, setArticles] = useState<KnowledgeBaseArticle[]>([]);
-  const [stats, setStats] = useState({
-    total_articles: 0,
-    pinned_count: 0,
-    total_views: 0,
-    total_helpful: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  // Data artikel dari API (SWR cache) — endpoint tetap /api/knowledge-base
+  const { data: kbData, isLoading, refresh: fetchArticles } = useApiData<KbPayload>(
+    "/api/knowledge-base",
+    {
+      cacheKey: "knowledge_base_articles",
+      transform: (json) => {
+        const res = json as {
+          success?: boolean;
+          articles?: KnowledgeBaseArticle[];
+          stats?: KbStats;
+        };
+        return {
+          articles: res.success && Array.isArray(res.articles) ? res.articles : [],
+          stats: res.stats ?? EMPTY_KB_STATS,
+        };
+      },
+    }
+  );
+  const articles = kbData?.articles ?? [];
+  const stats = kbData?.stats ?? EMPTY_KB_STATS;
 
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState("Semua");
@@ -128,29 +161,6 @@ function KnowledgeBaseContent() {
 
   // Delete State
   const [deletingId, setDeletingId] = useState<number | null>(null);
-
-  // Fetch articles from API
-  const fetchArticles = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/knowledge-base");
-      const data = await res.json();
-      if (data.success) {
-        setArticles(data.articles || []);
-        if (data.stats) {
-          setStats(data.stats);
-        }
-      }
-    } catch (err) {
-      console.error("Error fetching knowledge base:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchArticles();
-  }, []);
 
   // Filtered articles
   const filteredArticles = useMemo(() => {
@@ -184,13 +194,10 @@ function KnowledgeBaseContent() {
   const handleOpenReader = async (article: KnowledgeBaseArticle) => {
     setReadingArticle(article);
     setCompletedSteps({});
-    // Trigger view count increment
+    // Trigger view count increment lalu segarkan data dari API
     try {
-      fetch(`/api/knowledge-base/${article.id}`);
-      // Optimistic increment in local state
-      setArticles((prev) =>
-        prev.map((a) => (a.id === article.id ? { ...a, view_count: a.view_count + 1 } : a))
-      );
+      await fetch(`/api/knowledge-base/${article.id}`);
+      fetchArticles();
     } catch (e) {}
   };
 
@@ -202,12 +209,10 @@ function KnowledgeBaseContent() {
       const data = await res.json();
       if (data.success) {
         setHasVotedHelpful((prev) => ({ ...prev, [id]: true }));
-        setArticles((prev) =>
-          prev.map((a) => (a.id === id ? { ...a, helpful_count: data.helpful_count } : a))
-        );
         if (readingArticle && readingArticle.id === id) {
           setReadingArticle((prev) => (prev ? { ...prev, helpful_count: data.helpful_count } : null));
         }
+        fetchArticles();
       }
     } catch (e) {
       console.error(e);
@@ -443,45 +448,60 @@ function KnowledgeBaseContent() {
 
           {/* 4 KPI Summary Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-6 pt-6 border-t border-slate-100">
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/70 border border-slate-100">
-              <span className="text-xs font-medium text-slate-500 block">Total Panduan</span>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-xl sm:text-2xl font-black text-slate-900">
-                  {stats.total_articles}
+            <StatCard
+              label="Total Panduan"
+              value={
+                <span className="flex items-baseline gap-2">
+                  <span className="text-xl sm:text-2xl font-black text-slate-900">
+                    {formatNumber(stats.total_articles)}
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-medium">Artikel SOP</span>
                 </span>
-                <span className="text-[11px] text-slate-400 font-medium">Artikel SOP</span>
-              </div>
-            </div>
+              }
+              className="p-3.5 sm:p-4 bg-slate-50/70 border-slate-100 shadow-none"
+            />
 
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50/60 border border-amber-100">
-              <span className="text-xs font-medium text-amber-800 block">SOP Utama (Pinned)</span>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-xl sm:text-2xl font-black text-amber-900">
-                  {stats.pinned_count}
+            <StatCard
+              label="SOP Utama (Pinned)"
+              value={
+                <span className="flex items-baseline gap-2">
+                  <span className="text-xl sm:text-2xl font-black text-amber-900">
+                    {formatNumber(stats.pinned_count)}
+                  </span>
+                  <span className="text-[11px] text-amber-700 font-medium">Prioritas Kasir</span>
                 </span>
-                <span className="text-[11px] text-amber-700 font-medium">Prioritas Kasir</span>
-              </div>
-            </div>
+              }
+              className="p-3.5 sm:p-4 bg-amber-50/60 border-amber-100 shadow-none"
+              labelClassName="text-amber-800 font-medium"
+            />
 
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-blue-50/60 border border-blue-100">
-              <span className="text-xs font-medium text-blue-800 block">Total Pembaca</span>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-xl sm:text-2xl font-black text-blue-900">
-                  {stats.total_views}
+            <StatCard
+              label="Total Pembaca"
+              value={
+                <span className="flex items-baseline gap-2">
+                  <span className="text-xl sm:text-2xl font-black text-blue-900">
+                    {formatNumber(stats.total_views)}
+                  </span>
+                  <span className="text-[11px] text-blue-700 font-medium">Kali Dibaca</span>
                 </span>
-                <span className="text-[11px] text-blue-700 font-medium">Kali Dibaca</span>
-              </div>
-            </div>
+              }
+              className="p-3.5 sm:p-4 bg-blue-50/60 border-blue-100 shadow-none"
+              labelClassName="text-blue-800 font-medium"
+            />
 
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100">
-              <span className="text-xs font-medium text-emerald-800 block">Solusi Membantu SPV</span>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-xl sm:text-2xl font-black text-[#006622]">
-                  {stats.total_helpful}
+            <StatCard
+              label="Solusi Membantu SPV"
+              value={
+                <span className="flex items-baseline gap-2">
+                  <span className="text-xl sm:text-2xl font-black text-[#006622]">
+                    {formatNumber(stats.total_helpful)}
+                  </span>
+                  <span className="text-[11px] text-emerald-700 font-medium">Upvote Jempol</span>
                 </span>
-                <span className="text-[11px] text-emerald-700 font-medium">Upvote Jempol</span>
-              </div>
-            </div>
+              }
+              className="p-3.5 sm:p-4 bg-emerald-50/60 border-emerald-100 shadow-none"
+              labelClassName="text-emerald-800 font-medium"
+            />
           </div>
         </div>
 
@@ -489,24 +509,13 @@ function KnowledgeBaseContent() {
         <div className="bg-white border border-slate-200/80 rounded-3xl p-4 sm:p-5 shadow-sm space-y-4">
           <div className="flex flex-col md:flex-row gap-3">
             {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari solusi kendala (misal: EDC offline, printer macet, restart POS, scanner paspor)..."
-                className="w-full pl-11 pr-4 py-2.5 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#006622]/20 focus:border-[#006622] text-sm text-slate-800 placeholder:text-slate-400 transition-all"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onClear={() => setSearchQuery("")}
+              placeholder="Cari solusi kendala (misal: EDC offline, printer macet, restart POS, scanner paspor)..."
+              inputClassName="pl-11 pr-4 py-2.5 rounded-2xl border-slate-200 focus:ring-[#006622]/20 focus:border-[#006622] text-sm text-slate-800 placeholder:text-slate-400 transition-all"
+            />
 
             {/* Scope Filter */}
             <div className="flex items-center gap-2">
@@ -547,27 +556,29 @@ function KnowledgeBaseContent() {
 
         {/* Articles List / Grid */}
         {isLoading ? (
-          <div className="py-20 text-center space-y-3">
-            <RefreshCw className="w-8 h-8 text-[#006622] animate-spin mx-auto" />
-            <p className="text-sm font-medium text-slate-600">Memuat panduan Knowledge Base...</p>
-          </div>
+          <LoadingState
+            className="py-20"
+            message="Memuat panduan Knowledge Base..."
+          />
         ) : filteredArticles.length === 0 ? (
-          <div className="py-16 text-center bg-white border border-dashed border-slate-200 rounded-3xl p-8">
-            <FolderOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <h3 className="text-base font-bold text-slate-800">Tidak ada panduan yang cocok</h3>
-            <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-              Tidak ditemukan artikel untuk kata kunci atau kategori yang dipilih.
-            </p>
-            {canEdit && (
-              <button
-                onClick={() => handleOpenEditor()}
-                className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#006622] text-white text-xs font-bold"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Buat Panduan Untuk Topik Ini
-              </button>
-            )}
-          </div>
+          <EmptyState
+            className="py-16 bg-white border border-dashed border-slate-200 rounded-3xl"
+            icon={FolderOpen}
+            iconClassName="w-12 h-12 text-slate-300"
+            title="Tidak ada panduan yang cocok"
+            description="Tidak ditemukan artikel untuk kata kunci atau kategori yang dipilih."
+            action={
+              canEdit ? (
+                <button
+                  onClick={() => handleOpenEditor()}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#006622] text-white text-xs font-bold"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Buat Panduan Untuk Topik Ini
+                </button>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredArticles.map((article) => {
@@ -604,9 +615,10 @@ function KnowledgeBaseContent() {
                         </span>
 
                         {article.store_scope && article.store_scope !== "Semua Toko" && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-                            {article.store_scope}
-                          </span>
+                          <StatusBadge
+                            status={article.store_scope}
+                            className="rounded-lg px-2 py-0.5 text-[10px] font-semibold"
+                          />
                         )}
                       </div>
 
@@ -726,11 +738,7 @@ function KnowledgeBaseContent() {
                   <p className="text-xs text-slate-500 mt-1">
                     Diterbitkan oleh tim{" "}
                     <strong className="text-slate-700">{readingArticle.author_name}</strong> • Diperbarui:{" "}
-                    {new Date(readingArticle.updated_at || Date.now()).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                    {formatDate(readingArticle.updated_at || Date.now())}
                   </p>
                 </div>
 

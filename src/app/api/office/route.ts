@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError, ok, parseFilters, requireFields } from "@/lib/api";
 
 export async function GET(request: Request) {
   try {
     await initDb();
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
-    const location = searchParams.get("location") || "";
-    const division = searchParams.get("division") || "";
-    const status = searchParams.get("status") || "";
-    const deviceType = searchParams.get("device_type") || "";
+    const { search, location, division, status, device_type: deviceType } = parseFilters(searchParams, {
+      allowed: ["search", "location", "division", "status", "device_type"],
+      ignoreByKey: {
+        location: ["Semua Lokasi", "ALL", "Semua"],
+        division: ["Semua Divisi", "ALL", "Semua"],
+        status: ["Semua Status", "ALL", "Semua"],
+        device_type: ["Semua Tipe", "ALL", "Semua"],
+      },
+    });
 
     let sql = `
       SELECT o.*, m.status as ping_status, m.response_time_ms, m.last_heartbeat
@@ -19,22 +24,22 @@ export async function GET(request: Request) {
     `;
     const args: any[] = [];
 
-    if (location && location !== "Semua Lokasi" && location !== "ALL" && location !== "Semua") {
+    if (location) {
       sql += " AND (o.office_location = ? OR (o.office_location IS NULL AND ? = 'Head Office'))";
       args.push(location, location);
     }
 
-    if (division && division !== "Semua Divisi" && division !== "ALL" && division !== "Semua") {
+    if (division) {
       sql += " AND o.division = ?";
       args.push(division);
     }
 
-    if (status && status !== "Semua Status" && status !== "ALL" && status !== "Semua") {
+    if (status) {
       sql += " AND o.status = ?";
       args.push(status);
     }
 
-    if (deviceType && deviceType !== "Semua Tipe" && deviceType !== "ALL" && deviceType !== "Semua") {
+    if (deviceType) {
       sql += " AND o.device_type = ?";
       args.push(deviceType);
     }
@@ -63,12 +68,9 @@ export async function GET(request: Request) {
     sql += " ORDER BY o.item_no ASC, o.id ASC";
 
     const result = await db.execute({ sql, args });
-    return NextResponse.json({ success: true, data: result.rows });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal memuat data perangkat office." },
-      { status: 500 }
-    );
+    return ok(result.rows);
+  } catch (error) {
+    return jsonError(error, "Gagal memuat data perangkat office.");
   }
 }
 
@@ -100,11 +102,10 @@ export async function POST(request: Request) {
       notes = "",
     } = body;
 
-    if (!user_name) {
-      return NextResponse.json(
-        { success: false, message: "Nama Pengguna / Unit wajib diisi." },
-        { status: 400 }
-      );
+    const { missing } = requireFields(body, ["user_name"]);
+
+    if (missing.length > 0) {
+      return fail("Nama Pengguna / Unit wajib diisi.", 400);
     }
 
     const finalCode = asset_code || `OFF-${division.slice(0, 3).toUpperCase()}-${Date.now().toString().slice(-4)}`;
@@ -152,11 +153,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, message: "Perangkat office berhasil ditambahkan!" });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal menambah data perangkat office." },
-      { status: 500 }
-    );
+  } catch (error) {
+    return jsonError(error, "Gagal menambah data perangkat office.");
   }
 }
 

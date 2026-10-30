@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError, ok } from "@/lib/api";
 
 export async function GET(
   request: Request,
@@ -14,12 +15,12 @@ export async function GET(
     });
 
     if (result.rows.length === 0) {
-      return NextResponse.json({ success: false, message: "Pengguna tidak ditemukan." }, { status: 404 });
+      return fail("Pengguna tidak ditemukan.", 404);
     }
 
-    return NextResponse.json({ success: true, data: result.rows[0] });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return ok(result.rows[0]);
+  } catch (error) {
+    return jsonError(error);
   }
 }
 
@@ -40,7 +41,7 @@ export async function PUT(
     });
 
     if (existing.rows.length === 0) {
-      return NextResponse.json({ success: false, message: "Pengguna tidak ditemukan." }, { status: 404 });
+      return fail("Pengguna tidak ditemukan.", 404);
     }
 
     const current = existing.rows[0];
@@ -62,11 +63,8 @@ export async function PUT(
       success: true,
       message: `Data pengguna "${name}" (${current.username}) berhasil diperbarui!`,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal memperbarui pengguna." },
-      { status: 500 }
-    );
+  } catch (error) {
+    return jsonError(error, "Gagal memperbarui pengguna.");
   }
 }
 
@@ -85,17 +83,14 @@ export async function DELETE(
     });
 
     if (existing.rows.length === 0) {
-      return NextResponse.json({ success: false, message: "Pengguna tidak ditemukan." }, { status: 404 });
+      return fail("Pengguna tidak ditemukan.", 404);
     }
 
     const user = existing.rows[0];
 
     // Protect superadmin account
     if (user.username === "admin") {
-      return NextResponse.json(
-        { success: false, message: "Akun Super Administrator 'admin' tidak dapat dihapus!" },
-        { status: 403 }
-      );
+      return fail("Akun Super Administrator 'admin' tidak dapat dihapus!", 403);
     }
 
     await db.execute({
@@ -107,11 +102,8 @@ export async function DELETE(
       success: true,
       message: `Pengguna ${user.username} berhasil dihapus dari sistem!`,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal menghapus pengguna." },
-      { status: 500 }
-    );
+  } catch (error) {
+    return jsonError(error, "Gagal menghapus pengguna.");
   }
 }
 

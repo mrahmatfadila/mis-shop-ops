@@ -1,13 +1,14 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SearchInputProps {
   value: string;
   onChange: (value: string) => void;
   onSubmit?: (e: FormEvent<HTMLFormElement>) => void;
+  onClear?: () => void;
   placeholder?: string;
   className?: string;
   inputClassName?: string;
@@ -18,6 +19,7 @@ export default function SearchInput({
   value,
   onChange,
   onSubmit,
+  onClear,
   placeholder = "Cari data...",
   className,
   inputClassName,
@@ -35,6 +37,16 @@ export default function SearchInput({
           inputClassName
         )}
       />
+      {onClear && value && (
+        <button
+          type="button"
+          onClick={onClear}
+          aria-label="Hapus pencarian"
+          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      )}
     </form>
   );
 }

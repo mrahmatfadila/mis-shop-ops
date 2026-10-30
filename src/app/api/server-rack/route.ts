@@ -1,18 +1,26 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError, parseFilters, requireFields } from "@/lib/api";
 
 export async function GET(request: Request) {
   try {
     await initDb();
     const { searchParams } = new URL(request.url);
-    const rack = searchParams.get("rack") || "ALL";
-    const group = searchParams.get("group") || "";
-    const search = searchParams.get("search") || "";
+    const filters = parseFilters(searchParams, {
+      allowed: ["rack", "group", "search"],
+      ignoreByKey: {
+        rack: ["ALL"],
+        group: ["ALL"],
+      },
+    });
+    const rack = filters.rack || "ALL";
+    const group = filters.group;
+    const search = filters.search;
 
     let sql = "SELECT * FROM server_rack_ports WHERE 1=1";
     const args: any[] = [];
 
-    if (rack && rack !== "ALL") {
+    if (rack !== "ALL") {
       if (rack === "32U" || rack === "RACK_32U_MAIN") {
         sql += " AND (rack_type = 'RACK_32U_MAIN' OR rack_type IS NULL)";
       } else if (rack === "6U" || rack === "RACK_6U_WALLMOUNT") {
@@ -20,7 +28,7 @@ export async function GET(request: Request) {
       }
     }
 
-    if (group && group !== "ALL") {
+    if (group) {
       sql += " AND device_group = ?";
       args.push(group);
     }
@@ -86,12 +94,9 @@ export async function GET(request: Request) {
         rack6Count
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching server rack data:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal mengambil data rak server" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal mengambil data rak server");
   }
 }
 
@@ -116,11 +121,14 @@ export async function POST(request: Request) {
       notes = ""
     } = body;
 
-    if (!device_group || !port_no || !port_label) {
-      return NextResponse.json(
-        { success: false, message: "Grup perangkat, No Port, dan Label Port wajib diisi" },
-        { status: 400 }
-      );
+    const { missing } = requireFields(body, [
+      "device_group",
+      "port_no",
+      "port_label",
+    ]);
+
+    if (missing.length > 0) {
+      return fail("Grup perangkat, No Port, dan Label Port wajib diisi", 400);
     }
 
     const assignedRackType = rack_type || (device_group.startsWith("WALLMOUNT_") ? "RACK_6U_WALLMOUNT" : "RACK_32U_MAIN");
@@ -152,12 +160,9 @@ export async function POST(request: Request) {
       message: "Port mapping berhasil ditambahkan",
       id: insertResult.lastInsertRowid,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating server rack port:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal menambahkan port mapping" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal menambahkan port mapping");
   }
 }
 

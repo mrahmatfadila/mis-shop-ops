@@ -88,3 +88,39 @@ Semua `success` bernilai `true`, status HTTP 200. `PARITY_FAILURES=0`.
 - Tidak ditemukan bug respons baru pada 3 route yang dimigrasi; kontrak identik.
 - `GET /api/tickets` hanya mengembalikan 2 baris pada snapshot parity (data saat itu) — bukan regresi refactor; nilainya sama sebelum & sesudah.
 - `src/lib/db.ts` tidak disentuh (milik data agent); `initDb()` tetap dipanggil di awal handler seperti sebelumnya.
+
+## 7. Shift 2 — Batch A: migrasi 15 route (zero-behavior-change)
+
+Server `:3000` saat shift 2 berjalan **mode produksi** (`next start`), jadi perubahan source tidak hot-reload. Build ulang TIDAK dijalankan (dilarang); validasi source lewat `tsc` + review diff, dan smoke/spot-parity dijalankan terhadap server produksi yang hidup.
+
+15 route yang dimigrasi (helper dipakai):
+
+| # | File | Helper |
+|---|---|---|
+| 1 | `dvr/route.ts` | `ok`, `parseFilters`, `requireFields`, `fail`, `jsonError` |
+| 2 | `purchases/route.ts` | idem |
+| 3 | `users/route.ts` | idem (catatan: field `password` masih ikut terkirim — bug lama B2, TIDAK diubah) |
+| 4 | `office/route.ts` | idem |
+| 5 | `office/[id]/route.ts` | `ok`, `fail`, `jsonError` |
+| 6 | `pos-hardware/route.ts` | `ok`, `parseFilters`, `requireFields`, `fail`, `jsonError` |
+| 7 | `pos-hardware/[id]/route.ts` | `ok`, `fail`, `jsonError` |
+| 8 | `extensions/[id]/route.ts` | `ok`, `fail`, `jsonError` |
+| 9 | `edc/[id]/route.ts` | `ok`, `fail`, `jsonError` |
+| 10 | `dvr/[id]/route.ts` | `ok`, `fail`, `jsonError` |
+| 11 | `users/[id]/route.ts` | `ok`, `fail`, `jsonError` |
+| 12 | `t3-assets/route.ts` | `parseFilters`, `requireFields`, `fail`, `jsonError` (respons GET punya `stats` → shape inline dipertahankan) |
+| 13 | `server-rack/route.ts` | idem (respons punya `ports`, `rackUnits`, `stats`) |
+| 14 | `server-rack/[id]/route.ts` | `jsonError` |
+| 15 | `purchases/[id]/route.ts` | `jsonError` |
+
+Pola penggantian:
+- `catch (error: any) { NextResponse.json({ success: false, message: error.message || "..." }, { status: 500 }) }` → `jsonError(error, "...")`.
+- `NextResponse.json({ success: true, data: result.rows })` → `ok(result.rows)`.
+- Validasi `!a || !b || !c` → `const { missing } = requireFields(body, [...]); if (missing.length > 0) return fail("pesan lama", 400);`
+- Sentinel filter (`"ALL"`, `"Semua X"`, dll.) → `parseFilters` dengan `ignoreByKey` **per param** agar semantik persis seperti kode lama (mis. `edc` zone hanya mengabaikan `ALL`/`Semua Counter`, bukan `Semua`; `dvr` region/channels hanya `ALL`/`Semua`).
+
+Dipertahankan apa adanya (tidak dipaksa ke `ok()`): respons sukses dengan key tambahan (`stats`, `totalCount`, `ports`, `rackUnits`, `articles`, `ticket_number`, `id`, `po_number`) tetap dibuat inline. Route dengan field error `error` (bukan `message`), yaitu `knowledge-base*`, **tidak** dimigrasi ke `fail/jsonError` karena akan mengubah kontrak.
+
+Belum dimigrasi (17 file): `anydesk/connect`, `assets/[code]`, `auth/accounts`, `auth/login` (auth — dilarang), `dvr/test-connect`, `edc/ping`, `extensions`, `knowledge-base`, `knowledge-base/[id]`, `knowledge-base/[id]/helpful`, `monitoring`, `monitoring/ping`, `permissions`, `pos/heartbeat`, `stats`, `t3-assets/[id]`, `tickets/[id]`. Total file route: 36 — sudah dimigrasi 19 (4 shift 1 + 15 shift 2).
+
+Gate Batch A: `npx tsc --noEmit` exit 0 · `node tests/smoke.mjs` 47 PASS / 0 FAIL · spot-parity assets 159/159, tickets 2/2, purchases 11/11 (jumlah data + key objek pertama sama, `SPOT_FAILURES=0`).

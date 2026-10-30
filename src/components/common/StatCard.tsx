@@ -7,8 +7,10 @@ interface StatCardProps {
   value: ReactNode;
   icon?: LucideIcon;
   iconClassName?: string;
+  iconWrapperClassName?: string;
   hint?: ReactNode;
   hintClassName?: string;
+  labelClassName?: string;
   valueClassName?: string;
   className?: string;
 }
@@ -19,8 +21,10 @@ export default function StatCard({
   value,
   icon: Icon,
   iconClassName,
+  iconWrapperClassName,
   hint,
   hintClassName,
+  labelClassName,
   valueClassName,
   className,
 }: StatCardProps) {
@@ -32,8 +36,15 @@ export default function StatCard({
       )}
     >
       <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-        <span>{label}</span>
-        {Icon && <Icon className={cn("w-4 h-4", iconClassName)} />}
+        <span className={labelClassName}>{label}</span>
+        {Icon &&
+          (iconWrapperClassName ? (
+            <div className={iconWrapperClassName}>
+              <Icon className="w-5 h-5" />
+            </div>
+          ) : (
+            <Icon className={cn("w-4 h-4", iconClassName)} />
+          ))}
       </div>
       <div className={cn("text-2xl font-black text-slate-800", valueClassName)}>
         {value}

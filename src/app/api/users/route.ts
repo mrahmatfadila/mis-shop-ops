@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError, ok, parseFilters, requireFields } from "@/lib/api";
 
 export async function GET(request: Request) {
   try {
     await initDb();
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
-    const role = searchParams.get("role") || "";
-    const shop = searchParams.get("shop") || "";
+    const { search, role, shop } = parseFilters(searchParams, {
+      allowed: ["search", "role", "shop"],
+      ignoreByKey: {
+        role: ["ALL"],
+        shop: ["ALL"],
+      },
+    });
 
     let sql = "SELECT id, username, name, role, shop_location, password, created_at, updated_at FROM users WHERE 1=1";
     const args: any[] = [];
@@ -18,12 +23,12 @@ export async function GET(request: Request) {
       args.push(pattern, pattern, pattern);
     }
 
-    if (role && role !== "ALL") {
+    if (role) {
       sql += " AND role = ?";
       args.push(role);
     }
 
-    if (shop && shop !== "ALL") {
+    if (shop) {
       sql += " AND shop_location LIKE ?";
       args.push(`%${shop}%`);
     }
@@ -31,12 +36,9 @@ export async function GET(request: Request) {
     sql += " ORDER BY CASE role WHEN 'ADMIN' THEN 1 WHEN 'MANAGER' THEN 2 WHEN 'MIS' THEN 3 WHEN 'IT_PROCUREMENT' THEN 4 ELSE 5 END, name ASC";
 
     const result = await db.execute({ sql, args });
-    return NextResponse.json({ success: true, data: result.rows });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal memuat data pengguna." },
-      { status: 500 }
-    );
+    return ok(result.rows);
+  } catch (error) {
+    return jsonError(error, "Gagal memuat data pengguna.");
   }
 }
 
@@ -46,11 +48,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { username, name, role, shop_location = "Semua Toko", password = "123" } = body;
 
-    if (!username || !name || !role) {
-      return NextResponse.json(
-        { success: false, message: "Username / NIK, Nama Lengkap, dan Role wajib diisi!" },
-        { status: 400 }
-      );
+    const { missing } = requireFields(body, ["username", "name", "role"]);
+
+    if (missing.length > 0) {
+      return fail("Username / NIK, Nama Lengkap, dan Role wajib diisi!", 400);
     }
 
     const cleanUser = username.trim();
@@ -77,11 +78,8 @@ export async function POST(request: Request) {
       success: true,
       message: `Pengguna "${name}" (${cleanUser}) berhasil ditambahkan!`,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal menambahkan pengguna baru." },
-      { status: 500 }
-    );
+  } catch (error) {
+    return jsonError(error, "Gagal menambahkan pengguna baru.");
   }
 }
 

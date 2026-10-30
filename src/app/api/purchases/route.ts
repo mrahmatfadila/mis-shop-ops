@@ -1,35 +1,43 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError, ok, parseFilters, requireFields } from "@/lib/api";
 
 export async function GET(request: Request) {
   try {
     await initDb();
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
-    const status = searchParams.get("status") || "";
-    const location = searchParams.get("location") || "";
-    const category = searchParams.get("category") || "";
-    const priority = searchParams.get("priority") || "";
+    const { search, status, location, category, priority } = parseFilters(
+      searchParams,
+      {
+        allowed: ["search", "status", "location", "category", "priority"],
+        ignoreByKey: {
+          status: ["ALL", "Semua Status", "Semua"],
+          location: ["ALL", "Semua Lokasi", "Semua"],
+          category: ["ALL", "Semua Kategori", "Semua"],
+          priority: ["ALL", "Semua Prioritas", "Semua"],
+        },
+      }
+    );
 
     let sql = "SELECT * FROM purchases WHERE 1=1";
     const args: any[] = [];
 
-    if (status && status !== "ALL" && status !== "Semua Status" && status !== "Semua") {
+    if (status) {
       sql += " AND status = ?";
       args.push(status);
     }
 
-    if (location && location !== "ALL" && location !== "Semua Lokasi" && location !== "Semua") {
+    if (location) {
       sql += " AND target_location = ?";
       args.push(location);
     }
 
-    if (category && category !== "ALL" && category !== "Semua Kategori" && category !== "Semua") {
+    if (category) {
       sql += " AND category = ?";
       args.push(category);
     }
 
-    if (priority && priority !== "ALL" && priority !== "Semua Prioritas" && priority !== "Semua") {
+    if (priority) {
       sql += " AND priority = ?";
       args.push(priority);
     }
@@ -51,16 +59,10 @@ export async function GET(request: Request) {
 
     const result = await db.execute({ sql, args });
 
-    return NextResponse.json({
-      success: true,
-      data: result.rows,
-    });
-  } catch (error: any) {
+    return ok(result.rows);
+  } catch (error) {
     console.error("Error fetching purchases:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Failed to fetch purchases" },
-      { status: 500 }
-    );
+    return jsonError(error, "Failed to fetch purchases");
   }
 }
 
@@ -107,11 +109,14 @@ export async function POST(request: Request) {
       manager_notes = "-",
     } = body;
 
-    if (!item_name || !category || !target_location) {
-      return NextResponse.json(
-        { success: false, message: "Nama barang, kategori, dan lokasi target wajib diisi." },
-        { status: 400 }
-      );
+    const { missing } = requireFields(body, [
+      "item_name",
+      "category",
+      "target_location",
+    ]);
+
+    if (missing.length > 0) {
+      return fail("Nama barang, kategori, dan lokasi target wajib diisi.", 400);
     }
 
     // Auto-generate PO Number if not provided
@@ -183,12 +188,9 @@ export async function POST(request: Request) {
       id: Number(result.lastInsertRowid),
       po_number: poNumber,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating purchase:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Failed to create purchase" },
-      { status: 500 }
-    );
+    return jsonError(error, "Failed to create purchase");
   }
 }
 

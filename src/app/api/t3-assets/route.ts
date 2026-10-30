@@ -1,29 +1,34 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError, parseFilters, requireFields } from "@/lib/api";
 
 export async function GET(request: Request) {
   try {
     await initDb();
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
-    const lokasi = searchParams.get("lokasi") || "";
-    const kategori = searchParams.get("kategori") || "";
-    const status = searchParams.get("status") || "";
+    const { search, lokasi, kategori, status } = parseFilters(searchParams, {
+      allowed: ["search", "lokasi", "kategori", "status"],
+      ignoreByKey: {
+        lokasi: ["ALL", "Semua Lokasi"],
+        kategori: ["ALL", "Semua Kategori", "Semua"],
+        status: ["ALL", "Semua Status", "Semua"],
+      },
+    });
 
     let sql = "SELECT * FROM t3_fixed_assets WHERE 1=1";
     const args: any[] = [];
 
-    if (lokasi && lokasi !== "ALL" && lokasi !== "Semua Lokasi") {
+    if (lokasi) {
       sql += " AND lokasi = ?";
       args.push(lokasi);
     }
 
-    if (kategori && kategori !== "ALL" && kategori !== "Semua Kategori" && kategori !== "Semua") {
+    if (kategori) {
       sql += " AND kategori = ?";
       args.push(kategori);
     }
 
-    if (status && status !== "ALL" && status !== "Semua Status" && status !== "Semua") {
+    if (status) {
       sql += " AND status = ?";
       args.push(status);
     }
@@ -74,12 +79,9 @@ export async function GET(request: Request) {
         countByLocation
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching T3 fixed assets:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal mengambil data aset T3-DF" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal mengambil data aset T3-DF");
   }
 }
 
@@ -103,11 +105,10 @@ export async function POST(request: Request) {
       status = "OPERASIONAL"
     } = body;
 
-    if (!kategori || !nama_merk) {
-      return NextResponse.json(
-        { success: false, message: "Kategori dan Nama/Merk wajib diisi" },
-        { status: 400 }
-      );
+    const { missing } = requireFields(body, ["kategori", "nama_merk"]);
+
+    if (missing.length > 0) {
+      return fail("Kategori dan Nama/Merk wajib diisi", 400);
     }
 
     // Hitung item_no & auto-generate no_asset jika belum ada
@@ -154,12 +155,9 @@ export async function POST(request: Request) {
       id: insertResult.lastInsertRowid,
       no_asset: finalNoAsset
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating T3 fixed asset:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal menambahkan aset T3-DF" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal menambahkan aset T3-DF");
   }
 }
 

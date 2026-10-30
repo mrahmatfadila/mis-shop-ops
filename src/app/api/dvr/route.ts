@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError, ok, parseFilters, requireFields } from "@/lib/api";
 
 export async function GET(request: Request) {
   try {
     await initDb();
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
-    const region = searchParams.get("region") || "";
-    const channels = searchParams.get("channels") || "";
+    const { search, region, channels } = parseFilters(searchParams, {
+      allowed: ["search", "region", "channels"],
+      ignoreByKey: {
+        region: ["ALL", "Semua"],
+        channels: ["ALL", "Semua"],
+      },
+    });
 
     let sql = "SELECT * FROM dvr_assets WHERE 1=1";
     const args: any[] = [];
@@ -18,7 +23,7 @@ export async function GET(request: Request) {
       args.push(pattern, pattern, pattern, pattern, pattern);
     }
 
-    if (region && region !== "ALL" && region !== "Semua") {
+    if (region) {
       if (region === "SBY") {
         sql += " AND location LIKE 'SBY%'";
       } else if (region === "WHS") {
@@ -28,7 +33,7 @@ export async function GET(request: Request) {
       }
     }
 
-    if (channels && channels !== "ALL" && channels !== "Semua") {
+    if (channels) {
       sql += " AND channels = ?";
       args.push(channels);
     }
@@ -36,12 +41,9 @@ export async function GET(request: Request) {
     sql += " ORDER BY id ASC";
 
     const result = await db.execute({ sql, args });
-    return NextResponse.json({ success: true, data: result.rows });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message || "Failed to fetch DVR assets" },
-      { status: 500 }
-    );
+    return ok(result.rows);
+  } catch (error) {
+    return jsonError(error, "Failed to fetch DVR assets");
   }
 }
 
@@ -71,11 +73,15 @@ export async function POST(request: Request) {
       notes = "",
     } = body;
 
-    if (!location || !dvr_type || !serial_number || !ip_address) {
-      return NextResponse.json(
-        { success: false, message: "Lokasi, Tipe DVR, Serial Number, dan IP Address wajib diisi." },
-        { status: 400 }
-      );
+    const { missing } = requireFields(body, [
+      "location",
+      "dvr_type",
+      "serial_number",
+      "ip_address",
+    ]);
+
+    if (missing.length > 0) {
+      return fail("Lokasi, Tipe DVR, Serial Number, dan IP Address wajib diisi.", 400);
     }
 
     const code = `DVR-${location.replace(/[^a-zA-Z0-9]/g, "").toUpperCase()}`;
@@ -115,11 +121,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, message: "Data DVR berhasil ditambahkan!" });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 500 }
-    );
+  } catch (error) {
+    return jsonError(error);
   }
 }
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError, ok } from "@/lib/api";
 
 export async function GET(
   request: Request,
@@ -15,22 +16,13 @@ export async function GET(
     });
 
     if (result.rows.length === 0) {
-      return NextResponse.json(
-        { success: false, message: "Extension tidak ditemukan" },
-        { status: 404 }
-      );
+      return fail("Extension tidak ditemukan", 404);
     }
 
-    return NextResponse.json({
-      success: true,
-      data: result.rows[0],
-    });
-  } catch (error: any) {
+    return ok(result.rows[0]);
+  } catch (error) {
     console.error("Error fetching extension by id:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal mengambil data extension" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal mengambil data extension");
   }
 }
 
@@ -83,12 +75,9 @@ export async function PUT(
       success: true,
       message: "Data extension telepon berhasil diperbarui",
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error updating phone extension:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal memperbarui extension" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal memperbarui extension");
   }
 }
 
@@ -109,12 +98,9 @@ export async function DELETE(
       success: true,
       message: "Data extension berhasil dihapus",
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error deleting phone extension:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal menghapus extension" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal menghapus extension");
   }
 }
 

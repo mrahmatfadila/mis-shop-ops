@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { jsonError } from "@/lib/api";
 
 export async function PUT(
   request: Request,
@@ -65,12 +66,9 @@ export async function PUT(
       success: true,
       message: "Data port mapping berhasil diperbarui",
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error updating server rack port:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal memperbarui port" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal memperbarui port");
   }
 }
 
@@ -91,12 +89,9 @@ export async function DELETE(
       success: true,
       message: "Data port mapping berhasil dihapus",
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error deleting server rack port:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal menghapus port" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal menghapus port");
   }
 }
 

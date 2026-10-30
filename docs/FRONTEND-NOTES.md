@@ -83,3 +83,37 @@ const { data, isLoading, error, refresh } = useApiData<Ticket[]>(`/api/tickets?$
 - `extensions/page.tsx` masih 683 baris (AI_RULES menargetkan 150–200). Pemecahan sub-komponen tabel/form dapat dilakukan berikutnya; fondasi (`common/`, `utils`, hooks) sudah tersedia.
 - `utils.formatRupiah/formatNumber/formatDate` belum diadopsi halaman lain (assets/purchases/dvr di luar write-scope task ini) — kandidat migrasi berikutnya untuk menghapus duplikasi global.
 - `formatDate` pada lembar cetak memakai locale server/browser `id-ID` (format sama dengan sebelumnya, bukan hardcode data).
+
+---
+
+# SHIFT 2 — Batch A (task-8)
+
+Tanggal: 31 Okt 2026 · Pemilik: frontend · Status: selesai
+
+## 1. File diubah
+
+| File | Sebelum | Sesudah | Komponen/hook yang diadopsi |
+| --- | --- | --- | --- |
+| `src/app/knowledge-base/page.tsx` | 1126 baris | 1134 baris | `StatCard` (4 KPI, tone warna dipertahankan), `SearchInput` (+clear), `LoadingState`, `EmptyState` (+action tombol), `StatusBadge` (cakupan toko), `useApiData` (cache `knowledge_base_articles`), `formatNumber`, `formatDate` (tanggal "Diperbarui") |
+| `src/app/monitoring/page.tsx` | 891 baris | 892 baris | `StatCard` (4 KPI + tile ikon), `SearchInput` (+clear), `LoadingState`, `EmptyState`, `StatusBadge` (pill ONLINE/OFFLINE grid & tabel), `useApiData` (cache `monitoring_devices_live`), `formatNumber` |
+
+Penyempurnaan komponen common (backward-compatible, opsional):
+- `StatCard`: prop `labelClassName`, `iconWrapperClassName` (tile ikon berwarna).
+- `SearchInput`: prop `onClear` (tombol X, perilaku lama dipertahankan).
+- `EmptyState`: prop `action` (tombol aksi di empty state).
+
+`PageHeader` dan `Modal` sengaja TIDAK dipakai di kedua halaman: hero header KB/monitoring berisi badge dinamis + KPI dan modal reader/editor KB punya layout khusus. Menggantinya akan mengubah visual drastis (melanggar prinsip visual-setara), sehingga komponen lain yang relevan yang diadopsi.
+
+## 2. Kesetaraan perilaku
+- Endpoint tetap: `/api/knowledge-base` (cache key `knowledge_base_articles`) dan `/api/monitoring` (cache key `monitoring_devices_live`); query/filter tidak berubah.
+- Tidak ada data hardcoded baru; semua angka/artikel/perangkat tetap dari API.
+- KB: optimistic counter lokal diganti `refresh()` setelah POST/GET view/helpful — angka akhir tetap dari API.
+- Monitoring: hasil `useApiData` dicerminkan ke state lokal agar aksi ping/scan/ping-single tetap bisa update data; cache tetap di-`setClientCache` oleh aksi scan.
+- Perubahan baris kedua halaman < 10 baris net (tidak ada penulisan ulang besar).
+
+## 3. Verifikasi Shift 2
+- `npx tsc --noEmit` dari root → **0 error** (exit 0).
+- `curl http://localhost:3000/knowledge-base` → **200** (heading, KPI "Total Panduan", placeholder search ter-render); `curl http://localhost:3000/monitoring` → **200** (heading, KPI "Total Perangkat", placeholder search ter-render).
+- `GET /api/knowledge-base` → `success:true`, 5 artikel; `GET /api/monitoring` → `success:true`, 167 perangkat.
+- Write-scope dipatuhi: hanya 2 halaman + `components/common` + `docs`; tidak menyentuh API route, `db.ts`, tests, scripts, maupun halaman lain.
+

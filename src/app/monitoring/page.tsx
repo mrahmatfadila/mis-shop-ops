@@ -3,6 +3,13 @@
 import { useEffect, useState, useMemo } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
 import ScannerModal from "@/components/ScannerModal";
+import StatCard from "@/components/common/StatCard";
+import SearchInput from "@/components/common/SearchInput";
+import LoadingState from "@/components/common/LoadingState";
+import EmptyState from "@/components/common/EmptyState";
+import StatusBadge from "@/components/common/StatusBadge";
+import { useApiData } from "@/hooks/useApiData";
+import { formatNumber } from "@/lib/utils";
 import { MonitoringItem } from "@/types";
 import {
   Activity,
@@ -18,7 +25,6 @@ import {
   Zap,
   Clock,
   Wifi,
-  Search,
   Laptop,
   Video,
   Layers,
@@ -37,7 +43,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import AccessDenied from "@/components/AccessDenied";
-import { getClientCache, setClientCache } from "@/lib/cache";
+import { setClientCache } from "@/lib/cache";
 
 export default function MonitoringPage() {
   const { user, isAdmin, isMIS, isManager, userShopLocation } = useAuth();
@@ -47,7 +53,6 @@ export default function MonitoringPage() {
   }
 
   const [devices, setDevices] = useState<MonitoringItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isScanningAll, setIsScanningAll] = useState(false);
   const [isScanningTab, setIsScanningTab] = useState(false);
   const [singlePinging, setSinglePinging] = useState<Record<string, boolean>>({});
@@ -67,33 +72,25 @@ export default function MonitoringPage() {
   const [customPingResult, setCustomPingResult] = useState<any>(null);
   const [isCustomPinging, setIsCustomPinging] = useState(false);
 
-  const fetchMonitoring = async (isBackground = false) => {
-    if (!isBackground) setIsLoading(true);
-    try {
-      const res = await fetch("/api/monitoring");
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        setDevices(json.data);
-        setClientCache("monitoring_devices_live", json.data);
-        setLastScannedTime(new Date().toLocaleTimeString("id-ID"));
-      }
-    } catch (err) {
-      console.error("Failed to load monitoring devices", err);
-    } finally {
-      if (!isBackground) setIsLoading(false);
-    }
-  };
+  // Data monitoring dari API + SWR cache (endpoint tetap /api/monitoring)
+  const {
+    data: liveDevices,
+    isLoading,
+    refresh: fetchMonitoring,
+  } = useApiData<MonitoringItem[]>("/api/monitoring", {
+    cacheKey: "monitoring_devices_live",
+    transform: (json) => {
+      const res = json as { success?: boolean; data?: MonitoringItem[] };
+      return res.success && Array.isArray(res.data) ? res.data : [];
+    },
+  });
 
+  // Hasil fetch disalin ke state lokal agar aksi ping/scan tetap bisa update data
   useEffect(() => {
-    const cached = getClientCache<MonitoringItem[]>("monitoring_devices_live");
-    if (cached) {
-      setDevices(cached);
-      setIsLoading(false);
-      fetchMonitoring(true);
-    } else {
-      fetchMonitoring(false);
-    }
-  }, []);
+    if (!liveDevices) return;
+    setDevices(liveDevices);
+    setLastScannedTime(new Date().toLocaleTimeString("id-ID"));
+  }, [liveDevices]);
 
   // Bulk scan all devices via VPN
   const handleScanAll = async () => {
@@ -356,7 +353,7 @@ Invoke-RestMethod -Uri "http://$ipServerIT:3000/api/pos/heartbeat" -Method POST 
 
             <button
               type="button"
-              onClick={() => fetchMonitoring(false)}
+              onClick={fetchMonitoring}
               disabled={isLoading || isScanningAll}
               className="p-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 shadow-2xs transition-all active:scale-95"
               title="Refresh Data dari Server"
@@ -369,70 +366,78 @@ Invoke-RestMethod -Uri "http://$ipServerIT:3000/api/pos/heartbeat" -Method POST 
         {/* 2. Four Modern Metric KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Total Monitored */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Total Perangkat
-              </p>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">
-                {metrics.total} <span className="text-xs font-medium text-slate-400">Unit</span>
-              </h3>
-              <p className="text-[10px] text-slate-500 mt-0.5">Semua node IP terdaftar</p>
-            </div>
-            <div className="p-3 bg-slate-100 text-slate-700 rounded-xl">
-              <Server className="w-5 h-5" />
-            </div>
-          </div>
+          <StatCard
+            label="Total Perangkat"
+            labelClassName="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+            value={
+              <>
+                {formatNumber(metrics.total)}{" "}
+                <span className="text-xs font-medium text-slate-400">Unit</span>
+              </>
+            }
+            valueClassName="text-xl sm:text-2xl text-slate-900 mt-0.5"
+            hint="Semua node IP terdaftar"
+            hintClassName="text-[10px] text-slate-500 mt-0.5"
+            icon={Server}
+            iconWrapperClassName="p-3 bg-slate-100 text-slate-700 rounded-xl"
+            className="border-slate-200/90"
+          />
 
           {/* Devices Online */}
-          <div className="bg-white rounded-2xl border border-emerald-200/90 p-4 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">
-                Online (Aktif)
-              </p>
-              <h3 className="text-xl sm:text-2xl font-black text-emerald-700 mt-0.5">
-                {metrics.online} <span className="text-xs font-medium text-emerald-600">({metrics.onlinePercentage}%)</span>
-              </h3>
-              <p className="text-[10px] text-emerald-600/80 mt-0.5">Merespon sinyal VPN</p>
-            </div>
-            <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-          </div>
+          <StatCard
+            label="Online (Aktif)"
+            labelClassName="text-[11px] font-bold text-emerald-600 uppercase tracking-wider"
+            value={
+              <>
+                {formatNumber(metrics.online)}{" "}
+                <span className="text-xs font-medium text-emerald-600">
+                  ({metrics.onlinePercentage}%)
+                </span>
+              </>
+            }
+            valueClassName="text-xl sm:text-2xl text-emerald-700 mt-0.5"
+            hint="Merespon sinyal VPN"
+            hintClassName="text-[10px] text-emerald-600/80 mt-0.5"
+            icon={CheckCircle2}
+            iconWrapperClassName="p-3 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100"
+            className="border-emerald-200/90"
+          />
 
           {/* Devices Offline */}
-          <div className="bg-white rounded-2xl border border-rose-200/90 p-4 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-rose-500 uppercase tracking-wider">
-                Offline / Putus
-              </p>
-              <h3 className="text-xl sm:text-2xl font-black text-rose-600 mt-0.5">
-                {metrics.offline} <span className="text-xs font-medium text-rose-500">Unit</span>
-              </h3>
-              <p className="text-[10px] text-rose-500/80 mt-0.5">RTO / Mati daya</p>
-            </div>
-            <div className="p-3 bg-rose-50 text-rose-600 rounded-xl border border-rose-100">
-              <XCircle className="w-5 h-5" />
-            </div>
-          </div>
+          <StatCard
+            label="Offline / Putus"
+            labelClassName="text-[11px] font-bold text-rose-500 uppercase tracking-wider"
+            value={
+              <>
+                {formatNumber(metrics.offline)}{" "}
+                <span className="text-xs font-medium text-rose-500">Unit</span>
+              </>
+            }
+            valueClassName="text-xl sm:text-2xl text-rose-600 mt-0.5"
+            hint="RTO / Mati daya"
+            hintClassName="text-[10px] text-rose-500/80 mt-0.5"
+            icon={XCircle}
+            iconWrapperClassName="p-3 bg-rose-50 text-rose-600 rounded-xl border border-rose-100"
+            className="border-rose-200/90"
+          />
 
           {/* Average Latency */}
-          <div className="bg-white rounded-2xl border border-sky-200/90 p-4 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-sky-600 uppercase tracking-wider">
-                Rata-Rata Latensi
-              </p>
-              <h3 className="text-xl sm:text-2xl font-black text-sky-700 mt-0.5">
-                {metrics.avgLatency} <span className="text-xs font-medium text-sky-600">ms</span>
-              </h3>
-              <p className="text-[10px] text-sky-600/80 mt-0.5">
-                {metrics.avgLatency < 25 ? "⚡ Koneksi Ultra Cepat" : "Koneksi Stabil"}
-              </p>
-            </div>
-            <div className="p-3 bg-sky-50 text-sky-600 rounded-xl border border-sky-100">
-              <Zap className="w-5 h-5" />
-            </div>
-          </div>
+          <StatCard
+            label="Rata-Rata Latensi"
+            labelClassName="text-[11px] font-bold text-sky-600 uppercase tracking-wider"
+            value={
+              <>
+                {metrics.avgLatency}{" "}
+                <span className="text-xs font-medium text-sky-600">ms</span>
+              </>
+            }
+            valueClassName="text-xl sm:text-2xl text-sky-700 mt-0.5"
+            hint={metrics.avgLatency < 25 ? "⚡ Koneksi Ultra Cepat" : "Koneksi Stabil"}
+            hintClassName="text-[10px] text-sky-600/80 mt-0.5"
+            icon={Zap}
+            iconWrapperClassName="p-3 bg-sky-50 text-sky-600 rounded-xl border border-sky-100"
+            className="border-sky-200/90"
+          />
         </div>
 
         {/* 3. Filter Bar & Controls */}
@@ -460,16 +465,14 @@ Invoke-RestMethod -Uri "http://$ipServerIT:3000/api/pos/heartbeat" -Method POST 
             </div>
 
             {/* Search Input */}
-            <div className="relative min-w-[260px]">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari IP (172.16...), kode aset, atau nama..."
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#006622] transition-all"
-              />
-            </div>
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onClear={() => setSearchQuery("")}
+              placeholder="Cari IP (172.16...), kode aset, atau nama..."
+              className="min-w-[260px] flex-none"
+              inputClassName="pl-9 pr-3 py-1.5 bg-slate-50 border-slate-200 rounded-xl focus:bg-white focus:ring-emerald-500/20 focus:border-[#006622]"
+            />
           </div>
 
           {/* Bottom Row: Status Filter & View Mode Switcher */}
@@ -548,19 +551,17 @@ Invoke-RestMethod -Uri "http://$ipServerIT:3000/api/pos/heartbeat" -Method POST 
 
         {/* 4. Devices List (Grid Cards or Table View) */}
         {isLoading && devices.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-            <RefreshCw className="w-8 h-8 text-[#006622] animate-spin mx-auto mb-3" />
-            <p className="text-sm font-bold text-slate-800">Memuat status jaringan...</p>
-            <p className="text-xs text-slate-400 mt-1">Mengambil data respon ICMP perangkat via VPN</p>
-          </div>
+          <LoadingState
+            className="bg-white rounded-2xl border border-slate-200 p-12 shadow-sm"
+            message="Memuat status jaringan..."
+          />
         ) : filteredDevices.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-            <AlertCircle className="w-8 h-8 text-slate-400 mx-auto mb-3" />
-            <p className="text-sm font-bold text-slate-800">Tidak ada perangkat yang cocok</p>
-            <p className="text-xs text-slate-400 mt-1">
-              Coba sesuaikan kata kunci pencarian atau ubah filter status/lokasi.
-            </p>
-          </div>
+          <EmptyState
+            className="bg-white rounded-2xl border border-slate-200 p-12 shadow-sm"
+            icon={AlertCircle}
+            title="Tidak ada perangkat yang cocok"
+            description="Coba sesuaikan kata kunci pencarian atau ubah filter status/lokasi."
+          />
         ) : viewMode === "grid" ? (
           /* Grid View */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -595,20 +596,20 @@ Invoke-RestMethod -Uri "http://$ipServerIT:3000/api/pos/heartbeat" -Method POST 
                     </div>
 
                     {/* Status Pill */}
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold shrink-0 ${
-                        isOnline
-                          ? "bg-emerald-100 text-emerald-800 border border-emerald-300/80"
-                          : "bg-rose-100 text-rose-800 border border-rose-200"
-                      }`}
-                    >
-                      <span
-                        className={`w-2 h-2 rounded-full ${
-                          isOnline ? "bg-emerald-500 animate-pulse" : "bg-rose-500"
-                        }`}
-                      />
-                      {isOnline ? `ONLINE • ${latency}ms` : "OFFLINE • RTO"}
-                    </span>
+                    <StatusBadge
+                      status={isOnline ? "ONLINE" : "OFFLINE"}
+                      label={
+                        <>
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              isOnline ? "bg-emerald-500 animate-pulse" : "bg-rose-500"
+                            }`}
+                          />
+                          {isOnline ? `ONLINE • ${latency}ms` : "OFFLINE • RTO"}
+                        </>
+                      }
+                      className="gap-1.5 px-2.5 py-1 font-extrabold shrink-0"
+                    />
                   </div>
 
                   {/* Card Body: IP, Latency & Details */}
@@ -701,20 +702,20 @@ Invoke-RestMethod -Uri "http://$ipServerIT:3000/api/pos/heartbeat" -Method POST 
                     return (
                       <tr key={dev.id || dev.asset_code} className="hover:bg-slate-50/80 transition-colors">
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              isOnline
-                                ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                                : "bg-rose-100 text-rose-800 border border-rose-200"
-                            }`}
-                          >
-                            <span
-                              className={`w-2 h-2 rounded-full ${
-                                isOnline ? "bg-emerald-500" : "bg-rose-500"
-                              }`}
-                            />
-                            {dev.status}
-                          </span>
+                          <StatusBadge
+                            status={dev.status}
+                            label={
+                              <>
+                                <span
+                                  className={`w-2 h-2 rounded-full ${
+                                    isOnline ? "bg-emerald-500" : "bg-rose-500"
+                                  }`}
+                                />
+                                {dev.status}
+                              </>
+                            }
+                            className="gap-1.5 px-2.5 py-0.5"
+                          />
                         </td>
                         <td className="px-4 py-3 font-mono font-bold text-slate-900 whitespace-nowrap">
                           {dev.asset_code}

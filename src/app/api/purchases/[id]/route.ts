@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { jsonError } from "@/lib/api";
 
 export async function PUT(
   request: Request,
@@ -139,12 +140,9 @@ export async function PUT(
       success: true,
       message: "Data pembelian berhasil diperbarui.",
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error updating purchase:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Failed to update purchase" },
-      { status: 500 }
-    );
+    return jsonError(error, "Failed to update purchase");
   }
 }
 
@@ -165,12 +163,9 @@ export async function DELETE(
       success: true,
       message: "Data pembelian berhasil dihapus.",
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error deleting purchase:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Failed to delete purchase" },
-      { status: 500 }
-    );
+    return jsonError(error, "Failed to delete purchase");
   }
 }
 
