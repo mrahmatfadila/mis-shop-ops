@@ -1,0 +1,10 @@
+﻿node_modules/
+.next/
+backups/
+*.log
+*.tsbuildinfo
+shop_ops.db
+shop_ops.db-shm
+shop_ops.db-wal
+__pycache__/
+.DS_Store

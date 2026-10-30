@@ -1,0 +1,19 @@
+# AI Rules: Database-First Architecture, Clean Code & Modern Design
+- ALWAYS follow the standards in AI_RULES.md.
+- 1. DATABASE-FIRST (ZERO HARDCODED DATA):
+  * NEVER hardcode business data, asset lists, mock arrays, or static counters in component code or landing pages.
+  * ALL data must reside in the SQLite database (shop_ops.db) and be served via API routes (/api/...).
+  * UI components and landing pages are strictly visual renderers fetching dynamic state from the database.
+  * When adding new features, always start with: Database schema in src/lib/db.ts -> Data seeding -> API route -> Frontend dynamic rendering.
+- 2. CLEAN CODE & HIGH PERFORMANCE:
+  * Strict DRY (Don't Repeat Yourself) — extract repetitive logic to @/lib/utils.ts and reusable UI to src/components/common/.
+  * Keep files under 150-200 lines.
+  * Concise, non-stuttering, non-verbose variable and function names.
+  * High-speed execution: LibSQL WAL mode, db singleton (globalThis.__db), and client SWR in-memory caching (< 30ms navigation).
+  * Surgical edits only: do not rewrite entire files unnecessarily.
+- 3. MODERN PROFESSIONAL DESIGN:
+  * Enterprise aesthetic: Emerald brand #006622, off-white background bg-slate-50, sharp slate-900 typography.
+  * Generous whitespace (p-6, gap-4, space-y-6) — no cramped text-walls.
+  * Friendly rounded corners (rounded-2xl/rounded-3xl), subtle borders (border-slate-200/80), and smooth hover elevations (shadow-xs to shadow-md).
+  * Subdued, elegant status badges (bg-emerald-50, bg-amber-50, bg-rose-50) paired with proportional Lucide icons.
+  * Responsive micro-interactions with active click scaling (active:scale-[0.98]) and graceful empty/loading states.
