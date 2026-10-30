@@ -45,6 +45,7 @@ npx tsc --noEmit ................ exit 0, 0 error
 node tests/smoke.mjs ............ 28 PASS / 0 FAIL / 0 SKIP, 11/11 cross-check
 node scripts/verify.mjs ......... exit 0 (tsc + smoke + unit)
 unit test utils ................. 29/29 PASS (9 suite)
+npm run build (production) ...... exit 0, 40 route, 133 detik
 GET /api/health ................. 200, db:ok, tables:15, wal
 DB 15 tabel ..................... 982 baris = baseline, integrity ok
 ```
@@ -54,7 +55,7 @@ Git: baseline `6f175a0` → … → commit final Lead. **Tidak ada push ke GitHu
 **Antigravity IDE** (proses "Antigravity IDE", git identity = akun Anda) **aktif sepanjang malam** dan:
 - Mengedit file di luar kendali tim: `assets/page.tsx`, `anydesk/connect/route.ts` (ganti default password AnyDesk `Cupcake2020`→`cupcake2020`), `db.ts` (flag v3 + `UPDATE pos_hardware_assets` saat init), `extensions/page.tsx`, `api.ts`, `.gitignore`.
 - **Meng-commit repo** (`c8c442d`, `6bc1b5f`, `6646f3d`) dengan nama Anda — history jadi tercampur (kerja tim tetap utuh; diverifikasi di state akhir).
-- **Mematikan dev server `:3000` pukul 23:59:41** sehingga `.next` korup. **Sudah dipulihkan** oleh Lead (managed `next dev`, bukan `start-server.bat`); `/api/health` 200 dalam 0,018 s. Aplikasi normal kembali.
+- **Mematikan server `:3000` pukul 23:59:41**. Pemulihan oleh Lead: ternyata `start-server.bat` memakai **mode produksi** (`next start`, bukan `next dev`) — cache `.next` yang korup dibersihkan, **`npm run build` dijalankan ulang (exit 0, 40 route, 133 s)**, lalu `npm run start` dijalankan sebagai proses terpisah (sama seperti perilaku `start-server.bat`: `.next/BUILD_ID` sekarang ada, jadi double-click berikutnya langsung mode produksi). Hasil: `/api/health` 200, `/assets` 53 ms, `/purchases` 43 ms, `/dashboard` 225 ms.
 
 ⚠️ Kalau Anda tidak sengaja membiarkan Antigravity menjalankan agent di proyek ini: matikan dulu, karena ia masih bisa mengubah file/menjalankan perintah kapan saja.
 
