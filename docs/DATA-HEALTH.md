@@ -26,6 +26,8 @@
 | quick_check | `ok` |
 | journal_mode | `wal` |
 
+**Backup terbaru:** `backups/db_20261030_235757/shop_ops.db` (396.0 KB, `quick_check` ok, 15 tabel, row count cocok dengan DB live: assets=159, tickets=2, users=43). Snapshot Lead `backups/db_20261030_233502/` dipertahankan; retensi 7 snapshot terbaru.
+
 ## 3. Jumlah Baris per Tabel
 
 | # | Tabel | Baris |
@@ -65,6 +67,8 @@ Total: **30** index (17 eksplisit + 13 autoindex UNIQUE).
 | `idx_purchases_status` | `purchases(status)` | ✅ ada |
 | `idx_edc_pos` | `edc_assets(pos_location)` | ✅ ada |
 | `idx_rack_ports_grp` | `server_rack_ports(device_group)` | ✅ ada |
+
+Catatan: 3 index sudah ada sejak baseline (`idx_pos_code`, `idx_edc_pos`, `idx_rack_ports_grp`) sehingga `CREATE INDEX IF NOT EXISTS` untuk ketiganya *no-op* — tidak ada index duplikat. **7 index baru** dibuat oleh sprint ini: `idx_assets_status`, `idx_assets_shop`, `idx_assets_category`, `idx_tickets_status`, `idx_tickets_asset`, `idx_monitoring_ip`, `idx_purchases_status`. DDL yang sama disisipkan di `initDb()` (`src/lib/db.ts`) dan diterapkan ke DB live.
 
 ### 4.2 Inventory index eksplisit
 
@@ -148,6 +152,17 @@ SEARCH assets USING INDEX idx_assets_status (status=?)
 ```
 SEARCH tickets USING INDEX idx_tickets_status (status=?)
 ```
+
+### 7.1 Perbandingan sebelum vs sesudah index aditif
+
+Diukur dengan `scripts/db-health.mjs` sebelum dan sesudah DDL index, pada data yang sama (982 baris / 15 tabel):
+
+| Query | Sebelum index | Sesudah index |
+|---|---|---|
+| Q1 — `assets WHERE status = ? ORDER BY id DESC` | `SCAN assets` | `SEARCH assets USING INDEX idx_assets_status (status=?)` |
+| Q2 — `tickets WHERE status = ? ORDER BY id DESC` | `SCAN tickets` | `SEARCH tickets USING INDEX idx_tickets_status (status=?)` |
+
+Row count sebelum = sesudah = **982** (tidak ada baris berubah). Exit code `1` pada kedua run konsisten dengan temuan 17 orphan `edc_assets` yang sudah ada sebelum sprint.
 
 ## 8. Rekomendasi
 

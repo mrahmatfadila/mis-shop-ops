@@ -1,0 +1,580 @@
+{
+  "generatedAt": "2026-10-30T16:59:55.791Z",
+  "baseUrl": "http://localhost:3000",
+  "node": "v22.23.4",
+  "slowThresholdMs": 500,
+  "latencyNote": "Latency diukur setelah warm-up; dev server Next.js compile on-demand.",
+  "durationMs": 978,
+  "summary": {
+    "total": 28,
+    "tested": 19,
+    "pass": 0,
+    "fail": 19,
+    "skipped": 9,
+    "slow": 0,
+    "crossCheckPass": 0,
+    "crossCheckFail": 0
+  },
+  "crossChecks": [],
+  "warnings": [
+    "[INFO] /api/stats tidak mengembalikan stats; cross-check dilewati.",
+    "[SIDE-EFFECT] GET /api/monitoring?ping=true melakukan UPDATE monitoring_devices — smoke test sengaja TIDAK memanggil query itu.",
+    "[COVERAGE] Endpoint GET belum tercakup smoke test: /api/assets/:param, /api/dvr/:param, /api/edc/:param, /api/extensions/:param, /api/knowledge-base/:param, /api/office/:param, /api/pos-hardware/:param, /api/t3-assets/:param, /api/users/:param",
+    "[COVERAGE] Spesifikasi smoke tidak menemukan route.ts-nya: /api/assets/%3Aparam, /api/dvr/%3Aparam, /api/edc/%3Aparam, /api/extensions/%3Aparam, /api/knowledge-base/%3Aparam, /api/office/%3Aparam, /api/pos-hardware/%3Aparam, /api/t3-assets/%3Aparam, /api/users/%3Aparam"
+  ],
+  "results": [
+    {
+      "method": "GET",
+      "endpoint": "/api/stats",
+      "label": "Statistik dashboard",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 5,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/assets",
+      "label": "Aset POS",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 6,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/auth/accounts",
+      "label": "Akun login",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 5,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/dvr",
+      "label": "Aset DVR",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 6,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/edc",
+      "label": "Aset EDC",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 8,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/extensions",
+      "label": "Ekstensi telepon",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 4,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/knowledge-base",
+      "label": "Knowledge base",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 5,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/monitoring",
+      "label": "Monitoring device",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 9,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/office",
+      "label": "Aset kantor",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 5,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/permissions",
+      "label": "RBAC permission",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 5,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/pos-hardware",
+      "label": "Hardware POS",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 4,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/purchases",
+      "label": "Pengadaan",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 4,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/server-rack",
+      "label": "Server rack",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 4,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/t3-assets",
+      "label": "Aset tetap T3",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 6,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/tickets",
+      "label": "Tiket helpdesk",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 5,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/users",
+      "label": "Pengguna",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 4,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/assets",
+      "label": "Detail aset",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 0,
+      "slow": false,
+      "ok": false,
+      "skip": true,
+      "note": "SKIP: data /api/assets kosong / field asset_code tidak ada",
+      "error": null,
+      "checks": [],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/dvr",
+      "label": "Detail DVR",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 0,
+      "slow": false,
+      "ok": false,
+      "skip": true,
+      "note": "SKIP: data /api/dvr kosong / field id tidak ada",
+      "error": null,
+      "checks": [],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/edc",
+      "label": "Detail EDC",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 0,
+      "slow": false,
+      "ok": false,
+      "skip": true,
+      "note": "SKIP: data /api/edc kosong / field id tidak ada",
+      "error": null,
+      "checks": [],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/extensions",
+      "label": "Detail ekstensi",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 0,
+      "slow": false,
+      "ok": false,
+      "skip": true,
+      "note": "SKIP: data /api/extensions kosong / field id tidak ada",
+      "error": null,
+      "checks": [],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/knowledge-base",
+      "label": "Detail artikel",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 0,
+      "slow": false,
+      "ok": false,
+      "skip": true,
+      "note": "SKIP: data /api/knowledge-base kosong / field id tidak ada",
+      "error": null,
+      "checks": [],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/office",
+      "label": "Detail aset kantor",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 0,
+      "slow": false,
+      "ok": false,
+      "skip": true,
+      "note": "SKIP: data /api/office kosong / field id tidak ada",
+      "error": null,
+      "checks": [],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/pos-hardware",
+      "label": "Detail hardware POS",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 0,
+      "slow": false,
+      "ok": false,
+      "skip": true,
+      "note": "SKIP: data /api/pos-hardware kosong / field id tidak ada",
+      "error": null,
+      "checks": [],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/t3-assets",
+      "label": "Detail aset T3",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 0,
+      "slow": false,
+      "ok": false,
+      "skip": true,
+      "note": "SKIP: data /api/t3-assets kosong / field id tidak ada",
+      "error": null,
+      "checks": [],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/users",
+      "label": "Detail pengguna",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 0,
+      "slow": false,
+      "ok": false,
+      "skip": true,
+      "note": "SKIP: data /api/users kosong / field id tidak ada",
+      "error": null,
+      "checks": [],
+      "textPreview": ""
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/health",
+      "label": "Health check (opsional)",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 5,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "POST",
+      "endpoint": "/api/auth/login",
+      "label": "Login valid (mis/123)",
+      "expectedStatus": 200,
+      "httpStatus": null,
+      "latencyMs": 6,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    },
+    {
+      "method": "POST",
+      "endpoint": "/api/auth/login",
+      "label": "Login salah (mis/salah)",
+      "expectedStatus": 401,
+      "httpStatus": null,
+      "latencyMs": 5,
+      "slow": false,
+      "ok": false,
+      "skip": false,
+      "note": "",
+      "error": "fetch failed",
+      "parseError": null,
+      "checks": [
+        {
+          "name": "request berhasil",
+          "ok": false,
+          "detail": "fetch failed"
+        }
+      ],
+      "textPreview": ""
+    }
+  ]
+}

@@ -71,7 +71,17 @@ Migrasinya aman dilakukan bertahap dengan pola yang sama; utamakan route yang me
 ## 5. Bukti parity (sebelum vs sesudah refactor)
 
 Snapshot `%TEMP%\mis-parity-before` diambil sebelum edit; `%TEMP%\mis-parity-after` sesudah edit, lalu dibandingkan jumlah `data` + daftar key objek pertama:
-lihat tabel di laporan PM; semua endpoint PASS (jumlah data dan key set identik).
+
+| Endpoint | data sebelum | data sesudah | key objek pertama | Hasil |
+|---|---|---|---|---|
+| `GET /api/assets?search=printer` | 6 | 6 | 13 key, sama | PASS |
+| `GET /api/assets?status=OPERASIONAL` | 156 | 156 | 13 key, sama | PASS |
+| `GET /api/tickets` | 2 | 2 | 15 key, sama | PASS |
+| `GET /api/edc` | 53 | 53 | 29 key, sama | PASS |
+| `GET /api/dvr` | 27 | 27 | 22 key, sama | PASS |
+| `GET /api/health` | (route baru) | 200 `{success:true, db:"ok", tables:15, wal:"wal", uptimeSec}` | — | PASS |
+
+Semua `success` bernilai `true`, status HTTP 200. `PARITY_FAILURES=0`.
 
 ## 6. Temuan / catatan
 
