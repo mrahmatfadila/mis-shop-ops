@@ -37,13 +37,13 @@ export function jsonError(error: unknown, fallback?: string, status = 500) {
   return NextResponse.json({ success: false, message }, { status });
 }
 
-export interface ParseFiltersOptions<K extends string> {
+export interface ParseFiltersOptions {
   /** Nama query param yang boleh dibaca. */
-  allowed: readonly K[];
+  allowed: readonly string[];
   /** Nilai "tampilkan semua" yang berlaku untuk semua param (mis. "ALL"). */
   ignore?: readonly string[];
   /** Nilai "tampilkan semua" yang hanya berlaku untuk param tertentu. */
-  ignoreByKey?: Partial<Record<K, readonly string[]>>;
+  ignoreByKey?: Readonly<Record<string, readonly string[]>>;
 }
 
 /**
@@ -51,18 +51,17 @@ export interface ParseFiltersOptions<K extends string> {
  * Nilai sentinel dikembalikan sebagai string kosong sehingga route cukup
  * memakai `if (value) { ... }` — perilaku filter tetap sama seperti kode lama.
  */
-export function parseFilters<K extends string>(
+export function parseFilters(
   searchParams: URLSearchParams,
-  options: ParseFiltersOptions<K>
-): Record<K, string> {
+  options: ParseFiltersOptions
+): Record<string, string> {
   const { allowed, ignore = [], ignoreByKey = {} } = options;
-  const result = {} as Record<K, string>;
+  const result: Record<string, string> = {};
 
   for (const key of allowed) {
     const value = searchParams.get(key) ?? "";
-    const sentinels = ignoreByKey[key]
-      ? [...ignore, ...ignoreByKey[key]]
-      : ignore;
+    const extra = ignoreByKey[key];
+    const sentinels = extra ? [...ignore, ...extra] : ignore;
     result[key] = value && !sentinels.includes(value) ? value : "";
   }
 

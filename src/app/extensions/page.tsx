@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
+import StatCard from "@/components/common/StatCard";
+import SearchInput from "@/components/common/SearchInput";
+import LoadingState from "@/components/common/LoadingState";
+import EmptyState from "@/components/common/EmptyState";
+import StatusBadge from "@/components/common/StatusBadge";
+import Modal from "@/components/common/Modal";
+import { useApiData } from "@/hooks/useApiData";
+import { formatDate } from "@/lib/utils";
 import { PhoneExtension } from "@/types";
 import {
   PhoneCall,
-  Search,
   Plus,
   Download,
   Printer,
@@ -14,29 +21,29 @@ import {
   Copy,
   Check,
   Building2,
-  Users,
   Shield,
   RefreshCw,
-  X,
   PhoneForwarded,
-  Layers,
-  Monitor
 } from "lucide-react";
-import { getClientCache, setClientCache } from "@/lib/cache";
+
+type ExtStats = {
+  totalExtensions: number;
+  activeExtensions: number;
+  countByDivision: Record<string, number>;
+};
+
+type ExtensionsPayload = { data: PhoneExtension[]; stats: ExtStats };
+
+const EMPTY_STATS: ExtStats = {
+  totalExtensions: 0,
+  activeExtensions: 0,
+  countByDivision: {},
+};
 
 export default function ExtensionsPage() {
-  const [extensions, setExtensions] = useState<PhoneExtension[]>([]);
-  const [stats, setStats] = useState({
-    totalExtensions: 0,
-    activeExtensions: 0,
-    countByDivision: {
-      ACC: 0, BOD: 0, FIN: 0, GS: 0, MCD: 0, MIS: 0
-    } as Record<string, number>
-  });
-  const [loading, setLoading] = useState(true);
-
   // Filters
   const [search, setSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
   const [selectedDivision, setSelectedDivision] = useState("ALL");
   const [copiedExt, setCopiedExt] = useState<string | null>(null);
 
@@ -58,45 +65,46 @@ export default function ExtensionsPage() {
 
   const divisions = ["ACC", "BOD", "FIN", "GS", "MCD", "MIS", "WHS", "HRD", "FACILITY"];
 
-  const fetchExtensions = async () => {
-    const cacheKey = `ext_${search}_${selectedDivision}`;
-    const cached = getClientCache<{ data: PhoneExtension[]; stats: any }>(cacheKey);
-    if (cached) {
-      setExtensions(cached.data);
-      if (cached.stats) setStats(cached.stats);
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
+  // Query string & cache key mengikuti filter; endpoint tetap /api/extensions
+  const params = new URLSearchParams();
+  if (submittedSearch) params.append("search", submittedSearch);
+  if (selectedDivision !== "ALL") params.append("division", selectedDivision);
+  const cacheKey = `ext_${submittedSearch}_${selectedDivision}`;
 
-    try {
-      const params = new URLSearchParams();
-      if (search) params.append("search", search);
-      if (selectedDivision !== "ALL") params.append("division", selectedDivision);
-
-      const res = await fetch(`/api/extensions?${params.toString()}`);
-      const json = await res.json();
-      if (json.success) {
-        setExtensions(json.data);
-        if (json.stats) {
-          setStats(json.stats);
-        }
-        setClientCache(cacheKey, { data: json.data, stats: json.stats });
-      }
-    } catch (err) {
-      console.error("Failed to load phone extensions", err);
-    } finally {
-      setLoading(false);
+  const { data, isLoading, refresh } = useApiData<ExtensionsPayload>(
+    `/api/extensions?${params.toString()}`,
+    {
+      cacheKey,
+      transform: (json) => {
+        const res = json as {
+          success?: boolean;
+          data?: PhoneExtension[];
+          stats?: ExtStats;
+        };
+        return {
+          data: res.success && Array.isArray(res.data) ? res.data : [],
+          stats: res.stats ?? EMPTY_STATS,
+        };
+      },
     }
+  );
+
+  const extensions = data?.data ?? [];
+  const stats = data?.stats ?? EMPTY_STATS;
+
+  const handleFetch = () => {
+    if (search !== submittedSearch) setSubmittedSearch(search);
+    else refresh();
   };
-
-  useEffect(() => {
-    fetchExtensions();
-  }, [selectedDivision]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchExtensions();
+    handleFetch();
+  };
+
+  const selectDivision = (div: string) => {
+    if (search !== submittedSearch) setSubmittedSearch(search);
+    setSelectedDivision(div);
   };
 
   const handleCopy = (ext: string) => {
@@ -145,7 +153,7 @@ export default function ExtensionsPage() {
         const json = await res.json();
         if (json.success) {
           setIsModalOpen(false);
-          fetchExtensions();
+          handleFetch();
         } else {
           alert(json.message || "Gagal memperbarui extension");
         }
@@ -158,7 +166,7 @@ export default function ExtensionsPage() {
         const json = await res.json();
         if (json.success) {
           setIsModalOpen(false);
-          fetchExtensions();
+          handleFetch();
         } else {
           alert(json.message || "Gagal menambahkan extension");
         }
@@ -176,7 +184,7 @@ export default function ExtensionsPage() {
       const res = await fetch(`/api/extensions/${id}`, { method: "DELETE" });
       const json = await res.json();
       if (json.success) {
-        fetchExtensions();
+        handleFetch();
       } else {
         alert(json.message || "Gagal menghapus extension");
       }
@@ -212,31 +220,6 @@ export default function ExtensionsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
-
-  const getDivisionBadgeColor = (div: string) => {
-    switch (div) {
-      case "ACC":
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
-      case "BOD":
-        return "bg-purple-50 text-purple-700 border-purple-200";
-      case "FIN":
-        return "bg-blue-50 text-blue-700 border-blue-200";
-      case "GS":
-        return "bg-amber-50 text-amber-700 border-amber-200";
-      case "MCD":
-        return "bg-rose-50 text-rose-700 border-rose-200";
-      case "MIS":
-        return "bg-indigo-50 text-indigo-700 border-indigo-200";
-      case "WHS":
-        return "bg-cyan-50 text-cyan-800 border-cyan-300";
-      case "HRD":
-        return "bg-pink-50 text-pink-700 border-pink-200";
-      case "FACILITY":
-        return "bg-teal-50 text-teal-700 border-teal-200";
-      default:
-        return "bg-slate-100 text-slate-700 border-slate-200";
-    }
   };
 
   return (
@@ -288,59 +271,48 @@ export default function ExtensionsPage() {
 
         {/* Metric Statistics Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-              <span>Total Extension</span>
-              <PhoneCall className="w-4 h-4 text-blue-600" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.totalExtensions}</div>
-            <div className="text-[11px] text-slate-400 mt-1">
-              Pesawat Telepon Head Office
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-              <span>Operator PABX</span>
-              <PhoneForwarded className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div className="text-xl sm:text-2xl font-black text-slate-800">
-              0000 <span className="text-xs font-normal text-slate-500">(Riani)</span>
-            </div>
-            <div className="text-[11px] text-emerald-600 font-medium mt-1">
-              Operator Utama / Resepsionis (Nol 4X)
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-              <span>Divisi & Lokasi</span>
-              <Building2 className="w-4 h-4 text-indigo-600" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">
-              {Object.keys(stats.countByDivision || {}).length} Unit
-            </div>
-            <div className="text-[11px] text-slate-400 mt-1">
-              Head Office & Warehouse (WHS)
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-              <span>Status Jalur MIS</span>
-              <Shield className="w-4 h-4 text-purple-600" />
-            </div>
-            <div className="text-xl sm:text-2xl font-black text-slate-800">IT Helpdesk</div>
-            <div className="text-[11px] text-purple-600 font-medium mt-1">
-              Pa Pepen, Farhan, Hamdi, Bili
-            </div>
-          </div>
+          <StatCard
+            label="Total Extension"
+            value={stats.totalExtensions}
+            icon={PhoneCall}
+            iconClassName="text-blue-600"
+            hint="Pesawat Telepon Head Office"
+          />
+          <StatCard
+            label="Operator PABX"
+            value={
+              <>
+                0000 <span className="text-xs font-normal text-slate-500">(Riani)</span>
+              </>
+            }
+            valueClassName="text-xl sm:text-2xl"
+            icon={PhoneForwarded}
+            iconClassName="text-emerald-600"
+            hint="Operator Utama / Resepsionis (Nol 4X)"
+            hintClassName="text-emerald-600 font-medium"
+          />
+          <StatCard
+            label="Divisi & Lokasi"
+            value={`${Object.keys(stats.countByDivision || {}).length} Unit`}
+            icon={Building2}
+            iconClassName="text-indigo-600"
+            hint="Head Office & Warehouse (WHS)"
+          />
+          <StatCard
+            label="Status Jalur MIS"
+            value="IT Helpdesk"
+            valueClassName="text-xl sm:text-2xl"
+            icon={Shield}
+            iconClassName="text-purple-600"
+            hint="Pa Pepen, Farhan, Hamdi, Bili"
+            hintClassName="text-purple-600 font-medium"
+          />
         </div>
 
         {/* Division Quick Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
           <button
-            onClick={() => setSelectedDivision("ALL")}
+            onClick={() => selectDivision("ALL")}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
               selectedDivision === "ALL"
                 ? "bg-slate-900 text-white shadow-sm"
@@ -355,7 +327,7 @@ export default function ExtensionsPage() {
           {divisions.map(div => (
             <button
               key={div}
-              onClick={() => setSelectedDivision(div)}
+              onClick={() => selectDivision(div)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 selectedDivision === div
                   ? "bg-blue-600 text-white shadow-sm"
@@ -374,19 +346,15 @@ export default function ExtensionsPage() {
 
         {/* Search Toolbar */}
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-          <form onSubmit={handleSearchSubmit} className="flex-1 relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Cari Nama Karyawan, Nomor Extension (misal: 1101, 1011, 1401), Divisi, atau IP..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-            />
-          </form>
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            onSubmit={handleSearchSubmit}
+            placeholder="Cari Nama Karyawan, Nomor Extension (misal: 1101, 1011, 1401), Divisi, atau IP..."
+          />
 
           <button
-            onClick={fetchExtensions}
+            onClick={handleFetch}
             className="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 transition flex items-center gap-1.5 text-xs font-semibold self-end md:self-auto"
             title="Refresh Data"
           >
@@ -413,17 +381,19 @@ export default function ExtensionsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {loading ? (
+                {isLoading ? (
                   <tr>
-                    <td colSpan={9} className="py-12 text-center text-slate-400">
-                      <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-blue-500" />
-                      Memuat direktori extension telepon...
+                    <td colSpan={9}>
+                      <LoadingState message="Memuat direktori extension telepon..." />
                     </td>
                   </tr>
                 ) : extensions.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-12 text-center text-slate-400">
-                      Tidak ada data extension yang cocok dengan pencarian.
+                    <td colSpan={9}>
+                      <EmptyState
+                        className="py-12"
+                        title="Tidak ada data extension yang cocok dengan pencarian."
+                      />
                     </td>
                   </tr>
                 ) : (
@@ -433,9 +403,11 @@ export default function ExtensionsPage() {
                         {item.item_no || index + 1}
                       </td>
                       <td className="py-3 px-3">
-                        <span className={`inline-block px-2.5 py-0.5 rounded-lg text-xs font-black border ${getDivisionBadgeColor(item.division)}`}>
-                          {item.division}
-                        </span>
+                        <StatusBadge
+                          status={item.division}
+                          variant="division"
+                          className="rounded-lg px-2.5 py-0.5 text-xs font-black"
+                        />
                       </td>
                       <td className="py-3 px-3">
                         <div className="font-bold text-slate-900">{item.user_name}</div>
@@ -476,15 +448,7 @@ export default function ExtensionsPage() {
                         )}
                       </td>
                       <td className="py-3 px-3 text-center">
-                        <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          item.status === "AKTIF"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : item.status === "KOSONG"
-                              ? "bg-slate-100 text-slate-500"
-                              : "bg-amber-100 text-amber-800"
-                        }`}>
-                          {item.status}
-                        </span>
+                        <StatusBadge status={item.status} />
                       </td>
                       <td className="py-3 px-3 text-center">
                         <div className="flex items-center justify-center gap-1">
@@ -514,32 +478,16 @@ export default function ExtensionsPage() {
       </main>
 
       {/* Modal Tambah / Edit Extension */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                  <PhoneCall className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">
-                    {editingExt ? "Edit Nomor Extension" : "Tambah Extension Baru"}
-                  </h3>
-                  <p className="text-[11px] text-slate-500">
-                    PABX Internal Head Office & Toko
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200 transition"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitForm} className="p-5 space-y-3.5 text-xs">
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingExt ? "Edit Nomor Extension" : "Tambah Extension Baru"}
+        description="PABX Internal Head Office & Toko"
+        icon={PhoneCall}
+        iconClassName="bg-blue-50 text-blue-600"
+        size="sm"
+      >
+        <form onSubmit={handleSubmitForm} className="space-y-3.5 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">
                   Divisi <span className="text-rose-500">*</span>
@@ -653,27 +601,18 @@ export default function ExtensionsPage() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
 
       {/* Modal Cetak Lembar Buku Telepon Extension PABX */}
-      {isPrintModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-3xl w-full shadow-2xl border border-slate-200 p-6 space-y-6 my-8">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <Printer className="w-4 h-4 text-blue-600" />
-                Lembar Cetak Buku Extension Telepon PABX (A4)
-              </h3>
-              <button
-                onClick={() => setIsPrintModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
+      <Modal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        title="Lembar Cetak Buku Extension Telepon PABX (A4)"
+        icon={Printer}
+        iconClassName="bg-blue-50 text-blue-600"
+        size="lg"
+      >
+        <div className="space-y-6">
             {/* Print Sheet Preview */}
             <div className="border border-slate-300 p-6 rounded-xl bg-white text-slate-900 space-y-4 shadow-sm text-xs">
               <div className="text-center border-b-2 border-slate-900 pb-3 space-y-1">
@@ -684,7 +623,7 @@ export default function ExtensionsPage() {
                   DIREKTORI NOMOR EXTENSION TELEPON PABX HEAD OFFICE
                 </h3>
                 <p className="text-[10px] text-slate-500">
-                  Operator Utama: Riani (Ext. 0000 / Nol 4X) • Update: {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  Operator Utama: Riani (Ext. 0000 / Nol 4X) • Update: {formatDate(new Date())}
                 </p>
               </div>
 
@@ -736,9 +675,8 @@ export default function ExtensionsPage() {
                 Cetak Lembar Telepon
               </button>
             </div>
-          </div>
         </div>
-      )}
+      </Modal>
     </SidebarLayout>
   );
 }
