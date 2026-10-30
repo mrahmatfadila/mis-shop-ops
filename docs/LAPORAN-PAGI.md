@@ -5,6 +5,19 @@
 ## 0. TL;DR
 Analisis proyek selesai (12 temuan), tim 5 agent (PM + frontend + backend + data + testing) dibentuk dan menyelesaikan 6 task, lalu **semua gate hijau**: `tsc` 0 error · smoke test **28/28 PASS** · unit test **29/29 PASS** · `verify.mjs` exit 0 · **data 15 tabel = 982 baris, identik baseline** (tidak ada data hilang/berubah). Ada insiden: **tool AI eksternal (Antigravity IDE) mematikan dev server** & ikut meng-commit/mengedit repo. Server sudah dipulihkan dan aplikasi normal sampai sekarang.
 
+## 0b. TAMBAHAN — SHIFT 2 (otomatis, karena Anda minta "lanjut terus")
+Setelah laporan pertama, tim melanjutkan **3 batch lagi (Shift 2)** tanpa menunggu Anda, dengan aturan aman (zero-behavior, tanpa auth/data/git/push). Detail: [`docs/LAPORAN-SHIFT2.md`](LAPORAN-SHIFT2.md) · log: [`docs/SHIFT2-LOG.md`](SHIFT2-LOG.md).
+
+| Batch | Isi | Gate |
+|---|---|---|
+| A | 15 API route → helper DRY; komponen common di `knowledge-base` + `monitoring`; smoke 28→**47 tes**; `tests/regression.mjs`; audit data read-only | ✅ tsc 0 · build 0 · smoke 47 · regression PASS |
+| B | 11 route lagi (**30/36 route** termigrasi); komponen di `t3-assets` + `office`; **kontrak POST 18/18** (DB tidak berubah); unit 45/45; `backup-verify` (restore + sha256) + rekap aset | ✅ build 0 · verify 4/4 |
+| C | komponen di `server-rack` + `dvr` (8 halaman total); `static-rules.mjs` (0 pelanggaran berat); `RUNBOOK-DB.md`; review 30 route + 1 fix | ✅ build 0 · verify 4/4 · static 0 |
+
+**Angka final (diverifikasi Lead di build produksi final):** `tsc` 0 error · `npm run build` **exit 0** · smoke **47 PASS/0 FAIL** · kontrak POST 18/18 · unit **45/45** · regression **PASS (DB 982 = baseline)** · static-rules 0 pelanggaran berat · semua halaman utama HTTP 200 · `integrity_check=ok`. Commit: `9d7385e` (A), `5e64216` (B), final (C).
+
+**Dokumen baru:** `RECAP-ASET.md` (nilai aset **Rp 360.885.000** per lokasi/kategori), `DATA-AUDIT.md` (duplikat/NULL/orphan), `BACKEND-REVIEW.md`, `RULES-COMPLIANCE.md`, `RUNBOOK-DB.md` (SOP backup/restore/darurat + contoh Task Scheduler — belum diaktifkan), `LAPORAN-SHIFT2.md`.
+
 ## 1. Analisis yang diminta (ringkas)
 Stack: Next.js 14 App Router + React 18 + Tailwind + SQLite lokal (`@libsql/client`), 86 file sumber, 15 halaman client-side, 40 API route, **data produksi nyata** (982 baris).
 

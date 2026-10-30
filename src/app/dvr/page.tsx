@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useState, Suspense } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
 import ScannerModal from "@/components/ScannerModal";
 import BarcodeGeneratorModal from "@/components/BarcodeGeneratorModal";
+import StatCard from "@/components/common/StatCard";
+import SearchInput from "@/components/common/SearchInput";
+import LoadingState from "@/components/common/LoadingState";
+import EmptyState from "@/components/common/EmptyState";
+import { useApiData } from "@/hooks/useApiData";
 import { DvrAsset, Asset } from "@/types";
 import {
   Video,
-  Search,
   HardDrive,
   Camera,
   Clock,
@@ -43,7 +47,6 @@ import {
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import AccessDenied from "@/components/AccessDenied";
-import { getClientCache, setClientCache } from "@/lib/cache";
 
 interface ChannelConfig {
   ch: number;
@@ -58,9 +61,6 @@ function DvrContent() {
   }
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
-
-  const [dvrList, setDvrList] = useState<DvrAsset[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState(initialSearch);
@@ -123,39 +123,26 @@ function DvrContent() {
   const [formError, setFormError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Fetch DVR List
-  const fetchDvr = async () => {
-    const cacheKey = `dvr_${searchTerm}_${selectedRegion}_${selectedChannels}`;
-    const cached = getClientCache<DvrAsset[]>(cacheKey);
-    if (cached) {
-      setDvrList(cached);
-      setIsLoading(false);
-    } else {
-      setIsLoading(true);
-    }
+  // Data DVR dari API + SWR cache (endpoint & cache key tetap)
+  const params = new URLSearchParams();
+  if (searchTerm) params.set("search", searchTerm);
+  if (selectedRegion) params.set("region", selectedRegion);
+  if (selectedChannels) params.set("channels", selectedChannels);
+  const cacheKey = `dvr_${searchTerm}_${selectedRegion}_${selectedChannels}`;
 
-    try {
-      const params = new URLSearchParams();
-      if (searchTerm) params.set("search", searchTerm);
-      if (selectedRegion) params.set("region", selectedRegion);
-      if (selectedChannels) params.set("channels", selectedChannels);
+  const {
+    data: dvrData,
+    isLoading,
+    refresh: fetchDvr,
+  } = useApiData<DvrAsset[]>(`/api/dvr?${params.toString()}`, {
+    cacheKey,
+    transform: (json) => {
+      const res = json as { success?: boolean; data?: DvrAsset[] };
+      return res.success && Array.isArray(res.data) ? res.data : [];
+    },
+  });
 
-      const res = await fetch(`/api/dvr?${params.toString()}`);
-      const json = await res.json();
-      if (json.success) {
-        setDvrList(json.data);
-        setClientCache(cacheKey, json.data);
-      }
-    } catch (err) {
-      console.error("Failed to load DVR assets", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDvr();
-  }, [searchTerm, selectedRegion, selectedChannels]);
+  const dvrList = dvrData ?? [];
 
   // Copy helper
   const copyToClipboard = (text: string, key: string) => {
@@ -523,51 +510,71 @@ function DvrContent() {
 
         {/* Top 4 Metric KPI Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Unit DVR</p>
-              <p className="text-2xl font-black text-slate-900 mt-0.5">{dvrList.length} <span className="text-xs font-normal text-slate-400">Unit</span></p>
-              <p className="text-[10.5px] text-slate-500 mt-0.5">Tersebar di 25 lokasi toko & gudang</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-              <Video className="w-5 h-5" />
-            </div>
-          </div>
+          <StatCard
+            label="Total Unit DVR"
+            labelClassName="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+            value={
+              <>
+                {dvrList.length}{" "}
+                <span className="text-xs font-normal text-slate-400">Unit</span>
+              </>
+            }
+            valueClassName="text-2xl text-slate-900 mt-0.5"
+            hint="Tersebar di 25 lokasi toko & gudang"
+            hintClassName="text-[10.5px] text-slate-500 mt-0.5"
+            icon={Video}
+            iconWrapperClassName="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold"
+            className="border-slate-200/90 shadow-2xs hover:shadow-sm transition-all"
+          />
 
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Channel CCTV</p>
-              <p className="text-2xl font-black text-blue-600 mt-0.5">
-                {dvrList.filter((d) => d.channels?.includes("16")).length}x 16CH • {dvrList.filter((d) => d.channels?.includes("8")).length}x 8CH
-              </p>
-              <p className="text-[10.5px] text-slate-500 mt-0.5">Analog & IP Camera Support</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-              <Camera className="w-5 h-5" />
-            </div>
-          </div>
+          <StatCard
+            label="Channel CCTV"
+            labelClassName="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+            value={
+              <>
+                {dvrList.filter((d) => d.channels?.includes("16")).length}x 16CH •{" "}
+                {dvrList.filter((d) => d.channels?.includes("8")).length}x 8CH
+              </>
+            }
+            valueClassName="text-2xl text-blue-600 mt-0.5"
+            hint="Analog & IP Camera Support"
+            hintClassName="text-[10.5px] text-slate-500 mt-0.5"
+            icon={Camera}
+            iconWrapperClassName="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold"
+            className="border-slate-200/90 shadow-2xs hover:shadow-sm transition-all"
+          />
 
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Storage Hardisk</p>
-              <p className="text-2xl font-black text-emerald-600 mt-0.5">110+ <span className="text-xs font-normal text-slate-400">TB</span></p>
-              <p className="text-[10.5px] text-slate-500 mt-0.5">Surveillance HDD Terpasang</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-              <HardDrive className="w-5 h-5" />
-            </div>
-          </div>
+          <StatCard
+            label="Storage Hardisk"
+            labelClassName="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+            value={
+              <>
+                110+ <span className="text-xs font-normal text-slate-400">TB</span>
+              </>
+            }
+            valueClassName="text-2xl text-emerald-600 mt-0.5"
+            hint="Surveillance HDD Terpasang"
+            hintClassName="text-[10.5px] text-slate-500 mt-0.5"
+            icon={HardDrive}
+            iconWrapperClassName="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold"
+            className="border-slate-200/90 shadow-2xs hover:shadow-sm transition-all"
+          />
 
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Retensi Rekaman</p>
-              <p className="text-2xl font-black text-amber-600 mt-0.5">Hingga 227 <span className="text-xs font-normal text-slate-400">Hari</span></p>
-              <p className="text-[10.5px] text-slate-500 mt-0.5">Rata-rata 40 - 200+ hari rekam</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-              <Clock className="w-5 h-5" />
-            </div>
-          </div>
+          <StatCard
+            label="Retensi Rekaman"
+            labelClassName="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+            value={
+              <>
+                Hingga 227 <span className="text-xs font-normal text-slate-400">Hari</span>
+              </>
+            }
+            valueClassName="text-2xl text-amber-600 mt-0.5"
+            hint="Rata-rata 40 - 200+ hari rekam"
+            hintClassName="text-[10.5px] text-slate-500 mt-0.5"
+            icon={Clock}
+            iconWrapperClassName="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold"
+            className="border-slate-200/90 shadow-2xs hover:shadow-sm transition-all"
+          />
         </div>
 
         {/* Filter and Search Bar */}
@@ -612,25 +619,13 @@ function DvrContent() {
 
           {/* Row 2: Search Input & Channel Filter Dropdown */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2.5 border-t border-slate-100">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Cari lokasi toko (DF1, SBY, Colonial, Jada), IP address (172.19.1...), tipe DVR, S/N..."
-                className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#006622] outline-none transition-all"
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+            <SearchInput
+              value={searchTerm}
+              onChange={setSearchTerm}
+              onClear={() => setSearchTerm("")}
+              placeholder="Cari lokasi toko (DF1, SBY, Colonial, Jada), IP address (172.19.1...), tipe DVR, S/N..."
+              inputClassName="pl-9 pr-8 py-2 bg-slate-50 border-slate-200 rounded-xl font-medium focus:bg-white focus:ring-emerald-500/20 focus:border-[#006622]"
+            />
 
             <div className="flex items-center gap-2 flex-wrap">
               <select
@@ -665,16 +660,18 @@ function DvrContent() {
         {/* Master Table of DVRs */}
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
           {isLoading ? (
-            <div className="p-12 text-center">
-              <div className="inline-block w-7 h-7 border-3 border-[#006622] border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-xs text-slate-500 font-bold mt-3">Memuat Data DVR CCTV...</p>
-            </div>
+            <LoadingState
+              className="p-12"
+              message="Memuat Data DVR CCTV..."
+            />
           ) : dvrList.length === 0 ? (
-            <div className="p-12 text-center">
-              <Video className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-              <p className="text-sm font-bold text-slate-700">Tidak ada unit DVR ditemukan</p>
-              <p className="text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian atau filter wilayah/channel.</p>
-            </div>
+            <EmptyState
+              className="p-12"
+              icon={Video}
+              iconClassName="w-12 h-12 text-slate-300"
+              title="Tidak ada unit DVR ditemukan"
+              description="Coba sesuaikan kata kunci pencarian atau filter wilayah/channel."
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">

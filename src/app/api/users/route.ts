@@ -63,10 +63,7 @@ export async function POST(request: Request) {
     });
 
     if (existing.rows.length > 0) {
-      return NextResponse.json(
-        { success: false, message: `Username/NIK "${cleanUser}" sudah terdaftar dalam sistem.` },
-        { status: 400 }
-      );
+      return fail(`Username/NIK "${cleanUser}" sudah terdaftar dalam sistem.`, 400);
     }
 
     await db.execute({

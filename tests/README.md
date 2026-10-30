@@ -192,6 +192,33 @@ Urutan (4 langkah): `npx tsc --noEmit` → `node tests/smoke.mjs` →
 tests/api-helpers.test.mjs` (file unit test yang belum ada otomatis dilewati). Exit code 1 bila ada
 langkah gagal. Butuh server hidup untuk langkah 2–3.
 
+## 6. Audit statis kepatuhan AI_RULES — `tests/static-rules.mjs`
+
+```powershell
+node tests/static-rules.mjs
+```
+
+Scan **read-only** seluruh `src/**/*.ts{,x}` (tanpa server, tanpa dependency, tidak mengubah `src/**`;
+hanya menulis laporan `docs/RULES-COMPLIANCE.md`). Yang diperiksa:
+
+1. file sumber **>400** dan **>1000 baris** (target AI_RULES 150–200 baris) — monolit legacy
+   (dari `docs/ANALISIS-PROYEK.md` F4/F5) dilaporkan sebagai warning;
+2. heuristik **array data hardcoded** di `src/app/**` & `src/components/**` (>5 objek literal —
+   kandidat; bisa false-positive untuk config UI/nav);
+3. penggunaan **`any`** per file + total, serta `@ts-ignore`/`@ts-expect-error`;
+4. **duplikasi** `formatRupiah` / `toLocaleString("id-ID")` / format tanggal di luar
+   `src/lib/utils.ts`;
+5. info `"use client"` halaman & import ikon `lucide-react` (named vs namespace).
+
+**Exit code 1 HANYA untuk pelanggaran berat:**
+- file >1000 baris yang bukan monolit legacy, ATAU
+- array hardcoded >20 objek di file yang disentuh Shift 2, ATAU
+- `any` **bertambah** di file Shift 2 dibanding commit baseline (`STATIC_BASE_COMMIT`, default
+  `e6c8621`; dideteksi via `git diff`/`git show` read-only).
+
+Semua temuan lain = WARNING (exit 0). Script **tidak** dipanggil oleh `scripts/verify.mjs` —
+integrasi diserahkan ke Lead. Env: `STATIC_BASE_COMMIT` (baseline Shift 2).
+
 ## Troubleshooting
 
 - **Semua endpoint `fetch failed` seketika** → server mati/tidak listen di `:3000`

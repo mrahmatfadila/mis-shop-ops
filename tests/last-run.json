@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-10-30T17:36:44.077Z",
+  "generatedAt": "2026-10-30T17:52:16.560Z",
   "baseUrl": "http://localhost:3000",
   "node": "v22.23.4",
   "slowThresholdMs": 500,
   "latencyBudgetMs": 1500,
   "latencyNote": "Latency diukur setelah warm-up; server produksi (npm run start) pada shift 2.",
-  "durationMs": 1893,
+  "durationMs": 1327,
   "summary": {
     "total": 47,
     "tested": 47,
@@ -97,7 +97,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 58,
+      "latencyMs": 13,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -159,7 +159,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "58ms"
+          "detail": "13ms"
         }
       ],
       "textPreview": "{\"success\":true,\"stats\":{\"totalAssets\":159,\"operationalAssets\":156,\"brokenAssets\":0,\"repairAssets\":0,\"pendingTickets\":2,\"onlineDevices\":60,\"totalMonitoredDevices\":167,\"totalOfficeAssets\":77,\"posCount\":68,\"edcCount\":53,\"t3Count\":35,\"dvrCount\":27,\"rackPortCount\":135,\"extensionCount\":47,\"purchaseCount\":11,\"knowledgeCount\":5}}"
@@ -171,7 +171,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 52,
+      "latencyMs": 18,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -213,7 +213,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "52ms"
+          "detail": "18ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":[{\"id\":3778,\"asset_code\":\"OFF-SBY-05\",\"name\":\"Perangkat Office PRICETAG LABEL\",\"category\":\"Display / Monitor\",\"shop_location\":\"Office Surabaya\",\"brand_model\":\"PRINTER\",\"serial_number\":\"-\",\"ip_address\":\"172.23.50.84\",\"purchase_date\":null,\"status\":\"OPERASIONAL\",\"notes\":\"Divisi: OPERASIONAL SBY | Lokasi: Office Surabaya | OS: - | RAM: - | Storage: - | Printer: PRINTER PRICETAG LABEL\",\"created_at\":\"2026-10-30 03:55:13\",\"updated_at\":\"2026-10-30 03:55:13\"},{\"id\":3777,\"asset_code\":\"OFF-SBY-04\",\"name\":\"Perangkat Office PRICETAG HANGING\",\"category\":\"Display / Monitor\",\"shop_location\":\"Office Surabaya\",\"brand_model\":\"PRINTER\",\"serial_number\":\"-\",\"ip_address\":\"172.23.50.83\",\"purchase_date\":null,\"status\":\"OPERASIONAL\",\"notes\":\"Divisi: OPERASIONAL SBY | Lokasi: Office Surabaya | OS: - | RAM: - | Storage: - | Printer: PRINTER PRICETAG HANGING\",\"created_at\":\"2026-10-30 03:55:13\",\"updated_at\":\"2026-10-30 03:55:13\"},{\"id\":3776,\"asset_code\":\"OFF-SBY-03\",\"name\":\"Perangkat Office PC MONITOR CCTV\",\"category\":\"Display / Monitor\",\"shop_location\":\"Office Surabaya\",\"brand_model\":\"PC\",\"serial_number\":\"-\",\"ip_address\":\"172.23.25.3\",\"purchase_date\":null,\"status\":\"OPERASIONAL\",\"notes\":\"D"
@@ -225,7 +225,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 13,
+      "latencyMs": 12,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -277,7 +277,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "13ms"
+          "detail": "12ms"
         }
       ],
       "textPreview": "{\"success\":true,\"source\":\"database_sqlite_shop_ops\",\"accounts\":[{\"id\":140,\"username\":\"mis\",\"name\":\"MIS OPS\",\"role\":\"MIS\",\"shop_location\":\"Semua Toko\",\"isSuspended\":false,\"badge\":\"⭐ FOKUS UTAMA • AKTIF PENUH\",\"desc\":\"Akses kontrol teknis penuh ke seluruh master aset hardware kasir, mesin EDC, PC kantor/gudang, dan infrastruktur server.\",\"features\":[\"Akses Penuh Plaza Bali, SAM & Surabaya\",\"Inventaris 68 POS & 53 Mesin EDC Bank\",\"PC Head Office & Gudang WHS (77 Unit)\",\"Rak Server 32U & Wallmount (135 Port)\"]},{\"id\":142,\"username\":\"spv_plazabali\",\"name\":\"SPV Plaza Bali\",\"role\":\"SPV_PLAZABALI\",\"shop_location\":\"Plaza Bali\",\"isSuspended\":true,\"badge\":\"DITANGGUHKAN SEMENTARA\",\"desc\":\"Menu & hak akses SPV Plaza Bali dikosongkan terlebih dahulu karena pengembangan saat ini berfokus pada Aset MIS.\",\"features\":[\"Menu SPV Toko Dikosongkan Sementara\",\"Belum Masuk ke Tahap Operasional SPV\",\"Dialihkan ke Role IT Support (MIS)\"]},{\"id\":144,\"username\":\"spv_sam\",\"name\":\"SPV SAM\",\"role\":\"SPV_SAM\",\"shop_location\":\"SAM\",\"isSuspended\":true,\"badge\":\"DITANGGUHKAN SEMENTARA\",\"desc\":\"Menu & hak akses SPV SAM dikosongkan terlebih dahulu karena pengembangan saat ini berfokus pada Aset MIS.\",\"features\":[\"Menu "
@@ -289,7 +289,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 43,
+      "latencyMs": 7,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -331,7 +331,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "43ms"
+          "detail": "7ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":[{\"id\":1106,\"asset_code\":\"DVR-DF1\",\"location\":\"DF1\",\"dvr_type\":\"DS-7216HGHI-M1\",\"serial_number\":\"DS-7216HGHI-M11620240929CCWRFQ5188460WCVU\",\"harddisk\":\"8 TB\",\"channels\":\"16 CH\",\"camera_count\":\"11 CAM (11 ANALOG)\",\"retention_days\":\"157 HARI\",\"username\":\"admin\",\"password\":\"[REDACTED]\",\"ip_address\":\"172.19.1.81\",\"status\":\"OPERASIONAL\",\"notes\":null,\"created_at\":\"2026-10-30 03:55:12\",\"updated_at\":\"2026-10-30 03:55:12\",\"http_port\":80,\"rtsp_port\":554,\"server_port\":8000,\"protocol\":\"HIKVISION\",\"channel_names\":\"\",\"rtsp_stream_url\":\"\"},{\"id\":1107,\"asset_code\":\"DVR-DF2\",\"location\":\"DF2\",\"dvr_type\":\"DS-7216HGHI-M1\",\"serial_number\":\"DS-7216HGHI-M11620230425CCWRAA6918154WCVU\",\"harddisk\":\"4 TB\",\"channels\":\"16 CH\",\"camera_count\":\"14 CAM (14 ANALOG)\",\"retention_days\":\"33 HARI\",\"username\":\"admin\",\"password\":\"[REDACTED]\",\"ip_address\":\"172.19.1.82\",\"status\":\"OPERASIONAL\",\"notes\":null,\"created_at\":\"2026-10-30 03:55:12\",\"updated_at\":\"2026-10-30 03:55:12\",\"http_port\":80,\"rtsp_port\":554,\"server_port\":8000,\"protocol\":\"HIKVISION\",\"channel_names\":\"\",\"rtsp_stream_url\":\"\"},{\"id\":1108,\"asset_code\":\"DVR-DF3\",\"location\":\"DF3\",\"dvr_type\":\"DS-7216HGHI-M1\",\"serial_number\":\"DS-7216HGHI-M11620240"
@@ -343,7 +343,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 12,
+      "latencyMs": 13,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -385,7 +385,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "12ms"
+          "detail": "13ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":[{\"id\":2048,\"pos_location\":\"CGKT3DFD01-P01\",\"shop_name\":\"Plaza Bali\",\"is_active\":\"Y\",\"bca_credit\":\"OK\",\"bca_debit\":\"OK\",\"bca_qr\":\"-\",\"bca_tid\":\"CH105545\",\"bca_mid\":\"885000533981\",\"bni_credit\":\"OK\",\"bni_debit\":\"OK\",\"bni_qr\":\"-\",\"bni_tid\":\"-\",\"bni_mid\":\"-\",\"mandiri_credit\":\"OK\",\"mandiri_debit\":\"OK\",\"mandiri_qr\":\"-\",\"mandiri_tid\":\"-\",\"mandiri_mid\":\"-\",\"bri_credit\":\"OK\",\"bri_debit\":\"OK\",\"bri_qr\":\"-\",\"bri_tid\":\"10592843\",\"bri_mid\":\"1999258659\",\"notes\":null,\"created_at\":\"2026-10-30 03:55:12\",\"updated_at\":\"2026-10-30 03:55:12\"},{\"id\":2049,\"pos_location\":\"CGKT3DFD01-P02\",\"shop_name\":\"Plaza Bali\",\"is_active\":\"Y\",\"bca_credit\":\"OK\",\"bca_debit\":\"OK\",\"bca_qr\":\"-\",\"bca_tid\":\"CH154673\",\"bca_mid\":\"885000533981\",\"bni_credit\":\"OK\",\"bni_debit\":\"OK\",\"bni_qr\":\"-\",\"bni_tid\":\"-\",\"bni_mid\":\"-\",\"mandiri_credit\":\"OK\",\"mandiri_debit\":\"OK\",\"mandiri_qr\":\"-\",\"mandiri_tid\":\"-\",\"mandiri_mid\":\"-\",\"bri_credit\":\"OK\",\"bri_debit\":\"OK\",\"bri_qr\":\"-\",\"bri_tid\":\"10447370\",\"bri_mid\":\"1999258659\",\"notes\":null,\"created_at\":\"2026-10-30 03:55:12\",\"updated_at\":\"2026-10-30 03:55:12\"},{\"id\":2050,\"pos_location\":\"CGKT3DFD01-P03\",\"shop_name\":\"Plaza Bali\",\"is_active\":\"Y\",\"bca_credit\":\"OK\",\"bca_debit\":\"OK\",\"bca_"
@@ -397,7 +397,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 12,
+      "latencyMs": 15,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -449,7 +449,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "12ms"
+          "detail": "15ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":[{\"id\":141,\"item_no\":1,\"division\":\"ACC\",\"user_name\":\"BU NYOMAN\",\"ext\":\"1151\",\"location\":\"Head Office\",\"notes\":\"Accounting Manager (VoIP 172.16.11.1 • PC 172.16.45.10)\",\"ip_address\":\"172.16.11.1\",\"status\":\"AKTIF\",\"created_at\":\"2026-10-30 03:34:49\",\"updated_at\":\"2026-10-30 03:34:49\"},{\"id\":142,\"item_no\":2,\"division\":\"ACC\",\"user_name\":\"BU NURUL\",\"ext\":\"1194\",\"location\":\"Head Office\",\"notes\":\"Staff Accounting (VoIP 172.16.11.2 • PC 172.16.11.94)\",\"ip_address\":\"172.16.11.2\",\"status\":\"AKTIF\",\"created_at\":\"2026-10-30 03:34:49\",\"updated_at\":\"2026-10-30 03:34:49\"},{\"id\":143,\"item_no\":3,\"division\":\"ACC\",\"user_name\":\"BU MARI\",\"ext\":\"1146\",\"location\":\"Head Office\",\"notes\":\"Staff Accounting (VoIP 172.16.11.3 • PC 172.16.45.18)\",\"ip_address\":\"172.16.11.3\",\"status\":\"AKTIF\",\"created_at\":\"2026-10-30 03:34:49\",\"updated_at\":\"2026-10-30 03:34:49\"},{\"id\":144,\"item_no\":4,\"division\":\"ACC\",\"user_name\":\"INDAH\",\"ext\":\"1164\",\"location\":\"Head Office\",\"notes\":\"Staff Accounting (VoIP 172.16.11.4 • PC 172.16.45.17)\",\"ip_address\":\"172.16.11.4\",\"status\":\"AKTIF\",\"created_at\":\"2026-10-30 03:34:49\",\"updated_at\":\"2026-10-30 03:34:49\"},{\"id\":145,\"item_no\":5,\"division\":\"ACC\",\"user_name\":\"SINDI\",\"e"
@@ -461,7 +461,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 45,
+      "latencyMs": 9,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -513,7 +513,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "45ms"
+          "detail": "9ms"
         }
       ],
       "textPreview": "{\"success\":true,\"articles\":[{\"id\":2,\"title\":\"Panduan Menangani Printer Kasir Epson TM-U220D & TM-T82 (Kertas Macet / Cutter Terkunci)\",\"slug\":\"panduan-printer-kasir-epson-macet\",\"category\":\"Printer Kasir\",\"target_role\":\"SPV Toko\",\"store_scope\":\"Semua Toko\",\"summary\":\"Cara aman membuka cover printer yang terkunci saat pisau auto-cutter macet tanpa merusak gear dan mekanik printer.\",\"content\":\"### Masalah:\\nLampu merah *ERROR* berkedip, printer berbunyi bip berulang kali, atau cover penutup kertas tidak bisa dibuka karena pisau pemotong (*cutter*) macet di tengah.\\n\\n### PERINGATAN KERAS:\\n**JANGAN MEMAKSA MENCONGKEL PENUTUP COVER DENGAN OBENG ATAU PISAU!** Hal ini dapat mematahkan gear plastik di dalam unit pemotong.\\n\\n### Langkah Penanganan:\\n1. **Matikan Sakelar Daya**:\\n   - Tekan tombol power printer di posisi OFF (0).\\n2. **Reset Pisau Cutter Manual**:\\n   - Pada **Epson TM-T82 / TM-T88**: Buka penutup kecil di bagian depan cutter, putar roda bergerigi (*gear*) ke arah bawah hingga pisau pemotong kembali ke posisi mundur penuh.\\n   - Setelah pisau mundur, tuas pembuka cover akan otomatis bisa ditarik dengan mudah dan lembut.\\n3. **Pembersihan Sisa Kertas**:\\n   - Angkat gulung"
@@ -525,7 +525,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 20,
+      "latencyMs": 15,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -582,7 +582,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "20ms"
+          "detail": "15ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":[{\"id\":4554,\"asset_code\":\"OFF-ACC-01\",\"ip_address\":\"172.16.45.10\",\"status\":\"ONLINE\",\"response_time_ms\":40,\"last_heartbeat\":\"2026-10-30 16:03:28\",\"details\":\"Head Office [ACCOUNTING] - BU NYOMAN (PC)\",\"asset_name\":\"Perangkat Office BU NYOMAN\",\"category\":\"Display / Monitor\",\"shop_location\":\"Head Office\"},{\"id\":4555,\"asset_code\":\"OFF-ACC-02\",\"ip_address\":\"172.16.70.3\",\"status\":\"OFFLINE\",\"response_time_ms\":0,\"last_heartbeat\":\"2026-10-30 16:03:28\",\"details\":\"Head Office [ACCOUNTING] - MEGA (PC)\",\"asset_name\":\"Perangkat Office MEGA\",\"category\":\"Display / Monitor\",\"shop_location\":\"Head Office\"},{\"id\":4556,\"asset_code\":\"OFF-ACC-03\",\"ip_address\":\"172.16.70.8\",\"status\":\"OFFLINE\",\"response_time_ms\":0,\"last_heartbeat\":\"2026-10-30 16:03:28\",\"details\":\"Head Office [ACCOUNTING] - REZA-PC (PC)\",\"asset_name\":\"Perangkat Office REZA-PC\",\"category\":\"Display / Monitor\",\"shop_location\":\"Head Office\"},{\"id\":4557,\"asset_code\":\"OFF-ACC-04\",\"ip_address\":\"172.16.45.7\",\"status\":\"OFFLINE\",\"response_time_ms\":0,\"last_heartbeat\":\"2026-10-30 16:03:28\",\"details\":\"Head Office [ACCOUNTING] - INDAH (PC)\",\"asset_name\":\"Perangkat Office INDAH\",\"category\":\"Display / Monitor\",\"shop_location\":\"Head Of"
@@ -594,7 +594,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 15,
+      "latencyMs": 20,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -636,7 +636,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "15ms"
+          "detail": "20ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":[{\"id\":1713,\"asset_code\":\"OFF-MIS-01\",\"item_no\":1,\"division\":\"MIS\",\"user_name\":\"PA PEPEN\",\"os\":\"WIN 7 ULT 64 BIT\",\"motherboard\":\"GIGABYTE H110M-DS2-CF\",\"processor\":\"Intel Core i5 7400 @ 3.00GHz\",\"ram\":\"16.0GB Dual-Channel Unknown @ 1200MHz\",\"monitor\":\"LG 20 INCH\",\"hard_drive\":\"(HDD) HITACHI 100GB / (SSD) V GEN 111GB\",\"used_disk1\":\"-\",\"used_disk2\":\"-\",\"keyboard\":\"PS/2\",\"mouse\":\"LOGITECH USB\",\"printer\":\"CANON PIXMA G2010\",\"ip_address\":\"172.16.99.12\",\"device_type\":\"PC\",\"status\":\"OPERASIONAL\",\"notes\":\"PC MIS Pa Pepen\",\"created_at\":\"2026-10-30 03:55:12\",\"updated_at\":\"2026-10-30 03:55:12\",\"office_location\":\"Head Office\",\"ping_status\":\"ONLINE\",\"response_time_ms\":99,\"last_heartbeat\":\"2026-10-30 16:03:28\"},{\"id\":1714,\"asset_code\":\"OFF-MIS-02\",\"item_no\":2,\"division\":\"MIS\",\"user_name\":\"HAMDI\",\"os\":\"WIN 10 PRO 64 BIT\",\"motherboard\":\"PRIME H610M-K D4 (LGA1700)\",\"processor\":\"Intel Core i3-12100\",\"ram\":\"16GB\",\"monitor\":\"LG 24 INCH & 20 INCH\",\"hard_drive\":\"(SSD) V GEN 512GB\",\"used_disk1\":\"-\",\"used_disk2\":\"-\",\"keyboard\":\"REXUS\",\"mouse\":\"REXUS\",\"printer\":\"-\",\"ip_address\":\"172.16.99.99\",\"device_type\":\"PC\",\"status\":\"OPERASIONAL\",\"notes\":\"PC MIS Hamdi (Dual Monitor)\",\"created_at\""
@@ -648,7 +648,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 8,
+      "latencyMs": 11,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -715,7 +715,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "8ms"
+          "detail": "11ms"
         }
       ],
       "textPreview": "{\"success\":true,\"roles\":[{\"role\":\"ADMIN\",\"name\":\"Administrator Sistem\",\"desc\":\"Superuser dengan hak penuh mengubah permission menu dan kontrol sistem\"},{\"role\":\"MIS\",\"name\":\"MIS OPS\",\"desc\":\"Tim operasional teknis pengelola hardware kasir, jaringan, server, dan AnyDesk\"},{\"role\":\"MANAGER\",\"name\":\"MIS MANAGER\",\"desc\":\"Supervisi manajemen ke seluruh modul operasional dan dashboard\"},{\"role\":\"IT_PROCUREMENT\",\"name\":\"MIS PROCUREMENT SUPPORT\",\"desc\":\"Pengadaan barang, input pembelian baru, dan alokasi unit kasir\"},{\"role\":\"SPV_PLAZABALI_T3\",\"name\":\"SPV Plaza Bali (Terminal 3)\",\"desc\":\"Supervisor operasional toko Plaza Bali Bandara Terminal 3\"},{\"role\":\"SPV_PLAZABALI_T2\",\"name\":\"SPV Plaza Bali (Terminal 2)\",\"desc\":\"Supervisor operasional toko Plaza Bali Bandara Terminal 2\"},{\"role\":\"SPV_SAM_T3\",\"name\":\"SPV SAM (Terminal 3)\",\"desc\":\"Supervisor operasional toko SAM Bandara Terminal 3\"},{\"role\":\"SPV_SAM_T2\",\"name\":\"SPV SAM (Terminal 2)\",\"desc\":\"Supervisor operasional toko SAM Bandara Terminal 2\"}],\"menus\":[{\"key\":\"dashboard\",\"label\":\"Dashboard Kontrol\",\"href\":\"/dashboard\",\"group\":\"Ringkasan\",\"description\":\"Ringkasan KPI, metrik aset live, dan statistik sistem\"},{\"key\":\"assets\",\"label\":\"Kasi"
@@ -727,7 +727,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 37,
+      "latencyMs": 42,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -769,7 +769,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "37ms"
+          "detail": "42ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":[{\"id\":1929,\"pos_number\":28,\"counter_no\":1,\"pos_code\":\"CGKT3DFA02-P01\",\"shop_name\":\"Plaza Bali\",\"terminal\":\"Terminal 3\",\"counter_zone\":\"DFA02\",\"store_alias\":\"Toko Jada 2\",\"ip_address\":\"172.19.20.51\",\"pos_brand\":\"NCR\",\"pos_sn\":\"-\",\"processor\":\"-\",\"ram\":\"-\",\"ssd\":\"-\",\"tsigunta_version\":\"-\",\"passport_scanner\":\"3M\",\"barcode_scanner\":\"HONEYWELL\",\"printer\":\"EPSON TM-U220B\",\"fingerprint_scanner\":\"DIGITAL PERSONA\",\"keyboard\":\"LOGITECH\",\"mouse\":\"LOGITECH\",\"cash_drawer\":\"PANDA\",\"monitor\":\"-\",\"os_version\":\"WINDOWS 7 PRO SP1 64BIT\",\"status\":\"OPERASIONAL\",\"notes\":\"Fingerprint Digital Persona\",\"created_at\":\"2026-10-30 03:55:12\",\"updated_at\":\"2026-10-30 03:55:12\",\"bca_tid\":\"C2IG6748\",\"bca_mid\":\"885000702701\",\"bca_credit\":\"OK\",\"bca_debit\":\"OK\",\"bca_qr\":\"-\",\"bni_tid\":\"-\",\"bni_mid\":\"71441691510\",\"bni_credit\":\"OK\",\"bni_debit\":\"OK\",\"bni_qr\":\"-\",\"mandiri_tid\":\"80949170\",\"mandiri_mid\":\"70405015521\",\"mandiri_credit\":\"OK\",\"mandiri_debit\":\"OK\",\"mandiri_qr\":\"-\",\"bri_tid\":\"15101686\",\"bri_mid\":\"1999335823\",\"bri_credit\":\"OK\",\"bri_debit\":\"OK\",\"bri_qr\":\"-\"},{\"id\":1930,\"pos_number\":29,\"counter_no\":2,\"pos_code\":\"CGKT3DFA02-P02\",\"shop_name\":\"Plaza Bali\",\"terminal\":\"Terminal 3\",\"counter_zone\":"
@@ -781,7 +781,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 44,
+      "latencyMs": 10,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -823,7 +823,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "44ms"
+          "detail": "10ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":[{\"id\":201,\"po_number\":\"REQ-2026-006\",\"item_name\":\"Thermal Printer Epson TM-T82III Auto-Cutter USB\",\"category\":\"Hardware POS\",\"target_location\":\"Plaza Bali (CGK)\",\"quantity\":1,\"unit\":\"Unit\",\"estimated_price\":2450000,\"total_price\":2450000,\"vendor\":null,\"request_date\":\"2026-10-30\",\"purchase_date\":null,\"received_date\":null,\"requester\":\"MIS OPS\",\"status\":\"PENGAJUAN\",\"priority\":\"URGENT\",\"notes\":\"Penggantian printer kasir POS 02 yang sering macet cutter dan motor thermal lemah.\",\"created_at\":\"2026-10-30 14:12:27\",\"updated_at\":\"2026-10-30 14:12:27\",\"component_type\":\"Thermal Printer\",\"serial_number\":\"-\",\"target_pos_code\":\"CGKT3DFA02-P02\",\"installed_pos_code\":\"-\",\"installed_at\":\"-\",\"installed_by\":\"-\",\"capex_number\":\"-\",\"brand_model\":\"-\",\"item_price\":0,\"store_type\":\"ONLINE_SHOP\",\"store_name\":\"-\",\"store_link\":\"-\",\"invoice_url\":\"-\",\"arrival_date\":null,\"shipped_to_t3_date\":null,\"shipping_courier\":\"-\",\"received_by_t3_at\":null,\"manager_approved_at\":null,\"manager_approved_by\":\"-\",\"manager_notes\":\"-\"},{\"id\":200,\"po_number\":\"PO-2026-010\",\"item_name\":\"Mini PC Intel NUC 12 Pro i5 16GB 512GB SSD\",\"category\":\"Office PC\",\"target_location\":\"Office Terminal 3\",\"quantity\":1,\"unit\":\"Un"
@@ -835,7 +835,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 23,
+      "latencyMs": 40,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -892,7 +892,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "23ms"
+          "detail": "40ms"
         }
       ],
       "textPreview": "{\"success\":true,\"ports\":[{\"id\":1,\"device_group\":\"SWITCH_1_VOIP\",\"port_no\":1,\"port_label\":\"PORT 1 -->\",\"patch_panel_label\":\"MIS-1\",\"device_type\":\"VOIP\",\"user_name\":\"Hamdi\",\"ext\":\"1170\",\"ip_address\":\"172.16.71.1\",\"destination\":\"IP Phone MIS-1\",\"cable_color\":\"Blue\",\"status\":\"CONNECTED\",\"notes\":\"VoIP Hamdi\",\"created_at\":\"2026-10-30 03:13:05\",\"updated_at\":\"2026-10-30 03:13:05\",\"rack_type\":\"RACK_32U_MAIN\"},{\"id\":25,\"device_group\":\"SWITCH_2_PC\",\"port_no\":1,\"port_label\":\"PORT 1 -->\",\"patch_panel_label\":\"MIS-1\",\"device_type\":\"PC\",\"user_name\":\"Hamdi PC\",\"ext\":\"-\",\"ip_address\":\"172.16.70.1\",\"destination\":\"PC User Hamdi\",\"cable_color\":\"Green\",\"status\":\"CONNECTED\",\"notes\":\"Kabel Data LAN PC\",\"created_at\":\"2026-10-30 03:13:05\",\"updated_at\":\"2026-10-30 03:13:05\",\"rack_type\":\"RACK_32U_MAIN\"},{\"id\":49,\"device_group\":\"SWITCH_3_CORE\",\"port_no\":1,\"port_label\":\"PORT 1 -->\",\"patch_panel_label\":\"ROUTER 140\",\"device_type\":\"ROUTER\",\"user_name\":\"MikroTik 140\",\"ext\":\"-\",\"ip_address\":\"172.16.140.1\",\"destination\":\"ETH5 LAN MikroTik 140\",\"cable_color\":\"Yellow\",\"status\":\"CONNECTED\",\"notes\":\"Gateway Hypernet Link\",\"created_at\":\"2026-10-30 03:13:06\",\"updated_at\":\"2026-10-30 03:13:06\",\"rack_type\":\"RACK_32U_MAIN\"},{"
@@ -904,7 +904,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 12,
+      "latencyMs": 17,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -951,7 +951,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "12ms"
+          "detail": "17ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":[{\"id\":598,\"item_no\":1,\"tgl_perolehan\":\"2021-03-15\",\"tgl_pemakaian\":\"2021-04-01\",\"kategori\":\"POS Terminal\",\"nama_merk\":\"NCR RealPOS 70XRT\",\"serial_number\":\"NCR-70X-992144\",\"spesifikasi\":\"Intel Celeron G540 2.5GHz, 4GB DDR3, 128GB SSD, Dual Display, Win 7 Embed\",\"lokasi\":\"DF1\",\"pengguna\":\"Kasir DF1-P01\",\"harga_pembelian\":18500000,\"qty\":1,\"no_asset\":\"AST-MIS-T3-DF1-001\",\"keterangan\":\"Mesin Kasir Utama DF1 Gate 1-2, EDC BCA & BRI Aktif\",\"status\":\"OPERASIONAL\",\"created_at\":\"2026-10-30 03:55:13\",\"updated_at\":\"2026-10-30 03:55:13\"},{\"id\":599,\"item_no\":2,\"tgl_perolehan\":\"2021-03-15\",\"tgl_pemakaian\":\"2021-04-01\",\"kategori\":\"POS Terminal\",\"nama_merk\":\"NCR RealPOS 70XRT\",\"serial_number\":\"NCR-70X-992145\",\"spesifikasi\":\"Intel Celeron G540 2.5GHz, 4GB DDR3, 128GB SSD, Win 7 Embed\",\"lokasi\":\"DF1\",\"pengguna\":\"Kasir DF1-P02\",\"harga_pembelian\":18500000,\"qty\":1,\"no_asset\":\"AST-MIS-T3-DF1-002\",\"keterangan\":\"Mesin Kasir Counter 2 DF1, EDC BCA & BRI\",\"status\":\"OPERASIONAL\",\"created_at\":\"2026-10-30 03:55:13\",\"updated_at\":\"2026-10-30 03:55:13\"},{\"id\":600,\"item_no\":3,\"tgl_perolehan\":\"2021-04-10\",\"tgl_pemakaian\":\"2021-04-15\",\"kategori\":\"Printer Kasir\",\"nama_merk\":\"Epson TM-U220D Dot "
@@ -963,7 +963,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 44,
+      "latencyMs": 8,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -1005,7 +1005,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "44ms"
+          "detail": "8ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":[{\"id\":2,\"ticket_number\":\"TCK-PB-001\",\"asset_code\":\"AST-PB-PRN01\",\"shop_location\":\"Plaza Bali\",\"reporter_name\":\"SPV Plaza Bali\",\"urgency\":\"SEDANG\",\"status\":\"MENUNGGU\",\"problem_title\":\"Hasil print struk kasir agak buram\",\"problem_desc\":\"Tinta cetak struk customer di kasir Plaza Bali agak pudar di bagian barcode bawah.\",\"it_notes\":null,\"created_at\":\"2026-10-30 00:53:39\",\"resolved_at\":null,\"asset_name\":\"Printer Thermal Kasir Plaza Bali\",\"asset_category\":\"Printer Thermal\"},{\"id\":1,\"ticket_number\":\"TCK-202610-001\",\"asset_code\":\"AST-PRN-001\",\"shop_location\":\"Toko Senayan\",\"reporter_name\":\"Budi (SPV Toko Senayan)\",\"urgency\":\"SEDANG\",\"status\":\"DIPROSES\",\"problem_title\":\"Hasil print struk agak berbayang / kusam\",\"problem_desc\":\"Saat cetak struk customer di kasir 1, tulisan barcode bagian bawah agak pudar. Sudah coba bersihkan cutter.\",\"it_notes\":\"Akan dicek oleh IT Support sore ini untuk cleaning thermal head.\",\"created_at\":\"2026-10-30 00:44:57\",\"resolved_at\":null,\"asset_name\":\"Printer Thermal Kasir 1\",\"asset_category\":\"Printer Thermal\"}]}"
@@ -1017,7 +1017,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 9,
+      "latencyMs": 8,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -1059,7 +1059,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "9ms"
+          "detail": "8ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":[{\"id\":147,\"username\":\"admin\",\"name\":\"Administrator Sistem\",\"role\":\"ADMIN\",\"shop_location\":\"Semua Toko\",\"password\":\"[REDACTED]\",\"created_at\":\"2026-10-30 12:50:50\",\"updated_at\":null},{\"id\":145,\"username\":\"manager\",\"name\":\"MIS MANAGER\",\"role\":\"MANAGER\",\"shop_location\":\"Semua Toko\",\"password\":\"[REDACTED]\",\"created_at\":\"2026-10-30 12:34:42\",\"updated_at\":null},{\"id\":184,\"username\":\"8123040001\",\"name\":\"Ahmad Dimyati\",\"role\":\"MIS\",\"shop_location\":\"Semua Toko\",\"password\":\"[REDACTED]\",\"created_at\":\"2026-10-30 13:37:29\",\"updated_at\":null},{\"id\":182,\"username\":\"8123040002\",\"name\":\"Herman Santoso\",\"role\":\"MIS\",\"shop_location\":\"Semua Toko\",\"password\":\"[REDACTED]\",\"created_at\":\"2026-10-30 13:37:29\",\"updated_at\":null},{\"id\":140,\"username\":\"mis\",\"name\":\"MIS OPS\",\"role\":\"MIS\",\"shop_location\":\"Semua Toko\",\"password\":\"[REDACTED]\",\"created_at\":\"2026-10-30 03:53:41\",\"updated_at\":null},{\"id\":183,\"username\":\"8124070002\",\"name\":\"Muhamad Rahmat Fadila\",\"role\":\"MIS\",\"shop_location\":\"Semua Toko\",\"password\":\"[REDACTED]\",\"created_at\":\"2026-10-30 13:37:29\",\"updated_at\":null},{\"id\":181,\"username\":\"8117110002\",\"name\":\"Zaenal Anwar\",\"role\":\"MIS\",\"shop_location\":\"Semua Toko\",\"password\":\"[REDA"
@@ -1071,7 +1071,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 8,
+      "latencyMs": 10,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -1113,7 +1113,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "8ms"
+          "detail": "10ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":{\"id\":3778,\"asset_code\":\"OFF-SBY-05\",\"name\":\"Perangkat Office PRICETAG LABEL\",\"category\":\"Display / Monitor\",\"shop_location\":\"Office Surabaya\",\"brand_model\":\"PRINTER\",\"serial_number\":\"-\",\"ip_address\":\"172.23.50.84\",\"purchase_date\":null,\"status\":\"OPERASIONAL\",\"notes\":\"Divisi: OPERASIONAL SBY | Lokasi: Office Surabaya | OS: - | RAM: - | Storage: - | Printer: PRINTER PRICETAG LABEL\",\"created_at\":\"2026-10-30 03:55:13\",\"updated_at\":\"2026-10-30 03:55:13\"},\"tickets\":[]}"
@@ -1125,7 +1125,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 6,
+      "latencyMs": 7,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -1162,7 +1162,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "6ms"
+          "detail": "7ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":{\"id\":1106,\"asset_code\":\"DVR-DF1\",\"location\":\"DF1\",\"dvr_type\":\"DS-7216HGHI-M1\",\"serial_number\":\"DS-7216HGHI-M11620240929CCWRFQ5188460WCVU\",\"harddisk\":\"8 TB\",\"channels\":\"16 CH\",\"camera_count\":\"11 CAM (11 ANALOG)\",\"retention_days\":\"157 HARI\",\"username\":\"admin\",\"password\":\"[REDACTED]\",\"ip_address\":\"172.19.1.81\",\"status\":\"OPERASIONAL\",\"notes\":null,\"created_at\":\"2026-10-30 03:55:12\",\"updated_at\":\"2026-10-30 03:55:12\",\"http_port\":80,\"rtsp_port\":554,\"server_port\":8000,\"protocol\":\"HIKVISION\",\"channel_names\":\"\",\"rtsp_stream_url\":\"\"}}"
@@ -1223,7 +1223,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 7,
+      "latencyMs": 5,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -1260,7 +1260,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "7ms"
+          "detail": "5ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":{\"id\":141,\"item_no\":1,\"division\":\"ACC\",\"user_name\":\"BU NYOMAN\",\"ext\":\"1151\",\"location\":\"Head Office\",\"notes\":\"Accounting Manager (VoIP 172.16.11.1 • PC 172.16.45.10)\",\"ip_address\":\"172.16.11.1\",\"status\":\"AKTIF\",\"created_at\":\"2026-10-30 03:34:49\",\"updated_at\":\"2026-10-30 03:34:49\"}}"
@@ -1272,7 +1272,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 6,
+      "latencyMs": 5,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -1309,7 +1309,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "6ms"
+          "detail": "5ms"
         }
       ],
       "textPreview": "{\"success\":true,\"article\":{\"id\":2,\"title\":\"Panduan Menangani Printer Kasir Epson TM-U220D & TM-T82 (Kertas Macet / Cutter Terkunci)\",\"slug\":\"panduan-printer-kasir-epson-macet\",\"category\":\"Printer Kasir\",\"target_role\":\"SPV Toko\",\"store_scope\":\"Semua Toko\",\"summary\":\"Cara aman membuka cover printer yang terkunci saat pisau auto-cutter macet tanpa merusak gear dan mekanik printer.\",\"content\":\"### Masalah:\\nLampu merah *ERROR* berkedip, printer berbunyi bip berulang kali, atau cover penutup kertas tidak bisa dibuka karena pisau pemotong (*cutter*) macet di tengah.\\n\\n### PERINGATAN KERAS:\\n**JANGAN MEMAKSA MENCONGKEL PENUTUP COVER DENGAN OBENG ATAU PISAU!** Hal ini dapat mematahkan gear plastik di dalam unit pemotong.\\n\\n### Langkah Penanganan:\\n1. **Matikan Sakelar Daya**:\\n   - Tekan tombol power printer di posisi OFF (0).\\n2. **Reset Pisau Cutter Manual**:\\n   - Pada **Epson TM-T82 / TM-T88**: Buka penutup kecil di bagian depan cutter, putar roda bergerigi (*gear*) ke arah bawah hingga pisau pemotong kembali ke posisi mundur penuh.\\n   - Setelah pisau mundur, tuas pembuka cover akan otomatis bisa ditarik dengan mudah dan lembut.\\n3. **Pembersihan Sisa Kertas**:\\n   - Angkat gulungan"
@@ -1370,7 +1370,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 6,
+      "latencyMs": 7,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -1407,7 +1407,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "6ms"
+          "detail": "7ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":{\"id\":1929,\"pos_number\":28,\"counter_no\":1,\"pos_code\":\"CGKT3DFA02-P01\",\"shop_name\":\"Plaza Bali\",\"terminal\":\"Terminal 3\",\"counter_zone\":\"DFA02\",\"store_alias\":\"Toko Jada 2\",\"ip_address\":\"172.19.20.51\",\"pos_brand\":\"NCR\",\"pos_sn\":\"-\",\"processor\":\"-\",\"ram\":\"-\",\"ssd\":\"-\",\"tsigunta_version\":\"-\",\"passport_scanner\":\"3M\",\"barcode_scanner\":\"HONEYWELL\",\"printer\":\"EPSON TM-U220B\",\"fingerprint_scanner\":\"DIGITAL PERSONA\",\"keyboard\":\"LOGITECH\",\"mouse\":\"LOGITECH\",\"cash_drawer\":\"PANDA\",\"monitor\":\"-\",\"os_version\":\"WINDOWS 7 PRO SP1 64BIT\",\"status\":\"OPERASIONAL\",\"notes\":\"Fingerprint Digital Persona\",\"created_at\":\"2026-10-30 03:55:12\",\"updated_at\":\"2026-10-30 03:55:12\",\"bca_tid\":\"C2IG6748\",\"bca_mid\":\"885000702701\",\"bca_credit\":\"OK\",\"bca_debit\":\"OK\",\"bca_qr\":\"-\",\"bni_tid\":\"-\",\"bni_mid\":\"71441691510\",\"bni_credit\":\"OK\",\"bni_debit\":\"OK\",\"bni_qr\":\"-\",\"mandiri_tid\":\"80949170\",\"mandiri_mid\":\"70405015521\",\"mandiri_credit\":\"OK\",\"mandiri_debit\":\"OK\",\"mandiri_qr\":\"-\",\"bri_tid\":\"15101686\",\"bri_mid\":\"1999335823\",\"bri_credit\":\"OK\",\"bri_debit\":\"OK\",\"bri_qr\":\"-\"}}"
@@ -1468,7 +1468,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 6,
+      "latencyMs": 7,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -1505,7 +1505,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "6ms"
+          "detail": "7ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":{\"id\":147,\"username\":\"admin\",\"name\":\"Administrator Sistem\",\"role\":\"ADMIN\",\"shop_location\":\"Semua Toko\",\"password\":\"[REDACTED]\",\"created_at\":\"2026-10-30 12:50:50\",\"updated_at\":null}}"
@@ -1514,114 +1514,6 @@
       "method": "GET",
       "endpoint": "/api/assets/__qa_not_found__",
       "label": "NEG detail aset tidak ada",
-      "negative": true,
-      "expectedStatus": 404,
-      "httpStatus": 404,
-      "latencyMs": 5,
-      "slow": false,
-      "ok": true,
-      "skip": false,
-      "note": "",
-      "error": null,
-      "parseError": null,
-      "contractViolation": null,
-      "checks": [
-        {
-          "name": "HTTP status sesuai",
-          "ok": true,
-          "detail": "diharapkan=404 dapat=404"
-        },
-        {
-          "name": "Content-Type JSON",
-          "ok": true,
-          "detail": "application/json"
-        },
-        {
-          "name": "body JSON valid",
-          "ok": true,
-          "detail": ""
-        },
-        {
-          "name": "success false",
-          "ok": true,
-          "detail": "success=false"
-        },
-        {
-          "name": "tidak fatal (HTTP < 500)",
-          "ok": true,
-          "detail": "HTTP 404"
-        },
-        {
-          "name": "kontrak error memakai message",
-          "ok": true,
-          "detail": ""
-        },
-        {
-          "name": "latency ≤ 1500ms (budget)",
-          "ok": true,
-          "detail": "5ms"
-        }
-      ],
-      "textPreview": "{\"success\":false,\"message\":\"Aset tidak ditemukan\"}"
-    },
-    {
-      "method": "GET",
-      "endpoint": "/api/dvr/999999",
-      "label": "NEG detail DVR tidak ada",
-      "negative": true,
-      "expectedStatus": 404,
-      "httpStatus": 404,
-      "latencyMs": 5,
-      "slow": false,
-      "ok": true,
-      "skip": false,
-      "note": "",
-      "error": null,
-      "parseError": null,
-      "contractViolation": null,
-      "checks": [
-        {
-          "name": "HTTP status sesuai",
-          "ok": true,
-          "detail": "diharapkan=404 dapat=404"
-        },
-        {
-          "name": "Content-Type JSON",
-          "ok": true,
-          "detail": "application/json"
-        },
-        {
-          "name": "body JSON valid",
-          "ok": true,
-          "detail": ""
-        },
-        {
-          "name": "success false",
-          "ok": true,
-          "detail": "success=false"
-        },
-        {
-          "name": "tidak fatal (HTTP < 500)",
-          "ok": true,
-          "detail": "HTTP 404"
-        },
-        {
-          "name": "kontrak error memakai message",
-          "ok": true,
-          "detail": ""
-        },
-        {
-          "name": "latency ≤ 1500ms (budget)",
-          "ok": true,
-          "detail": "5ms"
-        }
-      ],
-      "textPreview": "{\"success\":false,\"message\":\"DVR tidak ditemukan\"}"
-    },
-    {
-      "method": "GET",
-      "endpoint": "/api/edc/999999",
-      "label": "NEG detail EDC tidak ada",
       "negative": true,
       "expectedStatus": 404,
       "httpStatus": 404,
@@ -1670,16 +1562,16 @@
           "detail": "8ms"
         }
       ],
-      "textPreview": "{\"success\":false,\"message\":\"Data EDC tidak ditemukan\"}"
+      "textPreview": "{\"success\":false,\"message\":\"Aset tidak ditemukan\"}"
     },
     {
       "method": "GET",
-      "endpoint": "/api/extensions/999999",
-      "label": "NEG detail ekstensi tidak ada",
+      "endpoint": "/api/dvr/999999",
+      "label": "NEG detail DVR tidak ada",
       "negative": true,
       "expectedStatus": 404,
       "httpStatus": 404,
-      "latencyMs": 5,
+      "latencyMs": 6,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -1721,7 +1613,115 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "5ms"
+          "detail": "6ms"
+        }
+      ],
+      "textPreview": "{\"success\":false,\"message\":\"DVR tidak ditemukan\"}"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/edc/999999",
+      "label": "NEG detail EDC tidak ada",
+      "negative": true,
+      "expectedStatus": 404,
+      "httpStatus": 404,
+      "latencyMs": 7,
+      "slow": false,
+      "ok": true,
+      "skip": false,
+      "note": "",
+      "error": null,
+      "parseError": null,
+      "contractViolation": null,
+      "checks": [
+        {
+          "name": "HTTP status sesuai",
+          "ok": true,
+          "detail": "diharapkan=404 dapat=404"
+        },
+        {
+          "name": "Content-Type JSON",
+          "ok": true,
+          "detail": "application/json"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "tidak fatal (HTTP < 500)",
+          "ok": true,
+          "detail": "HTTP 404"
+        },
+        {
+          "name": "kontrak error memakai message",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "latency ≤ 1500ms (budget)",
+          "ok": true,
+          "detail": "7ms"
+        }
+      ],
+      "textPreview": "{\"success\":false,\"message\":\"Data EDC tidak ditemukan\"}"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/extensions/999999",
+      "label": "NEG detail ekstensi tidak ada",
+      "negative": true,
+      "expectedStatus": 404,
+      "httpStatus": 404,
+      "latencyMs": 6,
+      "slow": false,
+      "ok": true,
+      "skip": false,
+      "note": "",
+      "error": null,
+      "parseError": null,
+      "contractViolation": null,
+      "checks": [
+        {
+          "name": "HTTP status sesuai",
+          "ok": true,
+          "detail": "diharapkan=404 dapat=404"
+        },
+        {
+          "name": "Content-Type JSON",
+          "ok": true,
+          "detail": "application/json"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "tidak fatal (HTTP < 500)",
+          "ok": true,
+          "detail": "HTTP 404"
+        },
+        {
+          "name": "kontrak error memakai message",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "latency ≤ 1500ms (budget)",
+          "ok": true,
+          "detail": "6ms"
         }
       ],
       "textPreview": "{\"success\":false,\"message\":\"Extension tidak ditemukan\"}"
@@ -1733,7 +1733,7 @@
       "negative": true,
       "expectedStatus": 404,
       "httpStatus": 404,
-      "latencyMs": 7,
+      "latencyMs": 5,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -1776,7 +1776,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "7ms"
+          "detail": "5ms"
         }
       ],
       "textPreview": "{\"success\":false,\"error\":\"Artikel panduan tidak ditemukan\"}"
@@ -1788,7 +1788,7 @@
       "negative": true,
       "expectedStatus": 400,
       "httpStatus": 400,
-      "latencyMs": 5,
+      "latencyMs": 6,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -1831,7 +1831,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "5ms"
+          "detail": "6ms"
         }
       ],
       "textPreview": "{\"success\":false,\"error\":\"ID tidak valid\"}"
@@ -1951,60 +1951,6 @@
       "negative": true,
       "expectedStatus": 404,
       "httpStatus": 404,
-      "latencyMs": 5,
-      "slow": false,
-      "ok": true,
-      "skip": false,
-      "note": "",
-      "error": null,
-      "parseError": null,
-      "contractViolation": null,
-      "checks": [
-        {
-          "name": "HTTP status sesuai",
-          "ok": true,
-          "detail": "diharapkan=404 dapat=404"
-        },
-        {
-          "name": "Content-Type JSON",
-          "ok": true,
-          "detail": "application/json"
-        },
-        {
-          "name": "body JSON valid",
-          "ok": true,
-          "detail": ""
-        },
-        {
-          "name": "success false",
-          "ok": true,
-          "detail": "success=false"
-        },
-        {
-          "name": "tidak fatal (HTTP < 500)",
-          "ok": true,
-          "detail": "HTTP 404"
-        },
-        {
-          "name": "kontrak error memakai message",
-          "ok": true,
-          "detail": ""
-        },
-        {
-          "name": "latency ≤ 1500ms (budget)",
-          "ok": true,
-          "detail": "5ms"
-        }
-      ],
-      "textPreview": "{\"success\":false,\"message\":\"Aset T3 tidak ditemukan\"}"
-    },
-    {
-      "method": "GET",
-      "endpoint": "/api/users/999999",
-      "label": "NEG detail user tidak ada",
-      "negative": true,
-      "expectedStatus": 404,
-      "httpStatus": 404,
       "latencyMs": 7,
       "slow": false,
       "ok": true,
@@ -2048,6 +1994,60 @@
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
           "detail": "7ms"
+        }
+      ],
+      "textPreview": "{\"success\":false,\"message\":\"Aset T3 tidak ditemukan\"}"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/users/999999",
+      "label": "NEG detail user tidak ada",
+      "negative": true,
+      "expectedStatus": 404,
+      "httpStatus": 404,
+      "latencyMs": 6,
+      "slow": false,
+      "ok": true,
+      "skip": false,
+      "note": "",
+      "error": null,
+      "parseError": null,
+      "contractViolation": null,
+      "checks": [
+        {
+          "name": "HTTP status sesuai",
+          "ok": true,
+          "detail": "diharapkan=404 dapat=404"
+        },
+        {
+          "name": "Content-Type JSON",
+          "ok": true,
+          "detail": "application/json"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "tidak fatal (HTTP < 500)",
+          "ok": true,
+          "detail": "HTTP 404"
+        },
+        {
+          "name": "kontrak error memakai message",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "latency ≤ 1500ms (budget)",
+          "ok": true,
+          "detail": "6ms"
         }
       ],
       "textPreview": "{\"success\":false,\"message\":\"Pengguna tidak ditemukan.\"}"
@@ -2113,7 +2113,7 @@
       "negative": true,
       "expectedStatus": 404,
       "httpStatus": 404,
-      "latencyMs": 7,
+      "latencyMs": 8,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -2155,7 +2155,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "7ms"
+          "detail": "8ms"
         }
       ],
       "textPreview": "{\"success\":false,\"message\":\"Data perangkat office tidak ditemukan\"}"
@@ -2216,6 +2216,55 @@
       "negative": true,
       "expectedStatus": 200,
       "httpStatus": 200,
+      "latencyMs": 7,
+      "slow": false,
+      "ok": true,
+      "skip": false,
+      "note": "",
+      "error": null,
+      "parseError": null,
+      "contractViolation": null,
+      "checks": [
+        {
+          "name": "HTTP status sesuai",
+          "ok": true,
+          "detail": "diharapkan=200 dapat=200"
+        },
+        {
+          "name": "Content-Type JSON",
+          "ok": true,
+          "detail": "application/json"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "success true",
+          "ok": true,
+          "detail": "success=true"
+        },
+        {
+          "name": "data array",
+          "ok": true,
+          "detail": "tipe=array[0]"
+        },
+        {
+          "name": "latency ≤ 1500ms (budget)",
+          "ok": true,
+          "detail": "7ms"
+        }
+      ],
+      "textPreview": "{\"success\":true,\"data\":[],\"totalCount\":0,\"onlineCount\":0}"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/purchases?status=NGARANG",
+      "label": "NEG status purchase ngawur",
+      "negative": true,
+      "expectedStatus": 200,
+      "httpStatus": 200,
       "latencyMs": 8,
       "slow": false,
       "ok": true,
@@ -2256,55 +2305,6 @@
           "detail": "8ms"
         }
       ],
-      "textPreview": "{\"success\":true,\"data\":[],\"totalCount\":0,\"onlineCount\":0}"
-    },
-    {
-      "method": "GET",
-      "endpoint": "/api/purchases?status=NGARANG",
-      "label": "NEG status purchase ngawur",
-      "negative": true,
-      "expectedStatus": 200,
-      "httpStatus": 200,
-      "latencyMs": 7,
-      "slow": false,
-      "ok": true,
-      "skip": false,
-      "note": "",
-      "error": null,
-      "parseError": null,
-      "contractViolation": null,
-      "checks": [
-        {
-          "name": "HTTP status sesuai",
-          "ok": true,
-          "detail": "diharapkan=200 dapat=200"
-        },
-        {
-          "name": "Content-Type JSON",
-          "ok": true,
-          "detail": "application/json"
-        },
-        {
-          "name": "body JSON valid",
-          "ok": true,
-          "detail": ""
-        },
-        {
-          "name": "success true",
-          "ok": true,
-          "detail": "success=true"
-        },
-        {
-          "name": "data array",
-          "ok": true,
-          "detail": "tipe=array[0]"
-        },
-        {
-          "name": "latency ≤ 1500ms (budget)",
-          "ok": true,
-          "detail": "7ms"
-        }
-      ],
       "textPreview": "{\"success\":true,\"data\":[]}"
     },
     {
@@ -2314,7 +2314,7 @@
       "negative": true,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 6,
+      "latencyMs": 5,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -2351,7 +2351,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "6ms"
+          "detail": "5ms"
         }
       ],
       "textPreview": "{\"success\":true,\"data\":[]}"
@@ -2363,7 +2363,7 @@
       "negative": true,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 9,
+      "latencyMs": 7,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -2400,10 +2400,10 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "9ms"
+          "detail": "7ms"
         }
       ],
-      "textPreview": "{\"success\":true,\"articles\":[],\"stats\":{\"total_articles\":5,\"pinned_count\":2,\"total_views\":573,\"total_helpful\":158}}"
+      "textPreview": "{\"success\":true,\"articles\":[],\"stats\":{\"total_articles\":5,\"pinned_count\":2,\"total_views\":591,\"total_helpful\":158}}"
     },
     {
       "method": "GET",
@@ -2412,7 +2412,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 7,
+      "latencyMs": 6,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -2449,10 +2449,10 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "7ms"
+          "detail": "6ms"
         }
       ],
-      "textPreview": "{\"success\":true,\"db\":\"ok\",\"tables\":15,\"wal\":\"wal\",\"uptimeSec\":37}"
+      "textPreview": "{\"success\":true,\"db\":\"ok\",\"tables\":15,\"wal\":\"wal\",\"uptimeSec\":38}"
     },
     {
       "method": "POST",
@@ -2461,7 +2461,7 @@
       "negative": false,
       "expectedStatus": 200,
       "httpStatus": 200,
-      "latencyMs": 7,
+      "latencyMs": 8,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -2513,7 +2513,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "7ms"
+          "detail": "8ms"
         }
       ],
       "textPreview": "{\"success\":true,\"user\":{\"id\":140,\"username\":\"mis\",\"name\":\"MIS OPS\",\"role\":\"MIS\",\"shop_location\":\"Semua Toko\"}}"
@@ -2525,7 +2525,7 @@
       "negative": false,
       "expectedStatus": 401,
       "httpStatus": 401,
-      "latencyMs": 9,
+      "latencyMs": 7,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -2562,7 +2562,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "9ms"
+          "detail": "7ms"
         }
       ],
       "textPreview": "{\"success\":false,\"message\":\"Password yang Anda masukkan salah!\"}"
@@ -2574,7 +2574,7 @@
       "negative": false,
       "expectedStatus": 400,
       "httpStatus": 400,
-      "latencyMs": 7,
+      "latencyMs": 8,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -2611,7 +2611,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "7ms"
+          "detail": "8ms"
         }
       ],
       "textPreview": "{\"success\":false,\"message\":\"Username / NIK dan password wajib diisi.\"}"
@@ -2623,7 +2623,7 @@
       "negative": false,
       "expectedStatus": 401,
       "httpStatus": 401,
-      "latencyMs": 8,
+      "latencyMs": 7,
       "slow": false,
       "ok": true,
       "skip": false,
@@ -2660,7 +2660,7 @@
         {
           "name": "latency ≤ 1500ms (budget)",
           "ok": true,
-          "detail": "8ms"
+          "detail": "7ms"
         }
       ],
       "textPreview": "{\"success\":false,\"message\":\"Username / NIK tidak terdaftar dalam sistem.\"}"

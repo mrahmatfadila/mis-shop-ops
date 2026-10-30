@@ -147,3 +147,34 @@ Kedua halaman berubah jauh di bawah batas 25% baris (tidak ada penulisan ulang; 
 - Write-scope dipatuhi: hanya 2 halaman + `docs`; tidak menyentuh assets/purchases/dvr/pos-topology/edc/API/db.ts/tests/scripts.
 
 
+---
+
+# SHIFT 2 — Batch C (task-16)
+
+Tanggal: 31 Okt 2026 · Pemilik: frontend · Status: selesai
+
+## 1. File diubah
+
+| File | Sebelum | Sesudah | Komponen/hook yang diadopsi |
+| --- | --- | --- | --- |
+| `src/app/server-rack/page.tsx` | 1394 baris (aktual; brief 1317) | 1422 baris (+2,0%) | `useApiData` (cache key tetap `rack_<rack>_<search>_<tab>`, payload ports+rackUnits+stats), 4× `StatCard` (label/ikon dinamis 32U vs 6U), `SearchInput` (+submit), `LoadingState`, `EmptyState`, `formatDate` (tanggal lembar cetak) |
+| `src/app/dvr/page.tsx` | 1535 baris (aktual; brief 1428) | 1532 baris (−0,2%) | `useApiData` (cache key tetap `dvr_<search>_<region>_<channels>`), 4× `StatCard` (tile ikon dipertahankan), `SearchInput` (+clear), `LoadingState`, `EmptyState` |
+
+Kedua halaman berubah jauh di bawah batas 25% baris (~330 baris); surgical, tanpa tulis ulang file penuh.
+
+## 2. Kesetaraan perilaku
+- Endpoint & query param TIDAK berubah: `/api/server-rack?rack&search&group`, `/api/dvr?search&region&channels`; cache key format tetap.
+- Tanpa data hardcoded baru; ports/rackUnits/stats dan daftar DVR tetap 100% dari API. Angka statis lama (mis. "110+ TB", "Hingga 227 Hari", fallback port rack) dipertahankan apa adanya, bukan data baru.
+- Server-rack: pencarian tetap "commit" saat submit/refresh/ganti rak/tab (state `submittedSearch` + helper `selectTab` disinkronkan seperti perilaku lama); aksi CRUD tetap refresh hook.
+- DVR: pencarian tetap live per ketikan (URL hook mengikuti `searchTerm` seperti effect lama); CRUD/ping/config tetap memanggil refresh hook.
+- `PageHeader`/`Modal` tidak dipakai (header kedua halaman berupa bar label kustom dan modal live-view/config sudah khusus) — visual-setara dijaga; `StatusBadge` tidak dipaksa pada sel status bergaya teks+dot agar tidak berubah visual.
+
+## 3. Verifikasi Batch C
+- `npx tsc --noEmit` dari root → **0 error** (exit 0).
+- `curl http://localhost:3000/server-rack` → **200** (heading "Rak Server", KPI "Port Aktif" ter-render).
+- `curl http://localhost:3000/dvr` → **200** (halaman di balik `Suspense`; SSR berisi fallback "Memuat", konten dirender client).
+- `GET /api/server-rack` → `success:true`, **ports 135** & **rackUnits 23** (sama dengan gate); `GET /api/dvr` → `success:true`, **27** baris.
+- Write-scope dipatuhi: hanya 2 halaman + `docs`; tidak menyentuh assets/purchases/pos-topology/edc/API/db.ts/tests/scripts, tanpa build/restart/kill, tanpa git.
+
+
+

@@ -1,14 +1,19 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
+import StatCard from "@/components/common/StatCard";
+import SearchInput from "@/components/common/SearchInput";
+import LoadingState from "@/components/common/LoadingState";
+import EmptyState from "@/components/common/EmptyState";
+import { useApiData } from "@/hooks/useApiData";
+import { formatDate } from "@/lib/utils";
 import { ServerRackPort, ServerRackUnit } from "@/types";
 import {
   Server,
   Network,
   Activity,
   Layers,
-  Search,
   Plus,
   Download,
   Printer,
@@ -37,7 +42,41 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import AccessDenied from "@/components/AccessDenied";
-import { getClientCache, setClientCache } from "@/lib/cache";
+
+type RackStats = {
+  totalPorts: number;
+  connectedPorts: number;
+  voipPorts: number;
+  pcPorts: number;
+  uplinkPorts: number;
+  rack32Count: number;
+  rack6Count: number;
+};
+
+type RackPayload = {
+  ports: ServerRackPort[];
+  rackUnits: ServerRackUnit[];
+  stats: RackStats;
+};
+
+type RackTab =
+  | 'SWITCH_1_VOIP'
+  | 'SWITCH_2_PC'
+  | 'SWITCH_3_CORE'
+  | 'PATCH_PANEL_3'
+  | 'WALLMOUNT_SW1_VOIP'
+  | 'WALLMOUNT_SW1_PC'
+  | 'ALL';
+
+const EMPTY_RACK_STATS: RackStats = {
+  totalPorts: 0,
+  connectedPorts: 0,
+  voipPorts: 0,
+  pcPorts: 0,
+  uplinkPorts: 0,
+  rack32Count: 0,
+  rack6Count: 0,
+};
 
 export default function ServerRackPage() {
   const { isAdmin, isMIS, isManager } = useAuth();
@@ -46,26 +85,55 @@ export default function ServerRackPage() {
     return <AccessDenied moduleName="Rak Server 32U & 6U Wallmount" />;
   }
   const [selectedRack, setSelectedRack] = useState<'RACK_32U_MAIN' | 'RACK_6U_WALLMOUNT'>('RACK_32U_MAIN');
-  const [ports, setPorts] = useState<ServerRackPort[]>([]);
-  const [rackUnits, setRackUnits] = useState<ServerRackUnit[]>([]);
-  const [stats, setStats] = useState({
-    totalPorts: 0,
-    connectedPorts: 0,
-    voipPorts: 0,
-    pcPorts: 0,
-    uplinkPorts: 0,
-    rack32Count: 0,
-    rack6Count: 0
-  });
-  const [loading, setLoading] = useState(true);
 
   // Tabs & Filters
-  const [activeTab, setActiveTab] = useState<
-    'SWITCH_1_VOIP' | 'SWITCH_2_PC' | 'SWITCH_3_CORE' | 'PATCH_PANEL_3' |
-    'WALLMOUNT_SW1_VOIP' | 'WALLMOUNT_SW1_PC' | 'ALL'
-  >('SWITCH_1_VOIP');
+  const [activeTab, setActiveTab] = useState<RackTab>('SWITCH_1_VOIP');
   const [search, setSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
   const [copiedText, setCopiedText] = useState<string | null>(null);
+
+  // Data rak server dari API + SWR cache (endpoint & cache key tetap)
+  const params = new URLSearchParams();
+  params.append("rack", selectedRack);
+  if (submittedSearch) params.append("search", submittedSearch);
+  if (activeTab !== "ALL") params.append("group", activeTab);
+  const cacheKey = `rack_${selectedRack}_${submittedSearch}_${activeTab}`;
+
+  const {
+    data: rackData,
+    isLoading,
+    refresh: fetchData,
+  } = useApiData<RackPayload>(`/api/server-rack?${params.toString()}`, {
+    cacheKey,
+    transform: (json) => {
+      const res = json as {
+        success?: boolean;
+        ports?: ServerRackPort[];
+        rackUnits?: ServerRackUnit[];
+        stats?: RackStats;
+      };
+      return {
+        ports: res.success && Array.isArray(res.ports) ? res.ports : [],
+        rackUnits: res.rackUnits ?? [],
+        stats: res.stats ?? EMPTY_RACK_STATS,
+      };
+    },
+  });
+
+  const ports = rackData?.ports ?? [];
+  const rackUnits = rackData?.rackUnits ?? [];
+  const stats = rackData?.stats ?? EMPTY_RACK_STATS;
+
+  const handleFetch = () => {
+    if (search !== submittedSearch) setSubmittedSearch(search);
+    else fetchData();
+  };
+
+  // Pindah tab/rak memakai kata kunci yang sedang diketik (perilaku lama)
+  const selectTab = (tab: RackTab) => {
+    if (search !== submittedSearch) setSubmittedSearch(search);
+    setActiveTab(tab);
+  };
 
   // Modals
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -91,54 +159,18 @@ export default function ServerRackPage() {
 
   // Switch rack types and set sensible default tab
   const handleSelectRack = (rack: 'RACK_32U_MAIN' | 'RACK_6U_WALLMOUNT') => {
+    if (search !== submittedSearch) setSubmittedSearch(search);
     setSelectedRack(rack);
     if (rack === 'RACK_32U_MAIN') {
-      setActiveTab('SWITCH_1_VOIP');
+      selectTab('SWITCH_1_VOIP');
     } else {
-      setActiveTab('WALLMOUNT_SW1_VOIP');
+      selectTab('WALLMOUNT_SW1_VOIP');
     }
   };
-
-  const fetchData = async () => {
-    const cacheKey = `rack_${selectedRack}_${search}_${activeTab}`;
-    const cached = getClientCache<{ ports: any[]; rackUnits: any[]; stats: any }>(cacheKey);
-    if (cached) {
-      setPorts(cached.ports);
-      setRackUnits(cached.rackUnits);
-      if (cached.stats) setStats(cached.stats);
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
-
-    try {
-      const params = new URLSearchParams();
-      params.append("rack", selectedRack);
-      if (search) params.append("search", search);
-      if (activeTab !== "ALL") params.append("group", activeTab);
-
-      const res = await fetch(`/api/server-rack?${params.toString()}`);
-      const json = await res.json();
-      if (json.success) {
-        setPorts(json.ports);
-        setRackUnits(json.rackUnits);
-        if (json.stats) setStats(json.stats);
-        setClientCache(cacheKey, { ports: json.ports, rackUnits: json.rackUnits, stats: json.stats });
-      }
-    } catch (err) {
-      console.error("Failed to load server rack data", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [selectedRack, activeTab]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchData();
+    handleFetch();
   };
 
   const handleCopy = (text: string) => {
@@ -415,54 +447,53 @@ export default function ServerRackPage() {
 
         {/* Metric Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-              <span>Port Aktif {selectedRack === 'RACK_32U_MAIN' ? '32U' : '6U'}</span>
-              <Network className="w-4 h-4 text-indigo-600" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">
-              {stats.connectedPorts} <span className="text-xs font-normal text-slate-400">/ {stats.totalPorts}</span>
-            </div>
-            <div className="text-[11px] text-indigo-600 font-medium mt-1 truncate">
-              {selectedRack === 'RACK_32U_MAIN' ? 'Switch 1, 2, 3 & PP3' : 'Switch 1 VOIP & Switch 1 PC'}
-            </div>
-          </div>
+          <StatCard
+            label={`Port Aktif ${selectedRack === 'RACK_32U_MAIN' ? '32U' : '6U'}`}
+            value={
+              <>
+                {stats.connectedPorts}{" "}
+                <span className="text-xs font-normal text-slate-400">
+                  / {stats.totalPorts}
+                </span>
+              </>
+            }
+            icon={Network}
+            iconClassName="text-indigo-600"
+            hint={selectedRack === 'RACK_32U_MAIN' ? 'Switch 1, 2, 3 & PP3' : 'Switch 1 VOIP & Switch 1 PC'}
+            hintClassName="text-indigo-600 font-medium truncate"
+          />
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-              <span>Port IP Phone VoIP</span>
-              <PhoneCall className="w-4 h-4 text-blue-600" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.voipPorts} Port</div>
-            <div className="text-[11px] text-blue-600 font-medium mt-1 truncate">
-              {selectedRack === 'RACK_32U_MAIN' ? 'MIS, MCD, BOD, SEC, R.Meet' : 'GS, FIN, ACC, HRD, Pantry'}
-            </div>
-          </div>
+          <StatCard
+            label="Port IP Phone VoIP"
+            value={`${stats.voipPorts} Port`}
+            icon={PhoneCall}
+            iconClassName="text-blue-600"
+            hint={selectedRack === 'RACK_32U_MAIN' ? 'MIS, MCD, BOD, SEC, R.Meet' : 'GS, FIN, ACC, HRD, Pantry'}
+            hintClassName="text-blue-600 font-medium truncate"
+          />
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-              <span>Port PC Staff Data</span>
-              <Laptop className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.pcPorts} Port</div>
-            <div className="text-[11px] text-emerald-600 font-medium mt-1 truncate">
-              {selectedRack === 'RACK_32U_MAIN' ? 'Subnet 172.16.70 / 60 / 20 / 50' : 'Subnet 172.16.41 / 31 / 11 / 51'}
-            </div>
-          </div>
+          <StatCard
+            label="Port PC Staff Data"
+            value={`${stats.pcPorts} Port`}
+            icon={Laptop}
+            iconClassName="text-emerald-600"
+            hint={selectedRack === 'RACK_32U_MAIN' ? 'Subnet 172.16.70 / 60 / 20 / 50' : 'Subnet 172.16.41 / 31 / 11 / 51'}
+            hintClassName="text-emerald-600 font-medium truncate"
+          />
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-              <span>{selectedRack === 'RACK_32U_MAIN' ? 'Dual-WAN Gateway' : 'Backbone Uplink'}</span>
-              {selectedRack === 'RACK_32U_MAIN' ? <Globe className="w-4 h-4 text-purple-600" /> : <ArrowRightLeft className="w-4 h-4 text-orange-600" />}
-            </div>
-            <div className="text-lg font-black text-slate-800 flex items-center gap-1.5 truncate">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              {selectedRack === 'RACK_32U_MAIN' ? 'Hypernet + Starlink' : '2x Trunk Cat6'}
-            </div>
-            <div className="text-[11px] text-purple-600 font-medium mt-1 truncate">
-              {selectedRack === 'RACK_32U_MAIN' ? 'Radio Wireless & Satellite' : 'Connected to 32U SW3'}
-            </div>
-          </div>
+          <StatCard
+            label={selectedRack === 'RACK_32U_MAIN' ? 'Dual-WAN Gateway' : 'Backbone Uplink'}
+            value={
+              <span className="text-lg flex items-center gap-1.5 truncate">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                {selectedRack === 'RACK_32U_MAIN' ? 'Hypernet + Starlink' : '2x Trunk Cat6'}
+              </span>
+            }
+            icon={selectedRack === 'RACK_32U_MAIN' ? Globe : ArrowRightLeft}
+            iconClassName={selectedRack === 'RACK_32U_MAIN' ? 'text-purple-600' : 'text-orange-600'}
+            hint={selectedRack === 'RACK_32U_MAIN' ? 'Radio Wireless & Satellite' : 'Connected to 32U SW3'}
+            hintClassName="text-purple-600 font-medium truncate"
+          />
         </div>
 
         {/* Dual Column Layout: Left (Interactive Physical Rack Visual), Right (Active Component Details) */}
@@ -512,13 +543,13 @@ export default function ServerRackPage() {
                     key={unit.id || unit.u_position}
                     onClick={() => {
                       if (selectedRack === 'RACK_32U_MAIN') {
-                        if (unit.name.includes("SWITCH 1")) setActiveTab("SWITCH_1_VOIP");
-                        else if (unit.name.includes("SWITCH 2")) setActiveTab("SWITCH_2_PC");
-                        else if (unit.name.includes("SWITCH 3")) setActiveTab("SWITCH_3_CORE");
-                        else if (unit.name.includes("PATCH PANEL 3")) setActiveTab("PATCH_PANEL_3");
+                        if (unit.name.includes("SWITCH 1")) selectTab("SWITCH_1_VOIP");
+                        else if (unit.name.includes("SWITCH 2")) selectTab("SWITCH_2_PC");
+                        else if (unit.name.includes("SWITCH 3")) selectTab("SWITCH_3_CORE");
+                        else if (unit.name.includes("PATCH PANEL 3")) selectTab("PATCH_PANEL_3");
                       } else {
-                        if (unit.name.includes("VOIP")) setActiveTab("WALLMOUNT_SW1_VOIP");
-                        else if (unit.name.includes("PC")) setActiveTab("WALLMOUNT_SW1_PC");
+                        if (unit.name.includes("VOIP")) selectTab("WALLMOUNT_SW1_VOIP");
+                        else if (unit.name.includes("PC")) selectTab("WALLMOUNT_SW1_PC");
                       }
                     }}
                     className={`w-full flex items-center justify-between p-2 rounded-xl border transition-all text-left ${bgClass} ${
@@ -611,7 +642,7 @@ export default function ServerRackPage() {
               {selectedRack === 'RACK_32U_MAIN' ? (
                 <>
                   <button
-                    onClick={() => setActiveTab("SWITCH_1_VOIP")}
+                    onClick={() => selectTab("SWITCH_1_VOIP")}
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
                       activeTab === "SWITCH_1_VOIP"
                         ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
@@ -626,7 +657,7 @@ export default function ServerRackPage() {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab("SWITCH_2_PC")}
+                    onClick={() => selectTab("SWITCH_2_PC")}
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
                       activeTab === "SWITCH_2_PC"
                         ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
@@ -641,7 +672,7 @@ export default function ServerRackPage() {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab("SWITCH_3_CORE")}
+                    onClick={() => selectTab("SWITCH_3_CORE")}
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
                       activeTab === "SWITCH_3_CORE"
                         ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
@@ -656,7 +687,7 @@ export default function ServerRackPage() {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab("PATCH_PANEL_3")}
+                    onClick={() => selectTab("PATCH_PANEL_3")}
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
                       activeTab === "PATCH_PANEL_3"
                         ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
@@ -671,7 +702,7 @@ export default function ServerRackPage() {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab("ALL")}
+                    onClick={() => selectTab("ALL")}
                     className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                       activeTab === "ALL"
                         ? "bg-slate-800 text-white shadow-md"
@@ -684,7 +715,7 @@ export default function ServerRackPage() {
               ) : (
                 <>
                   <button
-                    onClick={() => setActiveTab("WALLMOUNT_SW1_VOIP")}
+                    onClick={() => selectTab("WALLMOUNT_SW1_VOIP")}
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
                       activeTab === "WALLMOUNT_SW1_VOIP"
                         ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
@@ -699,7 +730,7 @@ export default function ServerRackPage() {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab("WALLMOUNT_SW1_PC")}
+                    onClick={() => selectTab("WALLMOUNT_SW1_PC")}
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
                       activeTab === "WALLMOUNT_SW1_PC"
                         ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
@@ -714,7 +745,7 @@ export default function ServerRackPage() {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab("ALL")}
+                    onClick={() => selectTab("ALL")}
                     className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                       activeTab === "ALL"
                         ? "bg-slate-800 text-white shadow-md"
@@ -799,7 +830,7 @@ export default function ServerRackPage() {
                   <button
                     onClick={() => {
                       setSelectedRack('RACK_32U_MAIN');
-                      setActiveTab('SWITCH_3_CORE');
+                      selectTab('SWITCH_3_CORE');
                     }}
                     className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-[10px] transition shrink-0 ml-2"
                   >
@@ -811,23 +842,20 @@ export default function ServerRackPage() {
 
             {/* Search Bar Toolbar */}
             <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-2.5 items-stretch md:items-center justify-between">
-              <form onSubmit={handleSearchSubmit} className="flex-1 relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Cari Port, User / PIC, IP Address, No Ext, atau Keterangan..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
-                />
-              </form>
+              <SearchInput
+                value={search}
+                onChange={setSearch}
+                onSubmit={handleSearchSubmit}
+                placeholder="Cari Port, User / PIC, IP Address, No Ext, atau Keterangan..."
+                inputClassName="pl-9 pr-4 py-2 border-slate-200 rounded-xl focus:ring-indigo-500/20 focus:border-indigo-500"
+              />
 
               <button
-                onClick={fetchData}
+                onClick={handleFetch}
                 className="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 transition flex items-center gap-1.5 text-xs font-semibold self-end md:self-auto"
                 title="Refresh Data"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
                 <span>Refresh</span>
               </button>
             </div>
@@ -865,21 +893,21 @@ export default function ServerRackPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {loading ? (
+                    {isLoading ? (
                       <tr>
-                        <td colSpan={10} className="py-12 text-center text-slate-400">
-                          <div className="inline-block animate-spin mb-2">
-                            <RefreshCw className="w-6 h-6 text-indigo-600" />
-                          </div>
-                          <p>Memuat port mapping rak server...</p>
+                        <td colSpan={10}>
+                          <LoadingState message="Memuat port mapping rak server..." />
                         </td>
                       </tr>
                     ) : ports.length === 0 ? (
                       <tr>
-                        <td colSpan={10} className="py-12 text-center text-slate-400">
-                          <Network className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                          <p className="font-semibold text-slate-600">Tidak ada port yang cocok</p>
-                          <p className="text-[11px] text-slate-400">Silakan ubah filter pencarian atau switch tab</p>
+                        <td colSpan={10}>
+                          <EmptyState
+                            className="py-12"
+                            icon={Network}
+                            title="Tidak ada port yang cocok"
+                            description="Silakan ubah filter pencarian atau switch tab"
+                          />
                         </td>
                       </tr>
                     ) : (
@@ -1279,7 +1307,7 @@ export default function ServerRackPage() {
                   }
                 </h3>
                 <p className="text-[10px] text-slate-500">
-                  Update: {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })} • Lokasi: {selectedRack === 'RACK_32U_MAIN' ? 'Server Room Head Office' : 'Area Finance / ACC / GS Office'}
+                  Update: {formatDate(new Date())} • Lokasi: {selectedRack === 'RACK_32U_MAIN' ? 'Server Room Head Office' : 'Area Finance / ACC / GS Office'}
                 </p>
               </div>
 
