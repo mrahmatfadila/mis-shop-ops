@@ -72,8 +72,9 @@ const { data, isLoading, error, refresh } = useApiData<Ticket[]>(`/api/tickets?$
 
 ## 4. Verifikasi (bukan dummy)
 
-- `npx tsc --noEmit` dari root proyek → **0 error** (exit 0).
-- `curl http://localhost:3000/tickets` → **200**; heading dirender; `/extensions` → **200**; banner, 4 StatCard, dan SearchInput dirender.
+- `npx tsc --noEmit` dari root proyek → **0 error** (exit 0; dijalankan ulang setelah semua perubahan, termasuk setelah checkpoint git `02e7b59`).
+- `curl http://localhost:3000/tickets` → **200**; heading dirender; `/extensions` → **200**; banner, 4 StatCard, dan SearchInput dirender. Dicek langsung setelah refactor (sekitar 23:57).
+- CATATAN: sekitar 00:0x dev server :3000 berhenti (tidak ada listener/proses node) karena aktivitas tool AI eksternal user, jadi pengecekan HTTP terakhir tidak bisa diulang dari sisi saya; perubahan task-1 di file sudah terverifikasi tsc 0 dan tercatat di git HEAD checkpoint.
 - `GET /api/tickets` → `success:true`, 2 tiket; `GET /api/extensions` → `success:true`, 47 data, `stats.totalExtensions:47`.
 - Write-scope dipatuhi: tidak menyentuh `src/app/assets`, `src/app/purchases`, `src/app/dvr`, `src/lib/db.ts`, `src/lib/api.ts`, API route, tests/, scripts/, maupun file di luar daftar.
 

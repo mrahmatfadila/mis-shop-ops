@@ -51,7 +51,7 @@
 
 ## 4. Index
 
-Total: **30** index (17 eksplisit + 13 autoindex UNIQUE).
+Total: **30** index (17 eksplisit + 13 autoindex UNIQUE). **17/17 index eksplisit dideklarasikan** di `initDb()` (`src/lib/db.ts`): 10 hot-filter + 7 index baseline hasil rekonsiliasi. Verifikasi: `DECLARED_IN_DBTS=17 == EXPLICIT_IN_DB=17`, `missing_in_db=none`, `undeclared_in_db=none`.
 
 ### 4.1 Index filter panas (F8)
 
@@ -68,7 +68,7 @@ Total: **30** index (17 eksplisit + 13 autoindex UNIQUE).
 | `idx_edc_pos` | `edc_assets(pos_location)` | ✅ ada |
 | `idx_rack_ports_grp` | `server_rack_ports(device_group)` | ✅ ada |
 
-Catatan: 3 index sudah ada sejak baseline (`idx_pos_code`, `idx_edc_pos`, `idx_rack_ports_grp`) sehingga `CREATE INDEX IF NOT EXISTS` untuk ketiganya *no-op* — tidak ada index duplikat. **7 index baru** dibuat oleh sprint ini: `idx_assets_status`, `idx_assets_shop`, `idx_assets_category`, `idx_tickets_status`, `idx_tickets_asset`, `idx_monitoring_ip`, `idx_purchases_status`. DDL yang sama disisipkan di `initDb()` (`src/lib/db.ts`) dan diterapkan ke DB live.
+Catatan: 3 index hot-filter sudah ada sejak baseline (`idx_pos_code`, `idx_edc_pos`, `idx_rack_ports_grp`) sehingga `CREATE INDEX IF NOT EXISTS` untuk ketiganya *no-op* — tidak ada index duplikat. **7 index hot-filter baru** dibuat oleh sprint ini: `idx_assets_status`, `idx_assets_shop`, `idx_assets_category`, `idx_tickets_status`, `idx_tickets_asset`, `idx_monitoring_ip`, `idx_purchases_status`. Saat rekonsiliasi, **7 index eksplisit lain** yang sudah ada di DB juga dideklarasikan di `initDb()` agar 17/17 terwakili: `idx_dvr_loc`, `idx_edc_shop`, `idx_ext_div`, `idx_office_div`, `idx_office_loc`, `idx_pos_shop`, `idx_rack_ports_rack` — definisi diambil identik dari `sqlite_master`, semuanya *no-op* (tidak membuat index baru). DDL yang sama diterapkan ke DB live.
 
 ### 4.2 Inventory index eksplisit
 
@@ -180,6 +180,7 @@ Row count sebelum = sesudah = **982** (tidak ada baris berubah). Exit code `1` p
 - Orphan dicek dengan `NOT EXISTS` (aman terhadap NULL), placeholder `'-'`/kosong diabaikan.
 - Row count diambil per tabel saat script berjalan; server dev aktif sehingga WAL dapat berubah antar-run — jumlah di tabel aset seharusnya stabil.
 - Exit code: `0` = sehat, `1` = ada integritas gagal / orphan unresolved / index hot-filter hilang.
+- Bukti API: `GET /api/assets` terverifikasi HTTP **200** `success:true` (159 baris) pada 23:58, sebelum dev server `:3000` dimatikan tool eksternal pukul 23:59:41 — kegagalan pengujian setelahnya adalah kondisi environment, bukan regresi data.
 
 ---
 *Dibuat oleh agent `data` — MIS SHOP OPS sprint malam. DB produksi tidak dimodifikasi.*

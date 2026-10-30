@@ -433,6 +433,15 @@ Memastikan seluruh keluhan teknis di toko Terminal 2, Terminal 3, dan Surabaya t
     "CREATE INDEX IF NOT EXISTS idx_purchases_status ON purchases(status)",
     "CREATE INDEX IF NOT EXISTS idx_edc_pos ON edc_assets(pos_location)",
     "CREATE INDEX IF NOT EXISTS idx_rack_ports_grp ON server_rack_ports(device_group)",
+    // Index yang sudah ada di DB sejak baseline namun belum dideklarasikan di initDb()
+    // (agar 17/17 index eksplisit terwakili; definisi diambil identik dari sqlite_master).
+    "CREATE INDEX IF NOT EXISTS idx_dvr_loc ON dvr_assets(location)",
+    "CREATE INDEX IF NOT EXISTS idx_edc_shop ON edc_assets(shop_name)",
+    "CREATE INDEX IF NOT EXISTS idx_ext_div ON phone_extensions(division)",
+    "CREATE INDEX IF NOT EXISTS idx_office_div ON office_hardware_assets(division)",
+    "CREATE INDEX IF NOT EXISTS idx_office_loc ON office_hardware_assets(office_location)",
+    "CREATE INDEX IF NOT EXISTS idx_pos_shop ON pos_hardware_assets(shop_name)",
+    "CREATE INDEX IF NOT EXISTS idx_rack_ports_rack ON server_rack_ports(rack_type)",
   ];
   for (const sql of hotFilterIndexes) {
     try {

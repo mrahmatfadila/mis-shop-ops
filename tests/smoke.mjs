@@ -306,7 +306,12 @@ async function discoverGetRoutes() {
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) await walk(full);
       else if (entry.name === "route.ts") {
-        const text = await readFile(full, "utf8");
+        let text = "";
+        try {
+          text = await readFile(full, "utf8");
+        } catch {
+          continue; // file sedang ditulis editor eksternal — lewati deteksi rute
+        }
         if (/export\s+async\s+function\s+GET/.test(text)) {
           const rel = path.relative(apiDir, path.dirname(full)).split(path.sep);
           found.push("/api" + (rel.length && rel[0] !== "." ? "/" + rel.join("/") : ""));
@@ -326,7 +331,8 @@ const normalizeRoute = (route) => route.replace(/\[[^\]]+\]/g, ":param");
 /* ------------------------------------------------------------------ */
 
 async function warmUp(endpoints, label) {
-  if (endpoints.length === 0) return;
+  const stats = { total: endpoints.length, ok: 0, failed: 0 };
+  if (endpoints.length === 0) return stats;
   console.log(`\nWarm-up ${label} (${endpoints.length} endpoint, tanpa assert, error diabaikan)...`);
   for (const endpoint of endpoints) {
     const started = Date.now();
@@ -336,12 +342,15 @@ async function warmUp(endpoints, label) {
         cache: "no-store",
       });
       await response.text();
+      stats.ok += 1;
       console.log(`  warm ${endpoint.padEnd(34)} → HTTP ${response.status} ${Date.now() - started}ms`);
     } catch (error) {
+      stats.failed += 1;
       const reason = error?.name === "TimeoutError" ? `timeout >${TIMEOUT_MS}ms` : (error?.message || String(error));
       console.log(`  warm ${endpoint.padEnd(34)} → ${reason} ${Date.now() - started}ms (dilanjutkan)`);
     }
   }
+  return stats;
 }
 
 async function warmUpPost(endpoint, body) {
@@ -383,7 +392,13 @@ async function main() {
 
   // 0) Warm-up endpoint GET statis (Next.js dev compile on-demand; jangan
   //    menganggap request pertama lambat/timeout sebagai endpoint rusak).
-  await warmUp([...GET_LISTS.map((spec) => spec.endpoint), ...OPTIONAL_GET.map((spec) => spec.endpoint)], "endpoint GET statis");
+  const staticWarm = await warmUp([...GET_LISTS.map((spec) => spec.endpoint), ...OPTIONAL_GET.map((spec) => spec.endpoint)], "endpoint GET statis");
+  if (staticWarm.ok === 0) {
+    throw new Error(
+      `Tidak ada endpoint yang merespons di ${BASE_URL} setelah warm-up (${staticWarm.failed} gagal). ` +
+        "Dev server kemungkinan MATI atau macet — nyalakan ulang dev server (bukan dari script ini) lalu jalankan smoke lagi."
+    );
+  }
 
   // 1) Endpoint list/GET statis — diukur SETELAH warm-up
   for (const spec of GET_LISTS) {
@@ -547,7 +562,7 @@ async function main() {
   // 7) Bandingkan dengan route.ts di filesystem (deteksi rute GET belum tercakup)
   const covered = new Set([
     ...GET_LISTS.map((s) => normalizeRoute(s.endpoint)),
-    ...DETAIL_SOURCES.map((s) => normalizeRoute(s.build(":param"))),
+    ...DETAIL_SOURCES.map((s) => normalizeRoute(`${s.listEndpoint}/:param`)),
     ...OPTIONAL_GET.map((s) => normalizeRoute(s.endpoint)),
   ]);
   const discovered = await discoverGetRoutes();
@@ -569,6 +584,14 @@ async function main() {
   const failed = tested.filter((r) => !r.ok);
   const passed = tested.filter((r) => r.ok);
   const slowCount = tested.filter((r) => r.slow).length;
+
+  // Deteksi bila SEMUA request gagal di level jaringan (server mati), bukan bug aplikasi.
+  const allNetworkDown =
+    tested.length > 0 &&
+    tested.every((r) => r.error && /fetch failed|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|ECONNRESET/i.test(r.error));
+  if (allNetworkDown) {
+    warnings.push(`[FATAL] Tidak ada request yang sampai ke ${BASE_URL} — dev server kemungkinan MATI. Nyalakan ulang dev server (bukan dari script ini) lalu jalankan smoke lagi.`);
+  }
 
   const summary = {
     total: results.length,
