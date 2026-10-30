@@ -1,13 +1,20 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { jsonError, ok, parseFilters, requireFields, fail } from "@/lib/api";
 
 export async function GET(request: Request) {
   try {
     await initDb();
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status") || "";
-    const shop = searchParams.get("shop") || "";
-    const urgency = searchParams.get("urgency") || "";
+    const { status, shop, urgency } = parseFilters(searchParams, {
+      allowed: ["status", "shop", "urgency"],
+      ignore: ["ALL"],
+      ignoreByKey: {
+        status: ["Semua Status", "Semua"],
+        shop: ["Semua Toko", "Semua"],
+        urgency: ["Semua", "Semua Urgensi"],
+      },
+    });
 
     let sql = `
       SELECT t.*, a.name as asset_name, a.category as asset_category 
@@ -15,19 +22,19 @@ export async function GET(request: Request) {
       LEFT JOIN assets a ON t.asset_code = a.asset_code
       WHERE 1=1
     `;
-    const args: any[] = [];
+    const args: string[] = [];
 
-    if (status && status !== "ALL" && status !== "Semua Status" && status !== "Semua") {
+    if (status) {
       sql += " AND t.status = ?";
       args.push(status);
     }
 
-    if (shop && shop !== "Semua Toko" && shop !== "ALL" && shop !== "Semua") {
+    if (shop) {
       sql += " AND t.shop_location = ?";
       args.push(shop);
     }
 
-    if (urgency && urgency !== "ALL" && urgency !== "Semua" && urgency !== "Semua Urgensi") {
+    if (urgency) {
       sql += " AND t.urgency = ?";
       args.push(urgency);
     }
@@ -35,9 +42,9 @@ export async function GET(request: Request) {
     sql += " ORDER BY CASE t.status WHEN 'MENUNGGU' THEN 1 WHEN 'DIPROSES' THEN 2 ELSE 3 END, t.id DESC";
 
     const result = await db.execute({ sql, args });
-    return NextResponse.json({ success: true, data: result.rows });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return ok(result.rows);
+  } catch (error) {
+    return jsonError(error);
   }
 }
 
@@ -55,11 +62,15 @@ export async function POST(request: Request) {
       problem_desc,
     } = body;
 
-    if (!asset_code || !reporter_name || !problem_title || !problem_desc) {
-      return NextResponse.json(
-        { success: false, message: "Aset, nama pelapor, judul, dan deskripsi masalah wajib diisi." },
-        { status: 400 }
-      );
+    const { missing } = requireFields(body, [
+      "asset_code",
+      "reporter_name",
+      "problem_title",
+      "problem_desc",
+    ]);
+
+    if (missing.length > 0) {
+      return fail("Aset, nama pelapor, judul, dan deskripsi masalah wajib diisi.", 400);
     }
 
     // Generate Nomor Tiket: TCK-YYYYMM-XXXX
@@ -94,8 +105,7 @@ export async function POST(request: Request) {
       ticket_number: ticketNumber,
       message: `Tiket bantuan ${ticketNumber} berhasil dibuat dan dikirim ke IT Support!`,
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error) {
+    return jsonError(error);
   }
 }
-

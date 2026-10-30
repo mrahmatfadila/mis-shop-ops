@@ -1,19 +1,25 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { jsonError, ok, parseFilters, requireFields, fail } from "@/lib/api";
 
 export async function GET(request: Request) {
   try {
     await initDb();
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
-    const active = searchParams.get("active") || "";
-    const zone = searchParams.get("zone") || "";
-    const shop = searchParams.get("shop") || "";
+    const { search, active, zone, shop } = parseFilters(searchParams, {
+      allowed: ["search", "active", "zone", "shop"],
+      ignore: ["ALL"],
+      ignoreByKey: {
+        shop: ["Semua Toko", "Semua"],
+        active: ["Semua"],
+        zone: ["Semua Counter"],
+      },
+    });
 
     let sql = "SELECT * FROM edc_assets WHERE 1=1";
-    const args: any[] = [];
+    const args: string[] = [];
 
-    if (shop && shop !== "Semua Toko" && shop !== "ALL" && shop !== "Semua") {
+    if (shop) {
       sql += " AND shop_name = ?";
       args.push(shop);
     }
@@ -30,12 +36,12 @@ export async function GET(request: Request) {
       args.push(pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern);
     }
 
-    if (active && active !== "ALL" && active !== "Semua") {
+    if (active) {
       sql += " AND is_active = ?";
       args.push(active);
     }
 
-    if (zone && zone !== "ALL" && zone !== "Semua Counter") {
+    if (zone) {
       sql += " AND pos_location LIKE ?";
       args.push(`%${zone}%`);
     }
@@ -43,12 +49,9 @@ export async function GET(request: Request) {
     sql += " ORDER BY id ASC";
 
     const result = await db.execute({ sql, args });
-    return NextResponse.json({ success: true, data: result.rows });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message || "Failed to fetch EDC assets" },
-      { status: 500 }
-    );
+    return ok(result.rows);
+  } catch (error) {
+    return jsonError(error, "Failed to fetch EDC assets");
   }
 }
 
@@ -68,11 +71,10 @@ export async function POST(request: Request) {
       notes = "",
     } = body;
 
-    if (!pos_location) {
-      return NextResponse.json(
-        { success: false, message: "Kode Lokasi POS wajib diisi." },
-        { status: 400 }
-      );
+    const { missing } = requireFields(body, ["pos_location"]);
+
+    if (missing.length > 0) {
+      return fail("Kode Lokasi POS wajib diisi.", 400);
     }
 
     await db.execute({
@@ -93,8 +95,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, message: "Data EDC POS berhasil ditambahkan!" });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error) {
+    return jsonError(error);
   }
 }
-

@@ -420,6 +420,28 @@ Memastikan seluruh keluhan teknis di toko Terminal 2, Terminal 3, dan Surabaya t
     console.error("Error creating knowledge_base table or seeding:", e);
   }
 
+  // Index aditif untuk kolom filter panas halaman/API (F8).
+  // Aman diulang (IF NOT EXISTS) dan tidak mengubah data/skema destruktif.
+  const hotFilterIndexes = [
+    "CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(status)",
+    "CREATE INDEX IF NOT EXISTS idx_assets_shop ON assets(shop_location)",
+    "CREATE INDEX IF NOT EXISTS idx_assets_category ON assets(category)",
+    "CREATE INDEX IF NOT EXISTS idx_tickets_status ON tickets(status)",
+    "CREATE INDEX IF NOT EXISTS idx_tickets_asset ON tickets(asset_code)",
+    "CREATE INDEX IF NOT EXISTS idx_pos_code ON pos_hardware_assets(pos_code)",
+    "CREATE INDEX IF NOT EXISTS idx_monitoring_ip ON monitoring_devices(ip_address)",
+    "CREATE INDEX IF NOT EXISTS idx_purchases_status ON purchases(status)",
+    "CREATE INDEX IF NOT EXISTS idx_edc_pos ON edc_assets(pos_location)",
+    "CREATE INDEX IF NOT EXISTS idx_rack_ports_grp ON server_rack_ports(device_group)",
+  ];
+  for (const sql of hotFilterIndexes) {
+    try {
+      await db.execute(sql);
+    } catch (e) {
+      // Tabel/kolom belum ada di instalasi lama — lewati (pola try/catch yang sama).
+    }
+  }
+
   (globalThis as any).__db_initialized = true;
   (globalThis as any).__db_initialized_v2 = true;
   (globalThis as any).__db_initialized_v3 = true;

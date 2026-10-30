@@ -4,25 +4,16 @@ import { useEffect, useState, Suspense } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
 import ScannerModal from "@/components/ScannerModal";
 import TicketModal from "@/components/TicketModal";
+import PageHeader from "@/components/common/PageHeader";
+import LoadingState from "@/components/common/LoadingState";
+import EmptyState from "@/components/common/EmptyState";
+import StatusBadge from "@/components/common/StatusBadge";
+import Modal from "@/components/common/Modal";
+import { useApiData } from "@/hooks/useApiData";
 import { Ticket } from "@/types";
-import {
-  LifeBuoy,
-  Plus,
-  Filter,
-  CheckCircle,
-  Clock,
-  AlertTriangle,
-  XCircle,
-  QrCode,
-  Wrench,
-  X,
-  Save,
-  MessageSquare,
-  UserCheck
-} from "lucide-react";
+import { LifeBuoy, Plus, CheckCircle, Wrench, Save, UserCheck } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { getClientCache, setClientCache } from "@/lib/cache";
 
 function TicketsContent() {
   const { user, isAdmin, isMIS, isManager, isProcurement, userShopLocation } = useAuth();
@@ -30,9 +21,6 @@ function TicketsContent() {
   const canRespondTicket = isAdmin || isMIS || isManager;
   const searchParams = useSearchParams();
   const filterId = searchParams.get("id");
-
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Filters
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -56,44 +44,26 @@ function TicketsContent() {
   const [itNotes, setItNotes] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const fetchTickets = async () => {
-    const cacheKey = `tickets_${selectedStatus}_${selectedUrgency}_${selectedShop}`;
-    const cached = getClientCache<Ticket[]>(cacheKey);
-    if (cached) {
-      setTickets(cached);
-      setIsLoading(false);
-    } else {
-      setIsLoading(true);
-    }
+  // Query string & cache key mengikuti filter; endpoint tetap /api/tickets
+  const params = new URLSearchParams();
+  if (selectedStatus) params.set("status", selectedStatus);
+  if (selectedUrgency) params.set("urgency", selectedUrgency);
+  if (selectedShop) params.set("shop", selectedShop);
+  const cacheKey = `tickets_${selectedStatus}_${selectedUrgency}_${selectedShop}`;
 
-    try {
-      const params = new URLSearchParams();
-      if (selectedStatus) params.set("status", selectedStatus);
-      if (selectedUrgency) params.set("urgency", selectedUrgency);
-      if (selectedShop) params.set("shop", selectedShop);
+  const {
+    data: ticketsData,
+    isLoading,
+    refresh: fetchTickets,
+  } = useApiData<Ticket[]>(`/api/tickets?${params.toString()}`, {
+    cacheKey,
+    transform: (json) => {
+      const res = json as { success?: boolean; data?: Ticket[] };
+      return res.success && Array.isArray(res.data) ? res.data : [];
+    },
+  });
 
-      const res = await fetch(`/api/tickets?${params.toString()}`);
-      const json = await res.json();
-      if (json.success) {
-        setTickets(json.data);
-        setClientCache(cacheKey, json.data);
-
-        // Jika ada filterId dari URL, otomatis buka modal tiket tersebut
-        if (filterId) {
-          const match = json.data.find((t: Ticket) => t.id === Number(filterId));
-          if (match) handleOpenUpdateModal(match);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to load tickets", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTickets();
-  }, [selectedStatus, selectedUrgency, selectedShop]);
+  const tickets = ticketsData ?? [];
 
   const handleOpenUpdateModal = (ticket: Ticket) => {
     setActiveTicket(ticket);

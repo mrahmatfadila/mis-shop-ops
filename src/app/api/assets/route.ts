@@ -1,17 +1,23 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { jsonError, ok, parseFilters, requireFields, fail } from "@/lib/api";
 
 export async function GET(request: Request) {
   try {
     await initDb();
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
-    const category = searchParams.get("category") || "";
-    const shop = searchParams.get("shop") || "";
-    const status = searchParams.get("status") || "";
+    const { search, category, shop, status } = parseFilters(searchParams, {
+      allowed: ["search", "category", "shop", "status"],
+      ignore: ["ALL"],
+      ignoreByKey: {
+        category: ["Semua Kategori", "Semua"],
+        shop: ["Semua Toko", "Semua"],
+        status: ["Semua Status", "Semua"],
+      },
+    });
 
     let sql = "SELECT * FROM assets WHERE 1=1";
-    const args: any[] = [];
+    const args: string[] = [];
 
     if (search) {
       sql += " AND (asset_code LIKE ? OR name LIKE ? OR brand_model LIKE ? OR serial_number LIKE ?)";
@@ -19,17 +25,17 @@ export async function GET(request: Request) {
       args.push(pattern, pattern, pattern, pattern);
     }
 
-    if (category && category !== "Semua Kategori" && category !== "ALL" && category !== "Semua") {
+    if (category) {
       sql += " AND category = ?";
       args.push(category);
     }
 
-    if (shop && shop !== "Semua Toko" && shop !== "ALL" && shop !== "Semua") {
+    if (shop) {
       sql += " AND shop_location = ?";
       args.push(shop);
     }
 
-    if (status && status !== "Semua Status" && status !== "ALL" && status !== "Semua") {
+    if (status) {
       sql += " AND status = ?";
       args.push(status);
     }
@@ -37,13 +43,10 @@ export async function GET(request: Request) {
     sql += " ORDER BY id DESC";
 
     const result = await db.execute({ sql, args });
-    return NextResponse.json({ success: true, data: result.rows });
-  } catch (error: any) {
+    return ok(result.rows);
+  } catch (error) {
     console.error("Error fetching assets:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Failed to fetch assets" },
-      { status: 500 }
-    );
+    return jsonError(error, "Failed to fetch assets");
   }
 }
 
@@ -65,10 +68,18 @@ export async function POST(request: Request) {
       notes,
     } = body;
 
-    if (!asset_code || !name || !category || !shop_location || !serial_number) {
-      return NextResponse.json(
-        { success: false, message: "Kode aset, nama, kategori, toko, dan serial number wajib diisi." },
-        { status: 400 }
+    const { missing } = requireFields(body, [
+      "asset_code",
+      "name",
+      "category",
+      "shop_location",
+      "serial_number",
+    ]);
+
+    if (missing.length > 0) {
+      return fail(
+        "Kode aset, nama, kategori, toko, dan serial number wajib diisi.",
+        400
       );
     }
 
@@ -79,10 +90,7 @@ export async function POST(request: Request) {
     });
 
     if (existing.rows.length > 0) {
-      return NextResponse.json(
-        { success: false, message: `Kode aset ${asset_code} sudah terdaftar!` },
-        { status: 400 }
-      );
+      return fail(`Kode aset ${asset_code} sudah terdaftar!`, 400);
     }
 
     await db.execute({
@@ -112,12 +120,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, message: "Aset berhasil ditambahkan!" });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating asset:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Failed to create asset" },
-      { status: 500 }
-    );
+    return jsonError(error, "Failed to create asset");
   }
 }
-
