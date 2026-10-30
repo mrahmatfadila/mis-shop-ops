@@ -9,7 +9,7 @@ export const db = createClient({
 });
 
 export async function initDb() {
-  if ((globalThis as any).__db_initialized_v2) return;
+  if ((globalThis as any).__db_initialized_v3) return;
 
   try {
     await db.execute("PRAGMA journal_mode = WAL;");
@@ -157,7 +157,10 @@ export async function initDb() {
     await db.execute("ALTER TABLE pos_hardware_assets ADD COLUMN anydesk_id TEXT DEFAULT '';");
   } catch (e) {}
   try {
-    await db.execute("ALTER TABLE pos_hardware_assets ADD COLUMN anydesk_password TEXT DEFAULT '';");
+    await db.execute("ALTER TABLE pos_hardware_assets ADD COLUMN anydesk_password TEXT DEFAULT 'cupcake2020';");
+  } catch (e) {}
+  try {
+    await db.execute("UPDATE pos_hardware_assets SET anydesk_password = 'cupcake2020' WHERE anydesk_password IS NULL OR anydesk_password = '' OR anydesk_password = 'Cupcake2020';");
   } catch (e) {}
 
   // Tabel Knowledge Base (Dibuat & diedit oleh MIS OPS, dibaca & dipelajari oleh SPV Toko)
@@ -419,4 +422,5 @@ Memastikan seluruh keluhan teknis di toko Terminal 2, Terminal 3, dan Surabaya t
 
   (globalThis as any).__db_initialized = true;
   (globalThis as any).__db_initialized_v2 = true;
+  (globalThis as any).__db_initialized_v3 = true;
 }

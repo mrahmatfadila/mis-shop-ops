@@ -316,12 +316,17 @@ function AssetsContent() {
   } | null>(null);
 
   const [isAnydeskConfigOpen, setIsAnydeskConfigOpen] = useState(false);
-  const [defaultAnydeskPassword, setDefaultAnydeskPassword] = useState("Cupcake2020");
+  const [defaultAnydeskPassword, setDefaultAnydeskPassword] = useState("cupcake2020");
 
   useEffect(() => {
     try {
       const savedPwd = localStorage.getItem("mis_anydesk_default_pwd");
-      if (savedPwd) setDefaultAnydeskPassword(savedPwd);
+      if (savedPwd && savedPwd !== "Cupcake2020") {
+        setDefaultAnydeskPassword(savedPwd);
+      } else {
+        localStorage.setItem("mis_anydesk_default_pwd", "cupcake2020");
+        setDefaultAnydeskPassword("cupcake2020");
+      }
     } catch (e) {}
   }, []);
 
@@ -349,7 +354,7 @@ function AssetsContent() {
     const pwd =
       pos.anydesk_password && pos.anydesk_password.trim() !== ""
         ? pos.anydesk_password.trim()
-        : defaultAnydeskPassword || "Cupcake2020";
+        : defaultAnydeskPassword || "cupcake2020";
 
     // 1. Salin password ke clipboard sebagai cadangan instan
     try {
@@ -2940,7 +2945,7 @@ function AssetsContent() {
                   type="text"
                   value={defaultAnydeskPassword}
                   onChange={(e) => setDefaultAnydeskPassword(e.target.value)}
-                  placeholder="Contoh: Cupcake2020 / Admin1234"
+                  placeholder="Contoh: cupcake2020"
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 outline-none"
                 />
                 <p className="text-[10px] text-slate-400 mt-1">

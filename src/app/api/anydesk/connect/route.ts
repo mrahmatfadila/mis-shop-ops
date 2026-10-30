@@ -26,7 +26,7 @@ function findAnydeskPath(): string | null {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { target, password = "", posCode = "" } = body;
+    const { target, password = "cupcake2020", posCode = "" } = body;
 
     if (!target || typeof target !== "string") {
       return NextResponse.json(
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     }
 
     const cleanTarget = target.trim();
-    const cleanPassword = (password || "").trim();
+    const cleanPassword = (password || "cupcake2020").trim();
 
     // 1. Cari file AnyDesk.exe di Windows
     const anydeskExe = findAnydeskPath();
