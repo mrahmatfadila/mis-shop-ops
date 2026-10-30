@@ -68,16 +68,46 @@ Contoh: `$env:BASE_URL="http://localhost:3000"; node tests/smoke.mjs`.
 
 ### Batasan read-only
 
-Tidak memanggil POST/PUT/DELETE data (assets, tickets, users, purchases, dll.). Hanya GET dan
-`POST /api/auth/login`. Dua GET yang punya efek samping sengaja diperlakukan khusus:
+`tests/smoke.mjs` tidak memanggil POST/PUT/DELETE data — hanya GET dan `POST /api/auth/login`
+(login valid/salah/negatif, tidak menulis). `tests/contract-post.mjs` mengirim **hanya payload
+kosong `{}`** ke endpoint POST yang divalidasi (dijamin 400 sebelum insert) dan memverifikasi baris
+DB tetap 982; payload valid/parsial dilarang. Beberapa endpoint punya efek samping dan sengaja
+diperlakukan khusus:
 
 - `GET /api/knowledge-base/[id]` menaikkan `view_count` (mutasi via GET) — tetap diuji karena
   termasuk endpoint GET, sehingga tiap run menambah 2 view (warm-up + pengukuran). Dicatat di
   `docs/BUGS.md`.
 - `GET /api/monitoring?ping=true` melakukan UPDATE + ping jaringan — **tidak** dipanggil (hanya
   GET tanpa query, yang read-only).
+- `POST /api/monitoring/ping` dengan body kosong memicu ping **semua** device + UPDATE — **tidak**
+  diuji (bukan kontrak 400); dicatat sebagai B8 di `docs/BUGS.md`.
 
-## 2. Regression gate antar-batch — `tests/regression.mjs`
+## 2. Kontrak POST non-mutasi — `tests/contract-post.mjs`
+
+```powershell
+node tests/contract-post.mjs
+```
+
+Mengirim **payload kosong `{}`** ke 18 endpoint POST yang divalidasi dan mengharapkan
+**HTTP 400 `success:false`**, tanpa menulis data:
+
+- CRUD: `/api/assets`, `/api/dvr`, `/api/edc`, `/api/extensions`, `/api/knowledge-base`,
+  `/api/office`, `/api/pos-hardware`, `/api/purchases`, `/api/server-rack`, `/api/t3-assets`,
+  `/api/tickets`, `/api/users`;
+- action: `/api/anydesk/connect`, `/api/dvr/test-connect`, `/api/edc/ping`, `/api/pos/heartbeat`,
+  `/api/permissions`, `/api/knowledge-base/abc/helpful` (id invalid).
+
+**Keamanan:** hanya `{}` — tidak pernah mengirim payload valid/parsial yang bisa lolos validasi dan
+meng-insert data. Sebelum & sesudah **setiap** tes, total baris DB dibaca ulang via API (stats 784 +
+users 43 + tickets 2 + role_permissions 130 + server_rack_units 23) dan harus tetap **982**.
+`POST /api/monitoring/ping` **sengaja tidak diuji**: body kosong berarti ping seluruh device lalu
+UPDATE tabel monitoring (side effect nyata — dicatat sebagai B8 di `docs/BUGS.md`).
+
+Exit code 0 = semua 400 & baris DB tidak berubah; 1 = ada pelanggaran. Hasil:
+`tests/contract-post-last-run.json`. Env: `BASE_URL`, `CONTRACT_BASELINE_ROWS` (default 982),
+`CONTRACT_TIMEOUT_MS` (default 30000).
+
+## 3. Regression gate antar-batch — `tests/regression.mjs`
 
 ```powershell
 node tests/regression.mjs
@@ -96,13 +126,13 @@ Exit code 0 hanya bila smoke pass + health valid + jumlah baris DB cocok. Hasil 
 `tests/regression-last-run.json`. Env: `BASE_URL`, `REGRESSION_BASELINE_ROWS` (default 982),
 `REGRESSION_TIMEOUT_MS` (default 30000).
 
-## 3. Unit test helper — `tests/lib.test.mjs`
+## 4. Unit test helper — `tests/lib.test.mjs` + `tests/api-helpers.test.mjs`
 
 ```powershell
-node --experimental-strip-types --test tests/lib.test.mjs
+node --experimental-strip-types --test tests/lib.test.mjs tests/api-helpers.test.mjs
 ```
 
-Menguji `src/lib/utils.ts` (tanpa build, langsung type-strip):
+**`tests/lib.test.mjs`** menguji `src/lib/utils.ts` (tanpa build, langsung type-strip):
 
 | Fungsi | Status |
 |---|---|
@@ -119,36 +149,52 @@ Menguji `src/lib/utils.ts` (tanpa build, langsung type-strip):
 **Hitungan fungsi teruji: 9 dari 9 fungsi yang diekspor `src/lib/utils.ts`** (8 fungsi wajib
 task-6 + 1 bonus). Hasil saat ini: **29 test, 9 suite — semua PASS** (`node --test`).
 
+**`tests/api-helpers.test.mjs`** menguji helper `src/lib/api.ts`: `parseFilters()` (whitelist param,
+sentinel `ALL`/`Semua ...`, nilai tidak di-trim), `requireFields()` (field kosong/null/undefined/0/false
+dianggap hilang, body non-object aman), serta `ok()`, `fail()`, `jsonError()` (shape `{success,data|message}`
++ status code).
+
+> **Catatan import `next/server`:** `src/lib/api.ts` meng-import `NextResponse` dari `next/server`,
+> yang **tidak bisa di-resolve Node murni** (`ERR_MODULE_NOT_FOUND`, paket `next` tidak mengekspos
+> subpath itu untuk konsumen Node). Agar `src/**` tidak diubah, test me-register loader kecil
+> (`tests/helpers/next-server-loader.mjs`) yang memetakan `next/server` ke stub
+> `tests/helpers/next-server-stub.mjs` ( `NextResponse.json` tiruan yang mengembalikan
+> `{ body, status }`). Dengan itu `ok/fail/jsonError` tetap bisa diuji perilakunya.
+
+Hasil unit test saat ini: **45 test, 12 suite — semua PASS** (29 utils + 16 api helpers).
+
 ## Baseline run final
 
-| Item | Hasil (Batch A, 31 Okt 2026 00:26 WIB, **server produksi**) |
+| Item | Hasil (Batch B, 31 Okt 2026 00:33 WIB, **server produksi**) |
 |---|---|
-| Smoke API | **47/47 PASS**, 0 FAIL, 0 SKIP, 0 lambat (>500 ms), 17 kasus negatif, durasi ±1,2 detik |
+| Smoke API | **47/47 PASS**, 0 FAIL, 0 SKIP, 0 lambat (>500 ms), 17 kasus negatif |
+| Kontrak POST non-mutasi | **18/18 PASS** (semua HTTP 400), baris DB **982 → 982** (tidak berubah) |
 | Cakupan smoke | 26 GET (16 list + 9 detail + health) + 4 skenario login + 17 negatif; cross-check `/api/stats` vs list 11/11 cocok |
 | Login | 200 valid; 401 salah; 400 field kosong; 401 user tak terdaftar |
 | Latency (budget 1500 ms) | maksimum **41 ms** — 0 FAIL budget |
-| Kontrak error | 2 pelanggaran dicatat (knowledge-base memakai `error`, bukan `message`) — warning, bukan FAIL |
+| Kontrak error | 4 pelanggaran dicatat (2 GET + 2 POST knowledge-base memakai `error`, bukan `message`) — warning |
 | `npx tsc --noEmit` | 0 error |
-| Unit test | 29/29 PASS (exit 0) |
-| `node scripts/verify.mjs` | **exit 0** — semua 3 langkah LULUS |
+| Unit test | **45/45 PASS** (29 utils + 16 api helpers) |
+| `node scripts/verify.mjs` | **exit 0** — semua **4** langkah LULUS |
 | `node tests/regression.mjs` | **PASS, exit 0** — health ok, baris DB 982 = baseline, warning password bocor |
 
-Exit code smoke pada baseline ini: **0**. `tests/last-run.json` + `tests/regression-last-run.json`
-menyimpan hasil run terakhir.
+Exit code smoke & kontrak POST pada baseline ini: **0**. Artefak: `tests/last-run.json`,
+`tests/contract-post-last-run.json`, `tests/regression-last-run.json`.
 
-## 4. Gate verifikasi — `scripts/verify.mjs`
+## 5. Gate verifikasi — `scripts/verify.mjs`
 
 ```powershell
 node scripts/verify.mjs
 ```
 
-Urutan: `npx tsc --noEmit` → `node tests/smoke.mjs` →
-`node --experimental-strip-types --test tests/lib.test.mjs` (dilewati dengan catatan bila file
-unit test belum ada). Exit code 1 bila ada langkah gagal. Butuh dev server hidup untuk langkah 2.
+Urutan (4 langkah): `npx tsc --noEmit` → `node tests/smoke.mjs` →
+`node tests/contract-post.mjs` → `node --experimental-strip-types --test tests/lib.test.mjs
+tests/api-helpers.test.mjs` (file unit test yang belum ada otomatis dilewati). Exit code 1 bila ada
+langkah gagal. Butuh server hidup untuk langkah 2–3.
 
 ## Troubleshooting
 
-- **Semua endpoint `fetch failed` seketika** → dev server mati/tidak listen di `:3000`
+- **Semua endpoint `fetch failed` seketika** → server mati/tidak listen di `:3000`
   (bukan bug API). Bukti: `Get-NetTCPConnection -LocalPort 3000 -State Listen`. Nyalakan server
   user lalu ulangi; script smoke menandainya `[FATAL]`.
 - **Banyak `LAMBAT`** pada run pertama setelah edit file → kompilasi HMR dev server; jalankan
@@ -156,5 +202,9 @@ unit test belum ada). Exit code 1 bila ada langkah gagal. Butuh dev server hidup
 - **`/api/health` SKIP** → route belum ter-deploy di server saat run (bukan FAIL).
 - **`tests/regression.mjs` FAIL pada "total baris DB"** → ada perubahan data antar-batch. Jangan
   abaikan; bandingkan komponen di `tests/regression-last-run.json` dan laporkan ke PM (baseline 982).
+- **`tests/contract-post.mjs` FAIL** → ada endpoint POST yang tidak menolak payload kosong dengan 400
+  ATAU baris DB berubah (982 → lain). Hentikan, laporkan ke PM sebelum batch lain menulis data.
+- **`api-helpers.test.mjs` gagal import `next/server`** → pastikan test dijalankan dengan
+  `--experimental-strip-types` dan loader stub tersedia di `tests/helpers/` (lihat catatan di atas).
 - **`SMOKE_LATENCY_BUDGET_MS` FAIL** → endpoint >1500 ms setelah warm-up; cek beban server/proses
   lain, ulangi sekali sebelum menyimpulkan regresi performa.

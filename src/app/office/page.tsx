@@ -1,15 +1,20 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useState, Suspense } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
 import ScannerModal from "@/components/ScannerModal";
 import BarcodeGeneratorModal from "@/components/BarcodeGeneratorModal";
 import TicketModal from "@/components/TicketModal";
+import StatCard from "@/components/common/StatCard";
+import SearchInput from "@/components/common/SearchInput";
+import LoadingState from "@/components/common/LoadingState";
+import EmptyState from "@/components/common/EmptyState";
+import StatusBadge from "@/components/common/StatusBadge";
+import { useApiData } from "@/hooks/useApiData";
 import { Asset, OfficeHardwareAsset } from "@/types";
 import {
   Laptop,
   Plus,
-  Search,
   Filter,
   QrCode,
   Printer,
@@ -38,7 +43,6 @@ import {
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import AccessDenied from "@/components/AccessDenied";
-import { getClientCache, setClientCache } from "@/lib/cache";
 import Link from "next/link";
 
 const DIVISIONS = [
@@ -74,8 +78,6 @@ function OfficeContent() {
   const initialDiv = searchParams.get("div") || "";
   const initialLoc = searchParams.get("loc") || "";
 
-  const [officeList, setOfficeList] = useState<OfficeHardwareAsset[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState(initialSearch);
   const [selectedLocation, setSelectedLocation] = useState(initialLoc);
   const [selectedDivision, setSelectedDivision] = useState(initialDiv);
@@ -117,41 +119,28 @@ function OfficeContent() {
     notes: "",
   });
 
-  // Fetch Data
-  const fetchOfficeAssets = async () => {
-    const cacheKey = `office_${search}_${selectedLocation}_${selectedDivision}_${selectedStatus}_${selectedType}`;
-    const cached = getClientCache<OfficeHardwareAsset[]>(cacheKey);
-    if (cached) {
-      setOfficeList(cached);
-      setIsLoading(false);
-    } else {
-      setIsLoading(true);
-    }
+  // Data aset office dari API + SWR cache (endpoint & cache key tetap)
+  const params = new URLSearchParams();
+  if (search) params.append("search", search);
+  if (selectedLocation) params.append("location", selectedLocation);
+  if (selectedDivision) params.append("division", selectedDivision);
+  if (selectedStatus) params.append("status", selectedStatus);
+  if (selectedType) params.append("device_type", selectedType);
+  const cacheKey = `office_${search}_${selectedLocation}_${selectedDivision}_${selectedStatus}_${selectedType}`;
 
-    try {
-      const params = new URLSearchParams();
-      if (search) params.append("search", search);
-      if (selectedLocation) params.append("location", selectedLocation);
-      if (selectedDivision) params.append("division", selectedDivision);
-      if (selectedStatus) params.append("status", selectedStatus);
-      if (selectedType) params.append("device_type", selectedType);
+  const {
+    data: officeData,
+    isLoading,
+    refresh: fetchOfficeAssets,
+  } = useApiData<OfficeHardwareAsset[]>(`/api/office?${params.toString()}`, {
+    cacheKey,
+    transform: (json) => {
+      const res = json as { success?: boolean; data?: OfficeHardwareAsset[] };
+      return res.success && Array.isArray(res.data) ? res.data : [];
+    },
+  });
 
-      const res = await fetch(`/api/office?${params.toString()}`);
-      const json = await res.json();
-      if (json.success) {
-        setOfficeList(json.data || []);
-        setClientCache(cacheKey, json.data || []);
-      }
-    } catch (err) {
-      console.error("Gagal memuat aset office", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchOfficeAssets();
-  }, [search, selectedLocation, selectedDivision, selectedStatus, selectedType]);
+  const officeList = officeData ?? [];
 
   const copyToClipboard = (text: string, key: string) => {
     if (!text || text === "-") return;
@@ -434,49 +423,73 @@ function OfficeContent() {
 
         {/* Top Metric Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Perangkat</p>
-              <p className="text-2xl font-black text-slate-900 mt-0.5">{officeList.length} <span className="text-xs font-normal text-slate-400">Unit</span></p>
-              <p className="text-[10.5px] text-slate-500 mt-0.5">Seluruh Divisi Office</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-              <Building2 className="w-5 h-5" />
-            </div>
-          </div>
+          <StatCard
+            label="Total Perangkat"
+            labelClassName="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+            value={
+              <>
+                {officeList.length}{" "}
+                <span className="text-xs font-normal text-slate-400">Unit</span>
+              </>
+            }
+            valueClassName="text-2xl text-slate-900 mt-0.5"
+            hint="Seluruh Divisi Office"
+            hintClassName="text-[10.5px] text-slate-500 mt-0.5"
+            icon={Building2}
+            iconWrapperClassName="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold"
+            className="border-slate-200/90 shadow-2xs hover:shadow-sm transition-all"
+          />
 
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">PC & Desktop</p>
-              <p className="text-2xl font-black text-blue-600 mt-0.5">{pcCount} <span className="text-xs font-normal text-slate-400">Unit</span></p>
-              <p className="text-[10.5px] text-slate-500 mt-0.5">Komputer Karyawan</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-              <Laptop className="w-5 h-5" />
-            </div>
-          </div>
+          <StatCard
+            label="PC & Desktop"
+            labelClassName="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+            value={
+              <>
+                {pcCount}{" "}
+                <span className="text-xs font-normal text-slate-400">Unit</span>
+              </>
+            }
+            valueClassName="text-2xl text-blue-600 mt-0.5"
+            hint="Komputer Karyawan"
+            hintClassName="text-[10.5px] text-slate-500 mt-0.5"
+            icon={Laptop}
+            iconWrapperClassName="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold"
+            className="border-slate-200/90 shadow-2xs hover:shadow-sm transition-all"
+          />
 
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Router & Jaringan</p>
-              <p className="text-2xl font-black text-amber-600 mt-0.5">{netCount} <span className="text-xs font-normal text-slate-400">Unit</span></p>
-              <p className="text-[10.5px] text-slate-500 mt-0.5">Router PB & PABX Telp</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-              <Router className="w-5 h-5" />
-            </div>
-          </div>
+          <StatCard
+            label="Router & Jaringan"
+            labelClassName="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+            value={
+              <>
+                {netCount}{" "}
+                <span className="text-xs font-normal text-slate-400">Unit</span>
+              </>
+            }
+            valueClassName="text-2xl text-amber-600 mt-0.5"
+            hint="Router PB & PABX Telp"
+            hintClassName="text-[10.5px] text-slate-500 mt-0.5"
+            icon={Router}
+            iconWrapperClassName="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold"
+            className="border-slate-200/90 shadow-2xs hover:shadow-sm transition-all"
+          />
 
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">IP Address Aktif</p>
-              <p className="text-2xl font-black text-emerald-600 mt-0.5">{ipCount} <span className="text-xs font-normal text-slate-400">Unit</span></p>
-              <p className="text-[10.5px] text-slate-500 mt-0.5">Terkoneksi Jaringan VPN</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-              <Activity className="w-5 h-5" />
-            </div>
-          </div>
+          <StatCard
+            label="IP Address Aktif"
+            labelClassName="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+            value={
+              <>
+                {ipCount}{" "}
+                <span className="text-xs font-normal text-slate-400">Unit</span>
+              </>
+            }
+            valueClassName="text-2xl text-emerald-600 mt-0.5"
+            hint="Terkoneksi Jaringan VPN"
+            hintClassName="text-[10.5px] text-slate-500 mt-0.5"
+            icon={Activity}
+            iconWrapperClassName="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold"
+            className="border-slate-200/90 shadow-2xs hover:shadow-sm transition-all"
+          />
         </div>
 
         {/* Location & Division Filter Tabs */}
@@ -524,25 +537,13 @@ function OfficeContent() {
           {/* Row 2: Search Input & Dropdown Filters */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2.5 border-t border-slate-100">
             {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari nama pengguna, IP address (172.16...), processor, motherboard, storage..."
-                className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#006622] outline-none transition-all"
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              onClear={() => setSearch("")}
+              placeholder="Cari nama pengguna, IP address (172.16...), processor, motherboard, storage..."
+              inputClassName="pl-9 pr-8 py-2 bg-slate-50 border-slate-200 rounded-xl font-medium focus:bg-white focus:ring-emerald-500/20 focus:border-[#006622]"
+            />
 
             {/* Dropdown Filters */}
             <div className="flex items-center gap-2 flex-wrap">
@@ -607,16 +608,18 @@ function OfficeContent() {
         {/* Assets Master Table */}
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
           {isLoading ? (
-            <div className="p-12 text-center">
-              <div className="inline-block w-7 h-7 border-3 border-[#006622] border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-xs text-slate-500 font-bold mt-3">Memuat Data Perangkat Office & WHS...</p>
-            </div>
+            <LoadingState
+              className="p-12"
+              message="Memuat Data Perangkat Office & WHS..."
+            />
           ) : officeList.length === 0 ? (
-            <div className="p-12 text-center">
-              <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-              <p className="text-sm font-bold text-slate-700">Tidak ada perangkat ditemukan</p>
-              <p className="text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian atau filter lokasi/divisi.</p>
-            </div>
+            <EmptyState
+              className="p-12"
+              icon={Building2}
+              iconClassName="w-12 h-12 text-slate-300"
+              title="Tidak ada perangkat ditemukan"
+              description="Coba sesuaikan kata kunci pencarian atau filter lokasi/divisi."
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
@@ -780,24 +783,28 @@ function OfficeContent() {
 
                         {/* Status */}
                         <td className="py-3.5 px-3 text-center align-top whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
-                              item.status === "OPERASIONAL"
-                                ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                                : item.status === "CADANGAN"
-                                ? "bg-amber-50 text-amber-800 border border-amber-200"
-                                : "bg-rose-50 text-rose-800 border border-rose-200"
-                            }`}
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full ${
-                              item.status === "OPERASIONAL"
-                                ? "bg-emerald-500"
-                                : item.status === "CADANGAN"
-                                ? "bg-amber-500"
-                                : "bg-rose-500"
-                            }`} />
-                            {item.status}
-                          </span>
+                          <StatusBadge
+                            status={item.status}
+                            label={
+                              <>
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    item.status === "OPERASIONAL"
+                                      ? "bg-emerald-500"
+                                      : item.status === "CADANGAN"
+                                      ? "bg-amber-500"
+                                      : "bg-rose-500"
+                                  }`}
+                                />
+                                {item.status}
+                              </>
+                            }
+                            className={
+                              item.status === "CADANGAN"
+                                ? "bg-amber-50 text-amber-800 border-amber-200"
+                                : "px-2.5 py-0.5"
+                            }
+                          />
                         </td>
 
                         {/* Actions */}

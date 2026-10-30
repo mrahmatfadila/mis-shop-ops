@@ -14,11 +14,13 @@
 | 00:04 | Dev server hidup kembali (restart oleh Lead); warm-up + smoke berhasil, tetapi skrip sempat gagal di tahap laporan (bug skrip QA, sudah diperbaiki). |
 | **00:11 WIB (31 Okt)** | **FINAL GATE shift 1 — `node tests/smoke.mjs`: 28/28 PASS, 0 FAIL, 0 SKIP. Lalu `node scripts/verify.mjs`: tsc 0 error + smoke 28/28 + unit 29/29 → exit 0.** |
 | **00:23–00:26 WIB (31 Okt, SHIFT 2 · Batch A)** | Server **mode produksi** (`npm run start`). Smoke diperluas: **47/47 PASS, 0 FAIL, 0 SKIP, 0 lambat**, 17 kasus negatif, **2 pelanggaran kontrak** (dicatat, bukan FAIL), budget latency 1500 ms (terukur maks **41 ms**). `node scripts/verify.mjs` → **exit 0** (tsc 0 error + smoke 47/47 + unit 29/29). `node tests/regression.mjs` → **PASS, exit 0** (health ok, 982 baris DB cocok, warning password bocor). |
+| **00:33 WIB (31 Okt, SHIFT 2 · Batch B)** | **Kontrak POST non-mutasi**: 18 endpoint POST dengan payload kosong `{}` → **18/18 PASS** (semua HTTP 400 `success:false`), total baris DB **982 → 982** (tidak berubah, dicek sebelum/sesudah tiap tes). Gunakan `tests/contract-post.mjs`. Unit test `src/lib/api.ts` (**16 test PASS**) via loader stub `next/server` (lihat README). `node scripts/verify.mjs` → **exit 0** (4 langkah; unit 45/45). `node tests/regression.mjs` → **PASS** (982). **2 pelanggaran kontrak POST** knowledge-base (`error`, bukan `message`) dicatat. **Temuan baru B8** (`POST /api/monitoring/ping` body kosong = ping massal + UPDATE). |
 
 **Kesimpulan:** tidak ada endpoint yang gagal. Semua 25 endpoint GET + `/api/health` + skenario login
-valid/negatif + 17 kasus negatif (id tidak ada, query invalid, path traversal) lulus. Temuan di bawah
-adalah risiko keamanan/kontrak/side-effect yang **belum diperbaiki** dan perlu triase PM, bukan endpoint
-rusak. Latency pada server produksi: maksimum **41 ms** (jauh di bawah budget 1500 ms).
+valid/negatif + 17 kasus GET negatif (id tidak ada, query invalid, path traversal) + 18 kontrak POST
+(payload kosong) lulus. Temuan di bawah adalah risiko keamanan/kontrak/side-effect yang **belum
+diperbaiki** dan perlu triase PM, bukan endpoint rusak. Latency pada server produksi: maksimum
+**41 ms** (jauh di bawah budget 1500 ms).
 
 ## Ringkasan temuan
 
@@ -28,9 +30,10 @@ rusak. Latency pada server produksi: maksimum **41 ms** (jauh di bawah budget 15
 | B2 | 🔴 Kritis | `GET /api/users`, `GET /api/users/[id]` | 200 | Respons membocorkan field `password` (nilai terisi) untuk 43 user — siapa pun yang bisa memanggil API dapat membaca kredensial. Terverifikasi final. | `src/app/api/users/route.ts:12`, `src/app/api/users/[id]/route.ts:12` |
 | B3 | 🟡 Rendah | `GET /api/knowledge-base/[id]` | 200 | GET mengubah data: `view_count = view_count + 1` setiap akses. Melanggar semantik GET (prefetch/crawler/smoke ikut menambah counter). **Masih terjadi di Batch A** — smoke menambah 2 view/run (warm-up + pengukuran). | `src/app/api/knowledge-base/[id]/route.ts:18-22` |
 | B4 | 🟡 Rendah | `GET /api/monitoring?ping=true` | 200 | GET dengan query `ping=true` melakukan ICMP ping + `UPDATE monitoring_devices` (status, latency, heartbeat). Write via GET. Smoke sengaja tidak memanggilnya. | `src/app/api/monitoring/route.ts:42-63` |
-| B5 | 🟡 Rendah | `GET/POST /api/knowledge-base*` | 400/500 | Kontrak error tidak konsisten: memakai `{ success:false, error }`, bukan `{ success:false, message }` seperti 34 route lain dan `src/lib/api.ts`. Klien yang membaca `message` akan mendapat `undefined`. | `src/app/api/knowledge-base/route.ts:73,102,152`; `[id]/route.ts:15,40`; `[id]/helpful/route.ts:15,36` |
+| B5 | 🟡 Rendah | `GET/POST /api/knowledge-base*` | 400/500 | Kontrak error tidak konsisten: memakai `{ success:false, error }`, bukan `{ success:false, message }` seperti 34 route lain dan `src/lib/api.ts`. Klien yang membaca `message` akan mendapat `undefined`. **Batch B:** terkonfirmasi juga pada POST (body kosong & id invalid) — 2 pelanggaran kontrak POST. | `src/app/api/knowledge-base/route.ts:73,102,152`; `[id]/route.ts:15,40`; `[id]/helpful/route.ts:15,36` |
 | B6 | ⚪ Lingkungan (transient) | semua | — | Dev server mati 23:59:41 → smoke `fetch failed`. Bukan bug aplikasi; perlu server dinyalakan user lalu smoke diulang. | — |
 | B7 | ⚪ Catatan performa | semua | — | Cold compile `next dev` sangat lambat (13–85 detik/request saat repo di-edit + IDE eksternal aktif); setelah hangat `/api/health` ±0,78 detik. Bukan bug kode; perlu diukur ulang di produksi. | — |
+| B8 | 🟡 Rendah | `POST /api/monitoring/ping` | 200 | Body kosong `{}` **tidak** ditolak 400: route masuk "Case 2" → ping SEMUA device (`monitoring_devices`) lalu `UPDATE` status/latency/heartbeat. Ini side-effect massal dari request tanpa parameter; kontrak POST tidak aman untuk retry/prefetch. Karena itu endpoint ini **tidak** diuji `contract-post.mjs` (akan menulis data). | `src/app/api/monitoring/ping/route.ts:42-97` |
 
 ---
 
@@ -118,6 +121,10 @@ rusak. Latency pada server produksi: maksimum **41 ms** (jauh di bawah budget 15
   pelanggaran tercatat otomatis di `tests/last-run.json` (`contractViolations`). Diverifikasi live:
   `GET /api/knowledge-base/999999` → 404 `{"success":false,"error":"Artikel panduan tidak ditemukan"}`;
   `GET /api/knowledge-base/abc` → 400 `{"success":false,"error":"ID tidak valid"}`. **Belum diperbaiki.**
+- **Batch B (POST):** `POST /api/knowledge-base` body `{}` → 400
+  `{"success":false,"error":"Judul, kategori, dan isi panduan wajib diisi"}`;
+  `POST /api/knowledge-base/abc/helpful` → 400 `{"success":false,"error":"ID tidak valid"}`.
+  Keduanya tercatat di `tests/contract-post-last-run.json` (`contractViolations`, 2 pelanggaran).
 
 ## B6 — Dev server mati saat verifikasi (lingkungan, sudah pulih)
 
@@ -138,6 +145,22 @@ rusak. Latency pada server produksi: maksimum **41 ms** (jauh di bawah budget 15
   ditandai `LAMBAT`, >1500 ms = FAIL (budget Batch A).
 - **Mode produksi (`npm run start`, Batch A):** seluruh 47 request terukur ≤41 ms. Tidak ada isu
   performa pada build produksi; angka cold compile hanya artefak `next dev`.
+
+## B8 — `POST /api/monitoring/ping` body kosong = ping massal + UPDATE (rendah)
+
+- **URL:** `POST /api/monitoring/ping` dengan body `{}` (tanpa `ip`/`asset_codes`/`location`).
+- **Status:** 200 `supposedly` (bukan 400) — route masuk "Case 2: Batch ping (by asset_codes, by
+  location, or all)" sehingga memilih **semua** `monitoring_devices` yang punya IP, melakukan ICMP
+  ping massal (pool 15 worker) lalu `UPDATE monitoring_devices` (status, response_time_ms,
+  last_heartbeat).
+- **Dugaan penyebab:** tidak ada validasi wajib-parameter di awal handler; fallback "all" adalah
+  perilaku sengaja untuk trigger massal, tetapi kontrak POST-nya tidak aman (retry/prefetch/klien
+  salah kirim body kosong = menulis 167 baris).
+- **Dampak:** side effect massal dari request tanpa argumen; tidak aman dijadikan endpoint kontrak
+  generik. Bukan data loss, tetapi mengubah 167 baris monitoring.
+- **File:** `src/app/api/monitoring/ping/route.ts:42-97` (Case 2, UPDATE di baris 88).
+- **Catatan QA:** endpoint ini **tidak diuji** `tests/contract-post.mjs` karena body kosong tidak
+  dijamin 400 dan akan menulis data. **Belum diperbaiki.**
 
 ---
 
@@ -170,10 +193,38 @@ rusak. Latency pada server produksi: maksimum **41 ms** (jauh di bawah budget 15
 
 ---
 
+## Batch B Shift 2 — kontrak POST non-mutasi & unit test helper API (00:33 WIB, server produksi)
+
+**`tests/contract-post.mjs`** (baru): mengirim **hanya payload kosong `{}`** ke 18 endpoint POST,
+semua mengharapkan **HTTP 400 `success:false`**, dan menghitung ulang total baris DB via API
+sebelum & sesudah **setiap** tes.
+
+| Kelompok | Jumlah endpoint | Hasil |
+|---|---|---|
+| CRUD POST (`assets`, `dvr`, `edc`, `extensions`, `knowledge-base`, `office`, `pos-hardware`, `purchases`, `server-rack`, `t3-assets`, `tickets`, `users`) | 12 | ✅ 12/12 HTTP 400, baris DB 982→982 |
+| Action POST (`anydesk/connect`, `dvr/test-connect`, `edc/ping`, `pos/heartbeat`, `permissions`, `knowledge-base/abc/helpful`) | 6 | ✅ 6/6 HTTP 400, baris DB 982→982 |
+
+- **Total: 18/18 PASS, 0 FAIL, exit 0.** Baris DB **982 sebelum = 982 sesudah** (stats 784 + users 43
+  + tickets 2 + role_permissions 130 + rack_units 23). Tidak ada payload valid/parsial yang dikirim.
+- **Kontrak error POST:** 2 pelanggaran (`knowledge-base` & `helpful` memakai `error`) — dicatat,
+  tidak menggagalkan gate (B5).
+- **`POST /api/monitoring/ping` dikecualikan** karena body kosong memicu ping massal + UPDATE
+  (temuan baru **B8**), bukan 400.
+- **Unit test `src/lib/api.ts`** (`tests/api-helpers.test.mjs`, 16 test PASS): `parseFilters`,
+  `requireFields`, `ok`, `fail`, `jsonError`. Import `next/server` tidak bisa di-resolve Node murni →
+  loader stub `tests/helpers/next-server-loader.mjs` (tanpa mengubah `src/**`), dicatat di README.
+- **Gate:** `node scripts/verify.mjs` → **exit 0** (tsc 0 error + smoke 47/47 + kontrak POST 18/18 +
+  unit 45/45); `node tests/regression.mjs` → **PASS, exit 0** (982, health ok, warning password).
+- **Temuan baru:** B8 (monitoring ping massal). B1/B2/B3/B5 tetap ada dan **belum diperbaiki**.
+
+---
+
 ## Yang TIDAK dilakukan QA
 
 - Tidak mengubah file `src/**` (termasuk `src/app/assets/page.tsx` dan
   `src/app/api/anydesk/connect/route.ts` milik scope eksternal).
 - Tidak mengubah skema/data DB, tidak `git commit`, tidak `npm install`, tidak `next build`,
   tidak menyalakan/mematikan/restart dev server.
-- Endpoint mutasi (POST/PUT/DELETE data) sengaja tidak dipanggil, hanya `POST /api/auth/login`.
+- Tidak pernah mengirim payload POST valid/parsial ke endpoint data. Satu-satunya request tulis yang
+  dilakukan adalah `POST /api/auth/login` (read-only, tidak membuat baris) dan 18 POST berpayload
+  kosong yang dijamin ditolak 400 sebelum insert (diverifikasi kode + baris DB tetap 982).

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { pingHost } from "@/lib/ping";
+import { fail, jsonError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -44,15 +45,9 @@ export async function POST(req: Request) {
       });
     }
 
-    return NextResponse.json(
-      { success: false, message: "Parameter ip atau ips wajib disertakan" },
-      { status: 400 }
-    );
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal melakukan ping" },
-      { status: 500 }
-    );
+    return fail("Parameter ip atau ips wajib disertakan", 400);
+  } catch (error) {
+    return jsonError(error, "Gagal melakukan ping");
   }
 }
 

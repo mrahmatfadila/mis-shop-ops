@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError } from "@/lib/api";
 
 export async function GET(
   request: Request,
@@ -15,10 +16,7 @@ export async function GET(
     });
 
     if (result.rows.length === 0) {
-      return NextResponse.json(
-        { success: false, message: "Aset tidak ditemukan" },
-        { status: 404 }
-      );
+      return fail("Aset tidak ditemukan", 404);
     }
 
     // Ambil juga riwayat tiket dari aset ini jika ada
@@ -32,11 +30,8 @@ export async function GET(
       data: result.rows[0],
       tickets: tickets.rows,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 500 }
-    );
+  } catch (error) {
+    return jsonError(error);
   }
 }
 
@@ -99,11 +94,8 @@ export async function PUT(
     }
 
     return NextResponse.json({ success: true, message: "Aset berhasil diperbarui!" });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 500 }
-    );
+  } catch (error) {
+    return jsonError(error);
   }
 }
 
@@ -126,11 +118,8 @@ export async function DELETE(
     });
 
     return NextResponse.json({ success: true, message: "Aset berhasil dihapus!" });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 500 }
-    );
+  } catch (error) {
+    return jsonError(error);
   }
 }
 

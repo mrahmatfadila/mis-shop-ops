@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { jsonError } from "@/lib/api";
 
 export async function PUT(
   request: Request,
@@ -36,8 +37,8 @@ export async function PUT(
     }
 
     return NextResponse.json({ success: true, message: "Status tiket berhasil diupdate!" });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error) {
+    return jsonError(error);
   }
 }
 

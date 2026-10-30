@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { jsonError, parseFilters } from "@/lib/api";
 import { pingPool } from "@/lib/ping";
 
 export async function GET(req: Request) {
@@ -7,7 +8,10 @@ export async function GET(req: Request) {
     await initDb();
     const { searchParams } = new URL(req.url);
     const shouldPing = searchParams.get("ping") === "true";
-    const location = searchParams.get("location");
+    const { location } = parseFilters(searchParams, {
+      allowed: ["location"],
+      ignoreByKey: { location: ["Semua"] },
+    });
 
     // Ambil data monitoring beserta nama device dan lokasi dari tabel assets & dvr_assets
     let sql = `
@@ -28,7 +32,7 @@ export async function GET(req: Request) {
     `;
     const args: any[] = [];
 
-    if (location && location !== "Semua") {
+    if (location) {
       sql += ` WHERE (a.shop_location = ? OR (a.shop_location IS NULL AND ? = 'MIS IT Support'))`;
       args.push(location, location);
     }
@@ -68,10 +72,7 @@ export async function GET(req: Request) {
       totalCount: rows.length,
       onlineCount: rows.filter((r) => r.status === "ONLINE").length,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 500 }
-    );
+  } catch (error) {
+    return jsonError(error);
   }
 }

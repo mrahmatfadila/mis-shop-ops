@@ -1,7 +1,7 @@
 # Data Audit — `shop_ops.db`
 
-> Dibuat otomatis oleh `scripts/db-audit.mjs` · 2026-10-31 00:24:23 (Asia/Bangkok)
-> Mode jurnal **WAL** · SQLite 3.45.1 · DB 412.0 KB + WAL 56.4 KB
+> Dibuat otomatis oleh `scripts/db-audit.mjs` · 2026-10-31 00:32:35 (Asia/Bangkok)
+> Mode jurnal **WAL** · SQLite 3.45.1 · DB 412.0 KB + WAL 161.0 KB
 > **Read-only**: audit ini tidak menulis/mengubah data apa pun.
 
 ## 1. Ringkasan
@@ -179,7 +179,7 @@ Tindakan disarankan: petakan kode ke master POS yang benar, atau tandai POS deco
 
 ## 6. Rekap Nilai Aset (validasi dashboard)
 
-> Catatan: `assets` & `office_hardware_assets` **tidak menyimpan kolom harga**. Nilai aset berasal dari `t3_fixed_assets.harga_pembelian×qty` (aset tetap T3) dan `purchases.total_price` (pengadaan). Keduanya bukan populasi yang sama; jangan dijumlahkan sebagai satu nilai akuntansi tanpa konfirmasi user.
+> Catatan: `assets` & `office_hardware_assets` **tidak menyimpan kolom harga**. Nilai aset berasal dari `t3_fixed_assets.harga_pembelian×qty` (aset tetap T3) dan `purchases.total_price` (pengadaan). Keduanya bukan populasi yang sama; jangan dijumlahkan sebagai satu nilai akuntansi tanpa konfirmasi user. Rekap lengkap per lokasi/kategori + keterbatasan data: lihat **`docs/RECAP-ASET.md`**.
 
 ### 6.1 `t3_fixed_assets` per lokasi
 

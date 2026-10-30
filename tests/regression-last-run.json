@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-30T17:29:42.280Z",
+  "generatedAt": "2026-10-30T17:36:43.882Z",
   "baseUrl": "http://localhost:3000",
   "baselineRows": 982,
-  "durationMs": 1932,
+  "durationMs": 2504,
   "pass": true,
   "checks": [
     {
@@ -31,7 +31,7 @@
   ],
   "smoke": {
     "exitCode": 0,
-    "generatedAt": "2026-10-30T17:29:42.449Z",
+    "generatedAt": "2026-10-30T17:36:44.077Z",
     "summary": {
       "total": 47,
       "tested": 47,
@@ -68,9 +68,9 @@
       "db": "ok",
       "tables": 15,
       "wal": "wal",
-      "uptimeSec": 26
+      "uptimeSec": 38
     },
-    "latencyMs": 182
+    "latencyMs": 233
   },
   "dbRows": {
     "actual": 982,

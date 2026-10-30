@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { pingHost } from "@/lib/ping";
+import { fail, jsonError } from "@/lib/api";
 import net from "net";
 
 function checkTcpPort(host: string, port: number, timeoutMs = 1500): Promise<{ port: number; open: boolean; message?: string }> {
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
     const { ip, http_port = 80, rtsp_port = 554, server_port = 8000 } = body;
 
     if (!ip) {
-      return NextResponse.json({ success: false, message: "IP Address DVR wajib diisi." }, { status: 400 });
+      return fail("IP Address DVR wajib diisi.", 400);
     }
 
     // 1. Real ICMP Ping test
@@ -74,8 +75,8 @@ export async function POST(request: Request) {
       },
       isReachable: pingResult.status === "ONLINE" || httpCheck.open || rtspCheck.open || serverCheck.open,
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error) {
+    return jsonError(error);
   }
 }
 

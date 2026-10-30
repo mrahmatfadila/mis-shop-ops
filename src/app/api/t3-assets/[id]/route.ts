@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError, ok } from "@/lib/api";
 
 export async function GET(
   request: Request,
@@ -15,22 +16,13 @@ export async function GET(
     });
 
     if (result.rows.length === 0) {
-      return NextResponse.json(
-        { success: false, message: "Aset T3 tidak ditemukan" },
-        { status: 404 }
-      );
+      return fail("Aset T3 tidak ditemukan", 404);
     }
 
-    return NextResponse.json({
-      success: true,
-      data: result.rows[0],
-    });
-  } catch (error: any) {
+    return ok(result.rows[0]);
+  } catch (error) {
     console.error("Error fetching T3 asset by id:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal mengambil data aset" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal mengambil data aset");
   }
 }
 
@@ -101,12 +93,9 @@ export async function PUT(
       success: true,
       message: "Data aset T3 berhasil diperbarui",
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error updating T3 asset:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal memperbarui data aset" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal memperbarui data aset");
   }
 }
 
@@ -127,12 +116,9 @@ export async function DELETE(
       success: true,
       message: "Data aset T3 berhasil dihapus",
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error deleting T3 asset:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal menghapus data aset" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal menghapus data aset");
   }
 }
 

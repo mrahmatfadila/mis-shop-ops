@@ -1,0 +1,876 @@
+{
+  "generatedAt": "2026-10-30T17:36:42.436Z",
+  "baseUrl": "http://localhost:3000",
+  "baselineRows": 982,
+  "pass": true,
+  "summary": {
+    "total": 18,
+    "pass": 18,
+    "fail": 0,
+    "contractViolations": 2,
+    "rowsBefore": 982,
+    "rowsAfter": 982
+  },
+  "contractViolations": [
+    {
+      "endpoint": "/api/knowledge-base",
+      "httpStatus": 400,
+      "actualField": "error",
+      "sample": "Judul, kategori, dan isi panduan wajib diisi"
+    },
+    {
+      "endpoint": "/api/knowledge-base/abc/helpful",
+      "httpStatus": 400,
+      "actualField": "error",
+      "sample": "ID tidak valid"
+    }
+  ],
+  "results": [
+    {
+      "endpoint": "/api/assets",
+      "label": "POST aset kosong",
+      "status": 400,
+      "latencyMs": 26,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/dvr",
+      "label": "POST DVR kosong",
+      "status": 400,
+      "latencyMs": 8,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/edc",
+      "label": "POST EDC kosong",
+      "status": 400,
+      "latencyMs": 10,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/extensions",
+      "label": "POST ekstensi kosong",
+      "status": 400,
+      "latencyMs": 8,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/knowledge-base",
+      "label": "POST artikel kosong",
+      "status": 400,
+      "latencyMs": 9,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "error",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "error (kontrak menyimpang)"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/office",
+      "label": "POST office kosong",
+      "status": 400,
+      "latencyMs": 9,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/pos-hardware",
+      "label": "POST hardware POS kosong",
+      "status": 400,
+      "latencyMs": 7,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/purchases",
+      "label": "POST pengadaan kosong",
+      "status": 400,
+      "latencyMs": 8,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/server-rack",
+      "label": "POST server rack kosong",
+      "status": 400,
+      "latencyMs": 9,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/t3-assets",
+      "label": "POST aset T3 kosong",
+      "status": 400,
+      "latencyMs": 8,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/tickets",
+      "label": "POST tiket kosong",
+      "status": 400,
+      "latencyMs": 10,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/users",
+      "label": "POST user kosong",
+      "status": 400,
+      "latencyMs": 5,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/anydesk/connect",
+      "label": "POST anydesk kosong",
+      "status": 400,
+      "latencyMs": 14,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/dvr/test-connect",
+      "label": "POST test-connect DVR kosong",
+      "status": 400,
+      "latencyMs": 19,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/edc/ping",
+      "label": "POST ping EDC kosong",
+      "status": 400,
+      "latencyMs": 10,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/pos/heartbeat",
+      "label": "POST heartbeat POS kosong",
+      "status": 400,
+      "latencyMs": 5,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/permissions",
+      "label": "POST permission kosong",
+      "status": 400,
+      "latencyMs": 10,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "message",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "message"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/knowledge-base/abc/helpful",
+      "label": "POST helpful id invalid",
+      "status": 400,
+      "latencyMs": 7,
+      "rowsBefore": 982,
+      "rowsAfter": 982,
+      "messageField": "error",
+      "ok": true,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "name": "body JSON valid",
+          "ok": true,
+          "detail": "json"
+        },
+        {
+          "name": "success false",
+          "ok": true,
+          "detail": "success=false"
+        },
+        {
+          "name": "baris DB sebelum = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = sebelum",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "baris DB sesudah = baseline",
+          "ok": true,
+          "detail": "982 vs 982"
+        },
+        {
+          "name": "ada pesan penolakan",
+          "ok": true,
+          "detail": "error (kontrak menyimpang)"
+        }
+      ]
+    }
+  ]
+}

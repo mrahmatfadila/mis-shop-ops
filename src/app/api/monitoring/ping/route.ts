@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
 import { pingHost, pingPool } from "@/lib/ping";
+import { jsonError } from "@/lib/api";
 
 export async function POST(req: Request) {
   try {
@@ -110,12 +111,9 @@ export async function POST(req: Request) {
       offlineCount: pingResults.length - onlineCount,
       results: updatedData,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Monitoring ping error:", error);
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 500 }
-    );
+    return jsonError(error);
   }
 }
 

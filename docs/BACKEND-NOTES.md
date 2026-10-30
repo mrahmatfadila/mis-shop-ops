@@ -124,3 +124,25 @@ Dipertahankan apa adanya (tidak dipaksa ke `ok()`): respons sukses dengan key ta
 Belum dimigrasi (17 file): `anydesk/connect`, `assets/[code]`, `auth/accounts`, `auth/login` (auth — dilarang), `dvr/test-connect`, `edc/ping`, `extensions`, `knowledge-base`, `knowledge-base/[id]`, `knowledge-base/[id]/helpful`, `monitoring`, `monitoring/ping`, `permissions`, `pos/heartbeat`, `stats`, `t3-assets/[id]`, `tickets/[id]`. Total file route: 36 — sudah dimigrasi 19 (4 shift 1 + 15 shift 2).
 
 Gate Batch A: `npx tsc --noEmit` exit 0 · `node tests/smoke.mjs` 47 PASS / 0 FAIL · spot-parity assets 159/159, tickets 2/2, purchases 11/11 (jumlah data + key objek pertama sama, `SPOT_FAILURES=0`).
+
+## 8. Shift 2 — Batch B: migrasi 11 route lagi (zero-behavior-change, task-12)
+
+11 route tambahan (total 30 dari 36 file route sudah memakai helper):
+
+| # | File | Helper | Catatan |
+|---|---|---|---|
+| 1 | `extensions/route.ts` | `parseFilters`, `requireFields`, `fail`, `jsonError` | GET punya `stats`, POST punya `id` → tetap inline |
+| 2 | `monitoring/route.ts` | `parseFilters`, `jsonError` | `totalCount`/`onlineCount` tetap inline |
+| 3 | `stats/route.ts` | `jsonError` | respons `{success, stats}` tetap inline |
+| 4 | `permissions/route.ts` | `fail`, `jsonError` | `roles`/`menus`/`matrix`/`raw` & message tetap inline |
+| 5 | `pos/heartbeat/route.ts` | `requireFields`, `fail`, `jsonError` | `message`+`timestamp` tetap inline |
+| 6 | `tickets/[id]/route.ts` | `jsonError` | message tetap inline |
+| 7 | `t3-assets/[id]/route.ts` | `ok`, `fail`, `jsonError` | GET standar `{success,data}` |
+| 8 | `assets/[code]/route.ts` | `fail`, `jsonError` | GET punya key `tickets` → inline; PUT/DELETE message inline |
+| 9 | `dvr/test-connect/route.ts` | `fail`, `jsonError` | `ip`/`ping`/`ports`/`isReachable` tetap inline |
+| 10 | `edc/ping/route.ts` | `fail`, `jsonError` | `ip`/`status`/`latency`/`results` tetap inline |
+| 11 | `monitoring/ping/route.ts` | `jsonError` | `result`/`count`/`results` tetap inline |
+
+Sengaja DILEWATI: `anydesk/connect` (file hasil tool AI eksternal, di luar kendali tim), `auth/accounts`, `auth/login` (auth dilarang), `knowledge-base`, `knowledge-base/[id]`, `knowledge-base/[id]/helpful` (kontrak memakai field `error`, tidak boleh diubah). Sisa 6 file ini menunggu keputusan/izin.
+
+Gate Batch B: `npx tsc --noEmit` exit **0** (run final setelah semua edit; sempat error sementara di `src/app/t3-assets/page.tsx` milik frontend saat file itu sedang diedit, bukan file backend) · `node tests/smoke.mjs` 47 PASS / 0 FAIL / 0 SKIP exit 0 · spot-parity 6 endpoint: assets 159/159, tickets 2/2, purchases 11/11, monitoring 167/167, extensions 47/47, t3-assets 35/35 — jumlah data + key objek pertama identik, `SPOT_FAILURES=0`.

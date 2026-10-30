@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError } from "@/lib/api";
 import { UserRole } from "@/types";
 
 interface MenuItemDef {
@@ -137,11 +138,8 @@ export async function GET() {
       matrix,
       raw: permissions,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message || "Failed to load permissions" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return jsonError(error, "Failed to load permissions");
   }
 }
 
@@ -194,12 +192,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: `Permission ${role} - ${menu_key} berhasil diperbarui` });
     }
 
-    return NextResponse.json({ success: false, message: "Parameter tidak lengkap" }, { status: 400 });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message || "Failed to update permissions" },
-      { status: 500 }
-    );
+    return fail("Parameter tidak lengkap", 400);
+  } catch (error) {
+    return jsonError(error, "Failed to update permissions");
   }
 }
 

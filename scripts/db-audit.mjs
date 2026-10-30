@@ -449,7 +449,7 @@ async function main() {
 
   md.push("## 6. Rekap Nilai Aset (validasi dashboard)");
   md.push("");
-  md.push("> Catatan: `assets` & `office_hardware_assets` **tidak menyimpan kolom harga**. Nilai aset berasal dari `t3_fixed_assets.harga_pembelian×qty` (aset tetap T3) dan `purchases.total_price` (pengadaan). Keduanya bukan populasi yang sama; jangan dijumlahkan sebagai satu nilai akuntansi tanpa konfirmasi user.");
+  md.push("> Catatan: `assets` & `office_hardware_assets` **tidak menyimpan kolom harga**. Nilai aset berasal dari `t3_fixed_assets.harga_pembelian×qty` (aset tetap T3) dan `purchases.total_price` (pengadaan). Keduanya bukan populasi yang sama; jangan dijumlahkan sebagai satu nilai akuntansi tanpa konfirmasi user. Rekap lengkap per lokasi/kategori + keterbatasan data: lihat **`docs/RECAP-ASET.md`**.");
   md.push("");
   md.push("### 6.1 `t3_fixed_assets` per lokasi");
   md.push("");

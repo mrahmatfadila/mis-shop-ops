@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
+import StatCard from "@/components/common/StatCard";
+import SearchInput from "@/components/common/SearchInput";
+import LoadingState from "@/components/common/LoadingState";
+import EmptyState from "@/components/common/EmptyState";
+import StatusBadge from "@/components/common/StatusBadge";
+import { useApiData } from "@/hooks/useApiData";
+import { formatNumber, formatRupiah } from "@/lib/utils";
 import { T3FixedAsset } from "@/types";
 import {
   Layers,
-  Search,
   Plus,
   Download,
   Printer,
@@ -27,7 +33,24 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import AccessDenied from "@/components/AccessDenied";
-import { getClientCache, setClientCache } from "@/lib/cache";
+
+type T3Stats = {
+  totalAssets: number;
+  totalNilai: number;
+  totalQty: number;
+  operationalCount: number;
+  countByLocation: Record<string, number>;
+};
+
+type T3Payload = { data: T3FixedAsset[]; stats: T3Stats };
+
+const EMPTY_T3_STATS: T3Stats = {
+  totalAssets: 0,
+  totalNilai: 0,
+  totalQty: 0,
+  operationalCount: 0,
+  countByLocation: {},
+};
 
 export default function T3AssetsPage() {
   const { isAdmin, isMIS, isManager } = useAuth();
@@ -35,20 +58,9 @@ export default function T3AssetsPage() {
   if (!isAdmin && !isMIS && !isManager) {
     return <AccessDenied moduleName="Aset Tetap T3 (DF1-DF7)" />;
   }
-  const [assets, setAssets] = useState<T3FixedAsset[]>([]);
-  const [stats, setStats] = useState({
-    totalAssets: 0,
-    totalNilai: 0,
-    totalQty: 0,
-    operationalCount: 0,
-    countByLocation: {
-      DF1: 0, DF2: 0, DF3: 0, DF4: 0, DF5: 0, DF6: 0, DF7: 0
-    } as Record<string, number>
-  });
-  const [loading, setLoading] = useState(true);
-
   // Filters
   const [search, setSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("ALL");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [selectedStatus, setSelectedStatus] = useState("ALL");
@@ -92,47 +104,50 @@ export default function T3AssetsPage() {
 
   const locations = ["DF1", "DF2", "DF3", "DF4", "DF5", "DF6", "DF7"];
 
-  const fetchAssets = async () => {
-    const cacheKey = `t3_assets_${search}_${selectedLocation}_${selectedCategory}_${selectedStatus}`;
-    const cached = getClientCache<{ data: T3FixedAsset[]; stats: any }>(cacheKey);
-    if (cached) {
-      setAssets(cached.data);
-      if (cached.stats) setStats(cached.stats);
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
+  // Query string & cache key mengikuti filter; endpoint tetap /api/t3-assets
+  const params = new URLSearchParams();
+  if (submittedSearch) params.append("search", submittedSearch);
+  if (selectedLocation !== "ALL") params.append("lokasi", selectedLocation);
+  if (selectedCategory !== "ALL") params.append("kategori", selectedCategory);
+  if (selectedStatus !== "ALL") params.append("status", selectedStatus);
+  const cacheKey = `t3_assets_${submittedSearch}_${selectedLocation}_${selectedCategory}_${selectedStatus}`;
 
-    try {
-      const params = new URLSearchParams();
-      if (search) params.append("search", search);
-      if (selectedLocation !== "ALL") params.append("lokasi", selectedLocation);
-      if (selectedCategory !== "ALL") params.append("kategori", selectedCategory);
-      if (selectedStatus !== "ALL") params.append("status", selectedStatus);
+  const {
+    data,
+    isLoading,
+    refresh: fetchAssets,
+  } = useApiData<T3Payload>(`/api/t3-assets?${params.toString()}`, {
+    cacheKey,
+    transform: (json) => {
+      const res = json as {
+        success?: boolean;
+        data?: T3FixedAsset[];
+        stats?: T3Stats;
+      };
+      return {
+        data: res.success && Array.isArray(res.data) ? res.data : [],
+        stats: res.stats ?? EMPTY_T3_STATS,
+      };
+    },
+  });
 
-      const res = await fetch(`/api/t3-assets?${params.toString()}`);
-      const json = await res.json();
-      if (json.success) {
-        setAssets(json.data);
-        if (json.stats) {
-          setStats(json.stats);
-        }
-        setClientCache(cacheKey, { data: json.data, stats: json.stats });
-      }
-    } catch (err) {
-      console.error("Failed to load T3 assets", err);
-    } finally {
-      setLoading(false);
-    }
+  const assets = data?.data ?? [];
+  const stats = data?.stats ?? EMPTY_T3_STATS;
+
+  const handleFetch = () => {
+    if (search !== submittedSearch) setSubmittedSearch(search);
+    else fetchAssets();
   };
-
-  useEffect(() => {
-    fetchAssets();
-  }, [selectedLocation, selectedCategory, selectedStatus]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchAssets();
+    handleFetch();
+  };
+
+  // Filter berubah => pakai kata kunci yang sedang diketik (perilaku lama)
+  const applyFilter = (apply: () => void) => {
+    if (search !== submittedSearch) setSubmittedSearch(search);
+    apply();
   };
 
   const handleOpenAdd = () => {
@@ -312,14 +327,6 @@ export default function T3AssetsPage() {
     }
   };
 
-  const formatRupiah = (val: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0
-    }).format(val);
-  };
-
   return (
     <SidebarLayout>
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -362,59 +369,53 @@ export default function T3AssetsPage() {
 
         {/* Metric Statistics Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-              <span>Total Unit Aset</span>
-              <Layers className="w-4 h-4 text-indigo-600" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">{stats.totalAssets}</div>
-            <div className="text-[11px] text-slate-400 mt-1">
-              Tersebar di Counter DF1 s/d DF7
-            </div>
-          </div>
+          <StatCard
+            label="Total Unit Aset"
+            value={formatNumber(stats.totalAssets)}
+            icon={Layers}
+            iconClassName="text-indigo-600"
+            hint="Tersebar di Counter DF1 s/d DF7"
+          />
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-              <span>Nilai Total Perolehan</span>
-              <DollarSign className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div className="text-xl sm:text-2xl font-black text-slate-800">
-              {formatRupiah(stats.totalNilai)}
-            </div>
-            <div className="text-[11px] text-emerald-600 font-medium mt-1">
-              Akumulasi Harga Pembelian
-            </div>
-          </div>
+          <StatCard
+            label="Nilai Total Perolehan"
+            value={formatRupiah(stats.totalNilai)}
+            valueClassName="text-xl sm:text-2xl"
+            icon={DollarSign}
+            iconClassName="text-emerald-600"
+            hint="Akumulasi Harga Pembelian"
+            hintClassName="text-emerald-600 font-medium"
+          />
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-              <span>Aset Operasional</span>
-              <CheckCircle2 className="w-4 h-4 text-blue-600" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">
-              {stats.operationalCount} <span className="text-xs font-normal text-slate-400">/ {stats.totalAssets}</span>
-            </div>
-            <div className="text-[11px] text-blue-600 font-medium mt-1">
-              Status Berfungsi Normal
-            </div>
-          </div>
+          <StatCard
+            label="Aset Operasional"
+            value={
+              <>
+                {formatNumber(stats.operationalCount)}{" "}
+                <span className="text-xs font-normal text-slate-400">
+                  / {formatNumber(stats.totalAssets)}
+                </span>
+              </>
+            }
+            icon={CheckCircle2}
+            iconClassName="text-blue-600"
+            hint="Status Berfungsi Normal"
+            hintClassName="text-blue-600 font-medium"
+          />
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-              <span>Cakupan Lokasi</span>
-              <Building2 className="w-4 h-4 text-purple-600" />
-            </div>
-            <div className="text-2xl font-black text-slate-800">7 Counter</div>
-            <div className="text-[11px] text-slate-400 mt-1">
-              DF1, DF2, DF3, DF4, DF5, DF6, DF7
-            </div>
-          </div>
+          <StatCard
+            label="Cakupan Lokasi"
+            value="7 Counter"
+            icon={Building2}
+            iconClassName="text-purple-600"
+            hint="DF1, DF2, DF3, DF4, DF5, DF6, DF7"
+          />
         </div>
 
         {/* Location Quick Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
           <button
-            onClick={() => setSelectedLocation("ALL")}
+            onClick={() => applyFilter(() => setSelectedLocation("ALL"))}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
               selectedLocation === "ALL"
                 ? "bg-slate-900 text-white shadow-sm"
@@ -429,7 +430,7 @@ export default function T3AssetsPage() {
           {locations.map(loc => (
             <button
               key={loc}
-              onClick={() => setSelectedLocation(loc)}
+              onClick={() => applyFilter(() => setSelectedLocation(loc))}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 selectedLocation === loc
                   ? "bg-indigo-600 text-white shadow-sm"
@@ -448,21 +449,18 @@ export default function T3AssetsPage() {
 
         {/* Filter Toolbar */}
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-          <form onSubmit={handleSearchSubmit} className="flex-1 relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Cari No. Asset, Nama/Merk, Serial Number, Pengguna, Spesifikasi..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
-            />
-          </form>
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            onSubmit={handleSearchSubmit}
+            placeholder="Cari No. Asset, Nama/Merk, Serial Number, Pengguna, Spesifikasi..."
+            inputClassName="pl-9 pr-4 py-2 border-slate-200 rounded-xl focus:ring-indigo-500/20 focus:border-indigo-500"
+          />
 
           <div className="flex flex-wrap items-center gap-2">
             <select
               value={selectedCategory}
-              onChange={e => setSelectedCategory(e.target.value)}
+              onChange={e => applyFilter(() => setSelectedCategory(e.target.value))}
               className="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             >
               <option value="ALL">Semua Kategori</option>
@@ -473,7 +471,7 @@ export default function T3AssetsPage() {
 
             <select
               value={selectedStatus}
-              onChange={e => setSelectedStatus(e.target.value)}
+              onChange={e => applyFilter(() => setSelectedStatus(e.target.value))}
               className="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             >
               <option value="ALL">Semua Status</option>
@@ -484,7 +482,7 @@ export default function T3AssetsPage() {
             </select>
 
             <button
-              onClick={fetchAssets}
+              onClick={handleFetch}
               className="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 transition"
               title="Refresh Data"
             >
@@ -516,17 +514,19 @@ export default function T3AssetsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {loading ? (
+                {isLoading ? (
                   <tr>
-                    <td colSpan={14} className="py-12 text-center text-slate-400">
-                      <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-indigo-500" />
-                      Memuat data aset MIS T3-DF...
+                    <td colSpan={14}>
+                      <LoadingState message="Memuat data aset MIS T3-DF..." />
                     </td>
                   </tr>
                 ) : assets.length === 0 ? (
                   <tr>
-                    <td colSpan={14} className="py-12 text-center text-slate-400">
-                      Tidak ada data aset yang sesuai filter pencarian.
+                    <td colSpan={14}>
+                      <EmptyState
+                        className="py-12"
+                        title="Tidak ada data aset yang sesuai filter pencarian."
+                      />
                     </td>
                   </tr>
                 ) : (
@@ -549,9 +549,10 @@ export default function T3AssetsPage() {
                       <td className="py-3 px-3">
                         <div className="font-bold text-slate-900">{asset.nama_merk}</div>
                         {asset.status && asset.status !== "OPERASIONAL" && (
-                          <span className="inline-block mt-0.5 text-[9px] px-1.5 py-0.2 rounded font-bold bg-amber-100 text-amber-800">
-                            {asset.status}
-                          </span>
+                          <StatusBadge
+                            status={asset.status}
+                            className="mt-0.5 px-1.5 py-0.2 rounded text-[9px]"
+                          />
                         )}
                       </td>
                       <td className="py-3 px-3 font-mono text-[11px] text-slate-600 whitespace-nowrap">

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError, requireFields } from "@/lib/api";
 
 export async function POST(request: Request) {
   try {
@@ -7,11 +8,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { asset_code, ip_address, response_time_ms = 5, details = "Active Ping" } = body;
 
-    if (!asset_code) {
-      return NextResponse.json(
-        { success: false, message: "asset_code is required" },
-        { status: 400 }
-      );
+    const { missing } = requireFields(body, ["asset_code"]);
+
+    if (missing.length > 0) {
+      return fail("asset_code is required", 400);
     }
 
     await db.execute({
@@ -31,8 +31,8 @@ export async function POST(request: Request) {
       message: `Heartbeat received from ${asset_code}`,
       timestamp: new Date().toISOString(),
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error) {
+    return jsonError(error);
   }
 }
 

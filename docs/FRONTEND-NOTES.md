@@ -117,3 +117,33 @@ Penyempurnaan komponen common (backward-compatible, opsional):
 - `GET /api/knowledge-base` → `success:true`, 5 artikel; `GET /api/monitoring` → `success:true`, 167 perangkat.
 - Write-scope dipatuhi: hanya 2 halaman + `components/common` + `docs`; tidak menyentuh API route, `db.ts`, tests, scripts, maupun halaman lain.
 
+---
+
+# SHIFT 2 — Batch B (task-13)
+
+Tanggal: 31 Okt 2026 · Pemilik: frontend · Status: selesai
+
+## 1. File diubah
+
+| File | Sebelum | Sesudah | Komponen/hook yang diadopsi |
+| --- | --- | --- | --- |
+| `src/app/t3-assets/page.tsx` | 945 baris (aktual; brief 404) | 946 baris (+0,1%) | `useApiData` (cache key tetap `t3_assets_<search>_<lokasi>_<kategori>_<status>`), 4× `StatCard`, `SearchInput`, `LoadingState`, `EmptyState`, `StatusBadge` (status aset non-operasional), `formatRupiah`/`formatNumber` dari utils (fungsi `formatRupiah` lokal dihapus) |
+| `src/app/office/page.tsx` | 1170 baris (aktual; brief 1097) | 1177 baris (+0,6%) | `useApiData` (cache key tetap `office_<search>_<loc>_<div>_<status>_<type>`), 4× `StatCard` (tile ikon dipertahankan), `SearchInput` (+clear), `LoadingState`, `EmptyState`, `StatusBadge` (pill status) |
+
+Kedua halaman berubah jauh di bawah batas 25% baris (tidak ada penulisan ulang; surgical edit).
+
+## 2. Kesetaraan perilaku
+- Endpoint & query param TIDAK berubah: `/api/t3-assets?search&lokasi&kategori&status`, `/api/office?search&location&division&status&device_type`; cache key format tetap.
+- Tanpa data hardcoded baru; semua baris/angka tetap dari API. `stats` t3 (totalNilai, operationalCount, countByLocation) tetap dari response API.
+- T3: pencarian tetap "commit" saat submit/refresh/ganti filter (state `submittedSearch` disinkronkan seperti perilaku lama); aksi CRUD tetap memanggil refresh hook.
+- Office: search tetap live per ketikan (dependency URL sama seperti effect lama); `getDivisionBadge` lokal dipertahankan karena palet divisinya spesifik halaman.
+- `PageHeader`/`Modal` tidak dipakai (header kedua halaman berupa banner/label kustom dan modal form/Barcode sudah punya komponen khusus) — visual-setara dijaga.
+
+## 3. Verifikasi Batch B
+- `npx tsc --noEmit` dari root → **0 error** (exit 0).
+- `curl http://localhost:3000/t3-assets` → **200** (heading, KPI "Total Unit Aset", placeholder search ter-render).
+- `curl http://localhost:3000/office` → **200** (halaman di balik `Suspense` + `useSearchParams`, sehingga HTML SSR berisi fallback "Memuat"; konten dirender client).
+- `GET /api/t3-assets` → `success:true`, **35** baris; `GET /api/office` → `success:true`, **77** baris (sama dengan gate).
+- Write-scope dipatuhi: hanya 2 halaman + `docs`; tidak menyentuh assets/purchases/dvr/pos-topology/edc/API/db.ts/tests/scripts.
+
+

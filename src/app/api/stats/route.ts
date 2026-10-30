@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { jsonError } from "@/lib/api";
 
 export async function GET() {
   try {
@@ -63,8 +64,8 @@ export async function GET() {
         knowledgeCount: Number(knowledgeRes.rows[0].c),
       },
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error) {
+    return jsonError(error);
   }
 }
 

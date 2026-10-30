@@ -1,23 +1,28 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
+import { fail, jsonError, parseFilters, requireFields } from "@/lib/api";
 
 export async function GET(request: Request) {
   try {
     await initDb();
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
-    const division = searchParams.get("division") || "";
-    const status = searchParams.get("status") || "";
+    const { search, division, status } = parseFilters(searchParams, {
+      allowed: ["search", "division", "status"],
+      ignoreByKey: {
+        division: ["ALL"],
+        status: ["ALL"],
+      },
+    });
 
     let sql = "SELECT * FROM phone_extensions WHERE 1=1";
     const args: any[] = [];
 
-    if (division && division !== "ALL") {
+    if (division) {
       sql += " AND division = ?";
       args.push(division);
     }
 
-    if (status && status !== "ALL") {
+    if (status) {
       sql += " AND status = ?";
       args.push(status);
     }
@@ -60,12 +65,9 @@ export async function GET(request: Request) {
         countByDivision
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching phone extensions:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal mengambil data extension telepon" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal mengambil data extension telepon");
   }
 }
 
@@ -84,11 +86,10 @@ export async function POST(request: Request) {
       status = "AKTIF"
     } = body;
 
-    if (!division || !user_name) {
-      return NextResponse.json(
-        { success: false, message: "Divisi dan Nama wajib diisi" },
-        { status: 400 }
-      );
+    const { missing } = requireFields(body, ["division", "user_name"]);
+
+    if (missing.length > 0) {
+      return fail("Divisi dan Nama wajib diisi", 400);
     }
 
     const maxRow = await db.execute("SELECT MAX(item_no) as max_no FROM phone_extensions");
@@ -115,12 +116,9 @@ export async function POST(request: Request) {
       message: "Extension telepon berhasil ditambahkan",
       id: insertResult.lastInsertRowid,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error adding phone extension:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Gagal menambahkan extension telepon" },
-      { status: 500 }
-    );
+    return jsonError(error, "Gagal menambahkan extension telepon");
   }
 }
 

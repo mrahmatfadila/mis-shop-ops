@@ -4,11 +4,12 @@
  *
  * Urutan:
  *   1. npx tsc --noEmit                                    (tipe TypeScript)
- *   2. node tests/smoke.mjs                                (API read-only, butuh dev server :3000)
- *   3. node --experimental-strip-types --test tests/lib.test.mjs
- *      (dilewati dengan catatan bila tests/lib.test.mjs belum ada)
+ *   2. node tests/smoke.mjs                                (API read-only, butuh server :3000)
+ *   3. node tests/contract-post.mjs                        (kontrak POST non-mutasi, body kosong)
+ *   4. node --experimental-strip-types --test tests/lib.test.mjs tests/api-helpers.test.mjs
+ *      (unit test helper; file yang belum ada otomatis dilewati)
  *
- * Pemakaian (dev server user harus tetap hidup):
+ * Pemakaian (server user harus tetap hidup):
  *   node scripts/verify.mjs
  *
  * Exit code: 0 bila semua langkah lulus, 1 bila ada yang gagal.
@@ -43,20 +44,26 @@ function runStep(label, command, args, { cwd = ROOT, required = true } = {}) {
 // 1) Type-check
 runStep("TypeScript type-check", "npx", ["tsc", "--noEmit"]);
 
-// 2) Smoke test API (butuh dev server aktif di :3000)
+// 2) Smoke test API (butuh server aktif di :3000)
 runStep("Smoke test API read-only", process.execPath, ["tests/smoke.mjs"]);
 
-// 3) Unit test pure function (opsional sampai task-6 selesai)
-const unitTestFile = path.join(ROOT, "tests", "lib.test.mjs");
-if (existsSync(unitTestFile)) {
-  runStep("Unit test src/lib/utils.ts", process.execPath, [
+// 3) Kontrak POST non-mutasi: hanya payload kosong yang dijamin 400,
+//    plus assert total baris DB tetap 982 sebelum/sesudah.
+runStep("Kontrak POST non-mutasi", process.execPath, ["tests/contract-post.mjs"]);
+
+// 4) Unit test pure function & helper API (file yang belum ada dilewati)
+const unitTestFiles = ["tests/lib.test.mjs", "tests/api-helpers.test.mjs"].filter((rel) =>
+  existsSync(path.join(ROOT, rel))
+);
+if (unitTestFiles.length > 0) {
+  runStep("Unit test helper (utils + api)", process.execPath, [
     "--experimental-strip-types",
     "--test",
-    "tests/lib.test.mjs",
+    ...unitTestFiles,
   ]);
 } else {
-  console.log("\n[LEWATI] tests/lib.test.mjs belum ada — unit test helper dilewati (akan aktif setelah task-6).");
-  steps.push({ label: "Unit test src/lib/utils.ts", status: "skipped", durationMs: 0 });
+  console.log("\n[LEWATI] File unit test belum ada — unit test helper dilewati.");
+  steps.push({ label: "Unit test helper (utils + api)", status: "skipped", durationMs: 0 });
 }
 
 const failed = steps.filter((step) => step.status !== 0 && step.status !== "skipped");
