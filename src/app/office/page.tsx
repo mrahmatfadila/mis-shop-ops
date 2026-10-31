@@ -1278,7 +1278,7 @@ function OfficeContent() {
                                 <td className="px-1 py-1 text-center whitespace-nowrap border-r border-slate-200">
                                   {item.ip_address && item.ip_address !== "-" ? (
                                     <div className="inline-flex items-center gap-0.5">
-                                      <span className="font-mono font-bold text-blue-700 bg-blue-50/90 px-1 py-0.5 rounded text-[9.5px] border border-blue-200/70 tracking-tight">
+                                      <span className="font-mono font-bold text-blue-700 text-[10px] tracking-tight">
                                         {item.ip_address}
                                       </span>
                                       <button
@@ -1302,12 +1302,12 @@ function OfficeContent() {
                                 {/* 4. Unit (Hover for Asset Code & Specs) */}
                                 <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100">
                                   <span
-                                    className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-black uppercase cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all shadow-2xs ${
+                                    className={`font-mono font-black text-[9.5px] uppercase cursor-pointer hover:underline ${
                                       item.device_type === "ROUTER"
-                                        ? "bg-orange-100 text-orange-800 border border-orange-200"
+                                        ? "text-orange-700"
                                         : item.device_type === "PABX"
-                                        ? "bg-purple-100 text-purple-800 border border-purple-200"
-                                        : "bg-blue-100 text-blue-800 border border-blue-200"
+                                        ? "text-purple-700"
+                                        : "text-blue-700"
                                     }`}
                                     onMouseEnter={(e) => handleShowDetail(e, "Unit Perangkat Office", item.device_type || "PC", item)}
                                     onMouseLeave={handleHideDetail}
@@ -1337,7 +1337,7 @@ function OfficeContent() {
                                 <td className="px-1 py-1 text-center bg-blue-50/10 border-r border-slate-100">
                                   {item.processor && item.processor !== "-" ? (
                                     <span
-                                      className="px-1.5 py-0.5 bg-slate-50 border border-slate-200/80 rounded text-[9.5px] font-mono font-semibold text-slate-800 inline-block leading-tight cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all"
+                                      className="text-[9.5px] font-mono font-semibold text-slate-800 inline-block leading-tight cursor-pointer hover:text-blue-600 hover:underline"
                                       title={item.processor}
                                       onMouseEnter={(e) => handleShowDetail(e, "Processor / CPU", item.processor, item)}
                                       onMouseLeave={handleHideDetail}
@@ -1442,7 +1442,7 @@ function OfficeContent() {
                                 <td className="px-1 py-1 text-center bg-emerald-50/10 border-r border-slate-100">
                                   {item.printer && item.printer !== "-" ? (
                                     <span
-                                      className="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/90 inline-block shadow-2xs leading-tight cursor-pointer hover:ring-1 hover:ring-emerald-400 transition-all"
+                                      className="text-[9.5px] font-semibold text-emerald-800 inline-block leading-tight cursor-pointer hover:underline"
                                       title={item.printer}
                                       onMouseEnter={(e) => handleShowDetail(e, "Printer Terhubung", item.printer, item)}
                                       onMouseLeave={handleHideDetail}
@@ -1458,7 +1458,7 @@ function OfficeContent() {
                                 <td className="px-0.5 py-1 text-center bg-emerald-50/10 border-r border-slate-100">
                                   {item.keyboard && item.keyboard !== "-" ? (
                                     <span
-                                      className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-white border border-slate-200 text-slate-700 inline-block shadow-2xs leading-tight cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition-all"
+                                      className="text-[9.5px] font-medium text-slate-800 inline-block leading-tight cursor-pointer hover:text-emerald-800 hover:underline"
                                       title={item.keyboard}
                                       onMouseEnter={(e) => handleShowDetail(e, "Keyboard Office", item.keyboard, item)}
                                       onMouseLeave={handleHideDetail}
@@ -1474,7 +1474,7 @@ function OfficeContent() {
                                 <td className="px-0.5 py-1 text-center bg-emerald-50/10 border-r border-slate-200">
                                   {item.mouse && item.mouse !== "-" ? (
                                     <span
-                                      className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-white border border-slate-200 text-slate-700 inline-block shadow-2xs leading-tight cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition-all"
+                                      className="text-[9.5px] font-medium text-slate-800 inline-block leading-tight cursor-pointer hover:text-emerald-800 hover:underline"
                                       title={item.mouse}
                                       onMouseEnter={(e) => handleShowDetail(e, "Mouse Office", item.mouse, item)}
                                       onMouseLeave={handleHideDetail}
