@@ -174,8 +174,21 @@ Saat memproses data aset mentah atau skenario mutasi:
 2. Validasi pencegahan kode duplikat.
 3. Tampilkan tabel ringkasan: `Asset Code`, `Serial Number`, `Physical Status`, `Financial Status`.
 
+### 4. Arsitektur Komponen, Kanibalisasi & Periferal (Component-Based ITAM)
+Untuk menangani kanibalisasi hardware (*hardware cannibalism*), penggantian periferal, dan upgrade internal:
+
+1. **Klasifikasi 3 Tingkat:**
+   - **Hardware Asset (Tagged):** Perangkat utama ber-serial number pabrik (CPU, Monitor `MNT`, `UPS`). Wajib label fisik ISO 55001.
+   - **Internal Component (Untagged/Virtual ID):** Komponen dalam CPU yang bisa dikanibal (RAM, SSD, GPU). Format: `COMP-[TYPE]-[4 Digit Sequence]` (contoh: `COMP-RAM-0023`, `COMP-SSD-0112`).
+   - **Consumable / Accessory (Quantity-Based):** Aksesori berputar cepat (Keyboard, Mouse, Headset). Format: `ACC-[TYPE]-[4 Digit Sequence]` (contoh: `ACC-KBD-0432`, `ACC-MSE-0891`).
+
+2. **Logika Kanibalisasi & Swapping:**
+   - **CPU Rusak / Scrap (`SCRAP/DISPOSED`):** Seluruh `COMP-*` dan `ACC-*` aktif yang masih layak di-*unlink* dan statusnya otomatis berubah menjadi **`READY IN IT STOCK`**.
+   - **Komponen Kanibal Dipasang ke CPU Lain:** Saat komponen kanibal dipasang ke unit kerja (misal `CPU-JKT-26-002-O`), komponen di-*link* ke CPU tersebut dan suffix kode CPU **otomatis berubah dari `-O` menjadi `-U`** (Upgraded).
+   - **Aksesori Rusak Diganti:** Aksesori lama ditandai `BROKEN/DISPOSED`, aksesori baru dari stock di-*link* ke CPU **tanpa mengubah** kode atau suffix tag CPU induk.
+
 ---
 
 ## 💡 PERINTAH SINGKAT UNTUK PROMPT AI
 Salin dan gunakan kalimat ini saat memberikan tugas ke AI:
-> *"Terapkan aturan di `AI_RULES.md`: arsitektur Database-First (semua data wajib masuk ke database SQLite, jangan di-hardcode di kode atau landing page), clean code tanpa duplikasi, desain UI modern profesional, dan standar kode aset ISO 55001."*
+> *"Terapkan aturan di `AI_RULES.md`: arsitektur Database-First (semua data wajib masuk ke database SQLite, jangan di-hardcode di kode atau landing page), clean code tanpa duplikasi, desain UI modern profesional, standar kode aset ISO 55001, dan aturan kanibalisasi komponen ITAM."*
