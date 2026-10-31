@@ -42,7 +42,9 @@ import {
   Users,
   BookOpen,
   Boxes,
-  Network
+  Network,
+  PanelLeftClose,
+  PanelLeftOpen
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types";
@@ -70,6 +72,7 @@ export default function SidebarLayout({
   const { user, switchRole, logout, isAdmin, isMIS, isManager, isProcurement, isSPVPlazaBali, isSPVSam, userShopLocation } = useAuth();
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [stats, setStats] = useState<any>(null);
@@ -77,6 +80,26 @@ export default function SidebarLayout({
 
   const roleMenuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Restore sidebar collapsed preference
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("mis_sidebar_collapsed");
+      if (saved !== null) {
+        setIsSidebarCollapsed(saved === "true");
+      }
+    } catch (_) {}
+  }, []);
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("mis_sidebar_collapsed", String(next));
+      } catch (_) {}
+      return next;
+    });
+  };
 
   // Fetch live counts for badges with instantaneous client cache
   useEffect(() => {
@@ -602,8 +625,12 @@ export default function SidebarLayout({
 
       {/* 2. SIDEBAR (Fixed Desktop, Slide-over Mobile) */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white border-r border-slate-200/90 shadow-xl lg:shadow-none flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-          isMobileOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white border-r border-slate-200/90 shadow-xl lg:shadow-none flex flex-col transition-transform duration-300 ease-in-out ${
+          isMobileOpen
+            ? "translate-x-0"
+            : "-translate-x-full"
+        } ${
+          isSidebarCollapsed ? "lg:-translate-x-full" : "lg:translate-x-0"
         }`}
       >
         {/* Brand Header */}
@@ -626,14 +653,26 @@ export default function SidebarLayout({
             </div>
           </Link>
 
-          {/* Close Button on Mobile */}
-          <button
-            type="button"
-            onClick={() => setIsMobileOpen(false)}
-            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg lg:hidden"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            {/* Desktop Hide Sidebar Button */}
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              className="hidden lg:flex items-center justify-center p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              title="Sembunyikan Menu Sidebar (Perbesar Tampilan Tabel)"
+            >
+              <PanelLeftClose className="w-4 h-4" />
+            </button>
+
+            {/* Close Button on Mobile */}
+            <button
+              type="button"
+              onClick={() => setIsMobileOpen(false)}
+              className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg lg:hidden cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* User Scope / Role Row (Clean Minimalist Single Row) */}
@@ -802,18 +841,47 @@ export default function SidebarLayout({
         </div>
       </aside>
 
-      {/* 3. MAIN WRAPPER (Offset by sidebar width on desktop) */}
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-72 transition-all duration-300">
+      {/* 3. MAIN WRAPPER (Offset by sidebar width on desktop, 0 when collapsed) */}
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarCollapsed ? "lg:pl-0" : "lg:pl-72"}`}>
         {/* Sticky Top Header Bar (Clean Minimalist Enterprise) */}
         <header className="sticky top-0 z-30 flex items-center justify-between h-14 px-4 sm:px-6 bg-white border-b border-slate-200/80 shadow-2xs">
-          {/* Left: Mobile Toggle & Unified Clean Breadcrumb */}
-          <div className="flex items-center gap-2.5 min-w-0">
+          {/* Left: Mobile Toggle, Desktop Toggle Sidebar & Unified Clean Breadcrumb */}
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            {/* Mobile Toggle Button */}
             <button
               type="button"
               onClick={() => setIsMobileOpen(true)}
-              className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg lg:hidden"
+              className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg lg:hidden cursor-pointer"
             >
               <Menu className="w-5 h-5" />
+            </button>
+
+            {/* Desktop Hide/Show Sidebar Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              className={`hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95 ${
+                isSidebarCollapsed
+                  ? "bg-emerald-50 text-[#006622] border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400 ring-2 ring-emerald-500/20"
+                  : "bg-white text-slate-600 border-slate-200/90 hover:bg-slate-50 hover:text-slate-900"
+              }`}
+              title={
+                isSidebarCollapsed
+                  ? "Buka Kembali Menu Sidebar (Navigasi Modul)"
+                  : "Sembunyikan Menu Sidebar (Tampilan Tabel Maksimal Lebar)"
+              }
+            >
+              {isSidebarCollapsed ? (
+                <>
+                  <PanelLeftOpen className="w-4 h-4 text-[#006622]" />
+                  <span className="text-[11px] font-extrabold text-[#006622]">Buka Menu</span>
+                </>
+              ) : (
+                <>
+                  <PanelLeftClose className="w-4 h-4 text-slate-500" />
+                  <span className="text-[11px] font-semibold text-slate-600 hidden xl:inline">Hide Sidebar</span>
+                </>
+              )}
             </button>
 
             {/* Clean Breadcrumb Hierarchy (Single Crisp Line - No Duplicate Text) */}
