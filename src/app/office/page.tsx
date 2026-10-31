@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense, Fragment } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
 import ScannerModal from "@/components/ScannerModal";
 import BarcodeGeneratorModal from "@/components/BarcodeGeneratorModal";
@@ -188,6 +188,126 @@ function OfficeContent() {
       return true;
     });
   }, [allOfficeList, selectedLocation, selectedDivision, selectedStatus, selectedType, search]);
+
+  // Group officeList by Location -> Division matching POS structure
+  const groupedLocations = useMemo(() => {
+    const locationOrder = [
+      {
+        key: "Head Office",
+        name: "HEAD OFFICE (PUSAT)",
+        color: "bg-blue-600",
+        badge: "bg-blue-50 text-blue-700 border-blue-200",
+        match: (loc?: string) => {
+          const l = (loc || "Head Office").toLowerCase();
+          return l.includes("head") || l.includes("pusat") || l === "head office";
+        },
+      },
+      {
+        key: "Warehouse",
+        name: "WAREHOUSE (WHS)",
+        color: "bg-amber-600",
+        badge: "bg-amber-50 text-amber-800 border-amber-200",
+        match: (loc?: string) => {
+          const l = (loc || "").toLowerCase();
+          return l.includes("warehouse") || l.includes("whs");
+        },
+      },
+      {
+        key: "Terminal 2",
+        name: "OFFICE TERMINAL 2 (T2)",
+        color: "bg-emerald-600",
+        badge: "bg-emerald-50 text-[#006622] border-emerald-200",
+        match: (loc?: string) => {
+          const l = (loc || "").toLowerCase();
+          return l.includes("terminal 2") || l.includes("t2");
+        },
+      },
+      {
+        key: "Terminal 3",
+        name: "OFFICE TERMINAL 3 (T3)",
+        color: "bg-indigo-600",
+        badge: "bg-indigo-50 text-indigo-700 border-indigo-200",
+        match: (loc?: string) => {
+          const l = (loc || "").toLowerCase();
+          return l.includes("terminal 3") || l.includes("t3");
+        },
+      },
+      {
+        key: "Surabaya",
+        name: "OFFICE SURABAYA (SBY)",
+        color: "bg-purple-600",
+        badge: "bg-purple-50 text-purple-700 border-purple-200",
+        match: (loc?: string) => {
+          const l = (loc || "").toLowerCase();
+          return l.includes("surabaya") || l.includes("sby");
+        },
+      },
+    ];
+
+    const result: {
+      key: string;
+      name: string;
+      color: string;
+      badge: string;
+      items: OfficeHardwareAsset[];
+      divisions: {
+        name: string;
+        items: OfficeHardwareAsset[];
+      }[];
+    }[] = [];
+
+    locationOrder.forEach((loc) => {
+      const itemsInLoc = officeList.filter((item) => loc.match(item.office_location));
+      if (itemsInLoc.length > 0) {
+        const divMap = new Map<string, OfficeHardwareAsset[]>();
+        itemsInLoc.forEach((item) => {
+          const div = item.division || "LAINNYA";
+          if (!divMap.has(div)) divMap.set(div, []);
+          divMap.get(div)!.push(item);
+        });
+
+        const divisions: { name: string; items: OfficeHardwareAsset[] }[] = [];
+        divMap.forEach((divItems, divName) => {
+          divisions.push({ name: divName, items: divItems });
+        });
+
+        result.push({
+          key: loc.key,
+          name: loc.name,
+          color: loc.color,
+          badge: loc.badge,
+          items: itemsInLoc,
+          divisions,
+        });
+      }
+    });
+
+    const assignedIds = new Set(result.flatMap((r) => r.items.map((i) => i.id)));
+    const unassigned = officeList.filter((i) => !assignedIds.has(i.id));
+    if (unassigned.length > 0) {
+      const divMap = new Map<string, OfficeHardwareAsset[]>();
+      unassigned.forEach((item) => {
+        const div = item.division || "LAINNYA";
+        if (!divMap.has(div)) divMap.set(div, []);
+        divMap.get(div)!.push(item);
+      });
+      const divisions: { name: string; items: OfficeHardwareAsset[] }[] = [];
+      divMap.forEach((divItems, divName) => {
+        divisions.push({ name: divName, items: divItems });
+      });
+      result.push({
+        key: "Others",
+        name: "LOKASI LAINNYA",
+        color: "bg-slate-600",
+        badge: "bg-slate-50 text-slate-700 border-slate-200",
+        items: unassigned,
+        divisions,
+      });
+    }
+
+    return result;
+  }, [officeList]);
+
 
   const copyToClipboard = (text: string, key: string) => {
     if (!text || text === "-") return;
@@ -407,7 +527,7 @@ function OfficeContent() {
   };
 
   // Helper: Parse Storage (SSD vs HDD)
-  const parseStorage = (hardDrive?: string) => {
+  const parseStorage = (hardDrive?: string): { ssd: string | null; hdd: string | null } => {
     if (!hardDrive || hardDrive === "-") return { ssd: null, hdd: null };
 
     const parts = hardDrive.split(/\s*[\/,]\s*(?=\()/).length > 1
@@ -771,300 +891,404 @@ function OfficeContent() {
               description="Coba sesuaikan kata kunci pencarian atau filter lokasi/divisi."
             />
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-slate-200/90 shadow-xs bg-white">
-              <table className="w-full text-left border-collapse table-fixed text-[11px]">
+            <div className="w-full rounded-2xl overflow-hidden border border-slate-200/90 shadow-xs bg-white">
+              <table className="w-full table-fixed text-left border-separate border-spacing-0 text-[10px]">
                 <colgroup>
-                  {/* 1. No: 35px */}
-                  <col className="w-[35px]" />
-                  {/* 2. Pengguna & Aset: 19% */}
-                  <col className="w-[19%]" />
-                  {/* 3. IP & OS: 13% */}
-                  <col className="w-[13%]" />
-                  {/* 4. Processor, Mobo & RAM: 22% */}
-                  <col className="w-[22%]" />
-                  {/* 5. Storage (SSD & HDD): 17% */}
-                  <col className="w-[17%]" />
-                  {/* 6. Monitor & Printer: 12% */}
-                  <col className="w-[12%]" />
-                  {/* 7. Keyboard & Mouse: 9% */}
-                  <col className="w-[9%]" />
-                  {/* 8. Status & Aksi: 8% */}
-                  <col className="w-[8%]" />
+                  {/* 1-4: Identitas & Pengguna (29.4%) */}
+                  <col className="w-[2.2%]" />
+                  <col className="w-[10.2%]" />
+                  <col className="w-[9.2%]" />
+                  <col className="w-[7.8%]" />
+                  {/* 5-10: Spesifikasi PC & Hardware (38.6%) */}
+                  <col className="w-[4.4%]" />
+                  <col className="w-[5.8%]" />
+                  <col className="w-[8.2%]" />
+                  <col className="w-[6.8%]" />
+                  <col className="w-[5.2%]" />
+                  <col className="w-[8.2%]" />
+                  {/* 11-14: Periferal & Aksesori (22.0%) */}
+                  <col className="w-[6.2%]" />
+                  <col className="w-[5.8%]" />
+                  <col className="w-[5.0%]" />
+                  <col className="w-[5.0%]" />
+                  {/* 15: Status (5.5%) */}
+                  <col className="w-[5.5%]" />
+                  {/* 16: Aksi (4.5%) */}
+                  <col className="w-[4.5%]" />
                 </colgroup>
                 <thead>
-                  {/* Tier 1: Category Header Groups */}
-                  <tr className="uppercase font-black text-[10px] tracking-wider select-none">
+                  {/* Tier 1: Kategori Kelompok Kolom */}
+                  <tr className="text-[10px] font-extrabold tracking-wide whitespace-nowrap h-[28px]">
                     <th
-                      colSpan={3}
-                      className="py-2.5 px-3 bg-blue-50/90 text-blue-900 border-b border-r border-blue-200/80 text-left"
+                      colSpan={4}
+                      className="sticky top-14 z-20 px-1 py-1 text-center bg-slate-100 text-slate-800 border-b border-r border-slate-200 select-none shadow-2xs rounded-tl-2xl"
                     >
-                      <div className="flex items-center gap-1.5">
-                        <UserCheck className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Identitas & Jaringan</span>
-                      </div>
+                      Identitas, Pengguna & IP Jaringan
                     </th>
                     <th
-                      colSpan={2}
-                      className="py-2.5 px-3 bg-indigo-50/90 text-indigo-900 border-b border-r border-indigo-200/80 text-left"
+                      colSpan={6}
+                      className="sticky top-14 z-20 px-1 py-1 text-center bg-blue-100 text-blue-900 border-b border-r border-slate-200 select-none shadow-2xs"
                     >
-                      <div className="flex items-center gap-1.5">
-                        <Cpu className="w-3.5 h-3.5 text-indigo-600" />
-                        <span>Hardware & Penyimpanan</span>
-                      </div>
+                      Spesifikasi PC & Hardware
                     </th>
                     <th
-                      colSpan={2}
-                      className="py-2.5 px-3 bg-emerald-50/90 text-emerald-900 border-b border-r border-emerald-200/80 text-left"
+                      colSpan={4}
+                      className="sticky top-14 z-20 px-1 py-1 text-center bg-emerald-100 text-[#006622] border-b border-r border-slate-200 select-none shadow-2xs"
                     >
-                      <div className="flex items-center gap-1.5">
-                        <Monitor className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Periferal & Aksesori</span>
-                      </div>
+                      Periferal & Aksesori
                     </th>
                     <th
                       colSpan={1}
-                      className="py-2.5 px-3 bg-slate-100 text-slate-800 border-b border-slate-200 text-center"
+                      className="sticky top-14 z-20 px-1 py-1 text-center bg-amber-100 text-amber-900 border-b border-r border-slate-200 select-none shadow-2xs"
                     >
-                      <span>Status & Kontrol</span>
+                      Status
+                    </th>
+                    <th
+                      rowSpan={2}
+                      className="sticky top-14 z-20 px-1 py-1 text-center bg-slate-100 text-slate-800 font-bold align-middle border-b border-slate-200 select-none shadow-2xs rounded-tr-2xl"
+                    >
+                      Aksi
                     </th>
                   </tr>
-                  {/* Tier 2: Column Sub-headers */}
-                  <tr className="bg-slate-50/95 border-b border-slate-200 text-slate-600 font-bold text-[10px] tracking-wider uppercase select-none">
-                    <th className="py-2 px-1 text-center border-r border-slate-200/60">No</th>
-                    <th className="py-2 px-3 border-r border-slate-200/60">Pengguna & Aset</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">IP & OS</th>
-                    <th className="py-2 px-3 border-r border-slate-200/60">Processor, Mobo & RAM</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Storage (SSD / HDD)</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Monitor & Printer</th>
-                    <th className="py-2 px-2 border-r border-slate-200/60">Keyboard & Mouse</th>
-                    <th className="py-2 px-2 text-center">Status & Aksi</th>
+                  {/* Tier 2: Sub-Kolom Spesifik */}
+                  <tr className="text-slate-700 font-bold text-[9.5px] tracking-tight whitespace-nowrap h-[28px]">
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center font-bold text-slate-400 bg-slate-50 border-b border-r border-slate-200/80 select-none">No</th>
+                    <th className="sticky top-[84px] z-20 px-1.5 py-1 bg-slate-50 border-b border-r border-slate-200/80 select-none">Nama Pengguna</th>
+                    <th className="sticky top-[84px] z-20 px-1 py-1 text-center bg-slate-50 border-b border-r border-slate-200/80 select-none">Kode Aset</th>
+                    <th className="sticky top-[84px] z-20 px-1 py-1 text-center bg-slate-50 border-b border-r border-slate-200 select-none">IP Address</th>
+
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none">Unit</th>
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none">OS</th>
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-slate-200/80 select-none">Proc</th>
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-slate-200/80 select-none">Mobo</th>
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-slate-200/80 select-none">RAM</th>
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-slate-200 select-none">Storage</th>
+
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-emerald-50 text-emerald-950 border-b border-r border-slate-200/80 select-none">Monitor</th>
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-emerald-50 text-emerald-950 border-b border-r border-slate-200/80 select-none">Printer</th>
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-emerald-50 text-emerald-950 border-b border-r border-slate-200/80 select-none">Keyboard</th>
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-emerald-50 text-emerald-950 border-b border-slate-200 select-none">Mouse</th>
+
+                    <th className="sticky top-[84px] z-20 px-1 py-1 text-center bg-amber-50 text-amber-950 border-b border-r border-slate-200 select-none">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {officeList.map((item, idx) => {
-                    const isCopied = copiedKey === `ip-${item.id}`;
-                    return (
-                      <tr key={item.id} className="hover:bg-blue-50/30 transition-colors group">
-                        {/* 1. No */}
-                        <td className="py-2.5 px-1 text-center font-mono font-bold text-slate-400 text-xs align-top border-r border-slate-100">
-                          {String(item.item_no || idx + 1).padStart(2, "0")}
-                        </td>
-
-                        {/* 2. Pengguna & Aset */}
-                        <td className="py-2.5 px-3 align-top border-r border-slate-100">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1.5 flex-wrap leading-tight">
-                              <span className="font-black text-slate-900 text-xs">
-                                {item.user_name}
+                  {groupedLocations.map((group, gIdx) => (
+                    <Fragment key={gIdx}>
+                      {/* 1. Location Section Header */}
+                      <tr className="bg-slate-100/90 border-t border-b border-slate-300">
+                        <td colSpan={16} className="px-3 py-2">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-1">
+                            <div className="flex items-center gap-2">
+                              <span className="relative flex h-2 w-2 flex-shrink-0">
+                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${group.color}`} />
+                                <span className={`relative inline-flex rounded-full h-2 w-2 ${group.color}`} />
                               </span>
-                              <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold border ${getDivisionBadge(item.division)}`}>
-                                {item.division}
+                              <span className="font-extrabold text-slate-900 text-xs tracking-tight">
+                                {group.name}
                               </span>
-                              {item.device_type === "ROUTER" && (
-                                <span className="px-1.5 py-0.2 bg-orange-100 text-orange-800 border border-orange-200 text-[8.5px] rounded font-bold">ROUTER</span>
-                              )}
-                              {item.device_type === "PABX" && (
-                                <span className="px-1.5 py-0.2 bg-purple-100 text-purple-800 border border-purple-200 text-[8.5px] rounded font-bold">PABX</span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1.5 flex-wrap text-[9.5px]">
-                              <span className="font-mono font-bold text-slate-700 bg-slate-100 px-1 py-0.2 rounded border border-slate-200">
-                                {item.asset_code}
-                              </span>
-                              <span className="text-slate-300">•</span>
-                              <span className="text-slate-500 font-medium truncate max-w-[110px]" title={item.office_location}>
-                                {item.office_location || "Head Office"}
+                              <span className={`px-2 py-0.2 rounded-full text-[9.5px] font-bold border shadow-2xs ${group.badge}`}>
+                                {group.items.length} UNIT AKTIF • {group.divisions.length} Divisi
                               </span>
                             </div>
-                          </div>
-                        </td>
-
-                        {/* 3. IP & OS */}
-                        <td className="py-2.5 px-2.5 align-top border-r border-slate-100">
-                          <div className="space-y-1">
-                            {item.ip_address && item.ip_address !== "-" && item.ip_address.startsWith("172.") ? (
-                              <div className="flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)] shrink-0"></span>
-                                <span className="font-mono font-bold text-[10.5px] text-blue-700 bg-blue-50/90 px-1.5 py-0.2 rounded border border-blue-200">
-                                  {item.ip_address}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => copyToClipboard(item.ip_address!, `ip-${item.id}`)}
-                                  title="Salin IP Address"
-                                  className="p-0.5 text-slate-400 hover:text-blue-600 rounded transition-colors"
+                            {/* Division pill tags on right */}
+                            <div className="flex items-center gap-1 flex-wrap">
+                              <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline mr-0.5">
+                                Divisi:
+                              </span>
+                              {group.divisions.map((div) => (
+                                <span
+                                  key={div.name}
+                                  className="px-1.5 py-0.2 rounded bg-white border border-slate-200/90 text-slate-700 font-mono font-bold text-[9.5px] shadow-2xs"
                                 >
-                                  {isCopied ? <Check className="w-2.5 h-2.5 text-emerald-600" /> : <Copy className="w-2.5 h-2.5 text-slate-400" />}
-                                </button>
-                              </div>
-                            ) : (
-                              <span className="text-slate-300 font-mono text-xs select-none">—</span>
-                            )}
-                            {item.os && item.os !== "-" ? (
-                              <div className="flex items-center gap-1 text-[9.5px] text-slate-600 font-medium truncate" title={item.os}>
-                                <Laptop className="w-2.5 h-2.5 text-slate-400 shrink-0" />
-                                <span className="truncate">{item.os}</span>
-                              </div>
-                            ) : null}
-                          </div>
-                        </td>
-
-                        {/* 4. Processor, Mobo & RAM */}
-                        <td className="py-2.5 px-3 align-top border-r border-slate-100">
-                          <div className="space-y-1">
-                            {item.processor && item.processor !== "-" ? (
-                              <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-900 truncate" title={item.processor}>
-                                <Cpu className={`w-3.5 h-3.5 shrink-0 ${item.processor.toLowerCase().includes("intel") ? "text-blue-600" : item.processor.toLowerCase().includes("amd") ? "text-rose-600" : "text-indigo-600"}`} />
-                                <span className="truncate">{item.processor}</span>
-                              </div>
-                            ) : (
-                              <span className="text-slate-300 font-mono text-xs select-none">—</span>
-                            )}
-                            <div className="flex items-center justify-between gap-1 text-[9.5px]">
-                              {item.motherboard && item.motherboard !== "-" ? (
-                                <span className="text-slate-500 font-medium truncate max-w-[130px]" title={item.motherboard}>
-                                  Mobo: <span className="text-slate-700 font-semibold">{item.motherboard}</span>
+                                  {div.name} ({div.items.length})
                                 </span>
-                              ) : <span />}
-                              {item.ram && item.ram !== "-" ? formatRamDisplay(item.ram) : null}
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* 5. Storage (SSD & HDD) */}
-                        <td className="py-2.5 px-2.5 align-top border-r border-slate-100">
-                          {(() => {
-                            const { ssd, hdd } = parseStorage(item.hard_drive);
-                            if (!ssd && !hdd) return <span className="text-slate-300 font-mono text-xs select-none">—</span>;
-                            return (
-                              <div className="space-y-1 text-[10px]">
-                                {ssd && (
-                                  <div className="flex items-center gap-1">
-                                    <span className="px-1 py-0.2 rounded bg-blue-100 text-blue-800 text-[8px] font-black uppercase shrink-0">SSD</span>
-                                    <span className="font-semibold text-slate-800 truncate" title={ssd}>{ssd}</span>
-                                    {item.used_disk1 && item.used_disk1 !== "-" && (
-                                      <span className="text-[8.5px] text-slate-400 font-mono shrink-0 ml-auto">({item.used_disk1})</span>
-                                    )}
-                                  </div>
-                                )}
-                                {hdd && (
-                                  <div className="flex items-center gap-1">
-                                    <span className="px-1 py-0.2 rounded bg-amber-100 text-amber-800 text-[8px] font-black uppercase shrink-0">HDD</span>
-                                    <span className="font-semibold text-slate-800 truncate" title={hdd}>{hdd}</span>
-                                    {item.used_disk2 && item.used_disk2 !== "-" && (
-                                      <span className="text-[8.5px] text-slate-400 font-mono shrink-0 ml-auto">({item.used_disk2})</span>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </td>
-
-                        {/* 6. Monitor & Printer */}
-                        <td className="py-2.5 px-2.5 align-top border-r border-slate-100">
-                          <div className="space-y-1">
-                            {item.monitor && item.monitor !== "-" ? (
-                              <div className="flex items-center gap-1.5 text-[10.5px] text-slate-800 font-bold truncate" title={item.monitor}>
-                                <Monitor className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                                <span className="truncate">{item.monitor}</span>
-                              </div>
-                            ) : (
-                              <span className="text-slate-300 font-mono text-xs select-none">—</span>
-                            )}
-                            {item.printer && item.printer !== "-" ? (
-                              <div className="flex items-center gap-1 text-[9.5px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/90 truncate max-w-fit" title={item.printer}>
-                                <Printer className="w-2.5 h-2.5 text-emerald-600 shrink-0" />
-                                <span className="truncate max-w-[110px]">{item.printer}</span>
-                              </div>
-                            ) : null}
-                          </div>
-                        </td>
-
-                        {/* 7. Keyboard & Mouse */}
-                        <td className="py-2.5 px-2.5 align-top border-r border-slate-100 text-[9.5px]">
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-1 truncate" title={`KB: ${item.keyboard || "-"}`}>
-                              <span className="text-[8px] font-bold text-slate-400 uppercase w-3.5 shrink-0">KB:</span>
-                              <span className="font-semibold text-slate-700 truncate">{item.keyboard && item.keyboard !== "-" ? item.keyboard : "—"}</span>
-                            </div>
-                            <div className="flex items-center gap-1 truncate" title={`M: ${item.mouse || "-"}`}>
-                              <span className="text-[8px] font-bold text-slate-400 uppercase w-3.5 shrink-0">M:</span>
-                              <span className="font-semibold text-slate-700 truncate">{item.mouse && item.mouse !== "-" ? item.mouse : "—"}</span>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* 8. Status & Aksi */}
-                        <td className="py-2.5 px-1.5 text-center align-top whitespace-nowrap">
-                          <div className="flex flex-col items-center gap-1.5">
-                            <StatusBadge
-                              status={item.status}
-                              label={
-                                <div className="flex items-center gap-1">
-                                  <span
-                                    className={`w-1.5 h-1.5 rounded-full ${
-                                      item.status === "OPERASIONAL"
-                                        ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)]"
-                                        : item.status === "CADANGAN"
-                                        ? "bg-amber-500"
-                                        : "bg-rose-500"
-                                    }`}
-                                  />
-                                  <span className="text-[8.5px] font-bold">{item.status}</span>
-                                </div>
-                              }
-                              className={
-                                item.status === "CADANGAN"
-                                  ? "bg-amber-50 text-amber-800 border-amber-200 font-bold px-1.5 py-0.2 shadow-2xs text-[8.5px]"
-                                  : item.status === "OPERASIONAL"
-                                  ? "bg-emerald-50 text-[#006622] border-emerald-200/90 font-bold px-1.5 py-0.2 shadow-2xs text-[8.5px]"
-                                  : "px-1.5 py-0.2 shadow-2xs text-[8.5px]"
-                              }
-                            />
-                            <div className="flex items-center justify-center gap-0.5">
-                              <button
-                                type="button"
-                                onClick={() => handleOpenSticker(item)}
-                                title="Cetak Barcode Label Stiker"
-                                className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-                              >
-                                <QrCode className="w-3 h-3" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleOpenTicket(item)}
-                                title="Buka Tiket Trouble IT"
-                                className="p-1 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
-                              >
-                                <LifeBuoy className="w-3 h-3" />
-                              </button>
-                              {isMIS && (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleOpenEdit(item)}
-                                    title="Edit Spesifikasi"
-                                    className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                  >
-                                    <Edit2 className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDelete(item.id!, item.asset_code, item.user_name)}
-                                    title="Hapus Perangkat"
-                                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </>
-                              )}
+                              ))}
                             </div>
                           </div>
                         </td>
                       </tr>
-                    );
-                  })}
+
+                      {/* 2. Sub-group per Division */}
+                      {group.divisions.map((div, dIdx) => (
+                        <Fragment key={`${div.name}-${dIdx}`}>
+                          {/* Division Sub-header Row */}
+                          <tr className="bg-slate-50/90 border-t border-b border-slate-200/70">
+                            <td colSpan={16} className="px-3 py-1.5 bg-slate-50/70">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className={`w-1.5 h-1.5 rounded-full ${group.color}`} />
+                                  <span className="font-mono font-black text-slate-900 text-[11px] tracking-wider uppercase">
+                                    DIVISI : {div.name}
+                                  </span>
+                                  <span className="px-1.5 py-0.2 rounded text-[10px] font-bold border bg-white border-slate-200/90 text-slate-700 shadow-2xs">
+                                    • {div.items.length} Unit Perangkat
+                                  </span>
+                                </div>
+                                <div className="text-[9.5px] font-mono text-slate-400 hidden sm:inline pr-1 truncate max-w-[450px]">
+                                  Pengguna: {div.items.map((i) => i.user_name).join(", ")}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+
+                          {/* 3. Items inside this division */}
+                          {div.items.map((item, index) => {
+                            const isCopied = copiedKey === `ip-${item.id}`;
+                            return (
+                              <tr key={item.id} className="hover:bg-slate-50/70 border-b border-slate-100 transition-colors group">
+                                {/* 1. NO */}
+                                <td className="px-0.5 py-1 text-center font-mono text-[10px] text-slate-400 font-semibold border-r border-slate-100">
+                                  {index + 1}
+                                </td>
+
+                                {/* 2. Pengguna */}
+                                <td className="px-1.5 py-1 whitespace-nowrap border-r border-slate-100 overflow-hidden">
+                                  <div className="flex items-center gap-1.5">
+                                    <span
+                                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                        item.status === "OPERASIONAL"
+                                          ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)]"
+                                          : item.status === "CADANGAN"
+                                          ? "bg-amber-500"
+                                          : "bg-rose-500"
+                                      }`}
+                                      title={`Status: ${item.status}`}
+                                    />
+                                    <span className="font-bold text-slate-900 text-[10.5px] truncate" title={item.user_name}>
+                                      {item.user_name}
+                                    </span>
+                                  </div>
+                                </td>
+
+                                {/* 3. Kode Aset */}
+                                <td className="px-1 py-1 text-center whitespace-nowrap border-r border-slate-100 overflow-hidden">
+                                  <div className="inline-flex items-center justify-center gap-1">
+                                    <span className="font-mono font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[9.5px] border border-slate-200/90 shadow-2xs tracking-tight">
+                                      {item.asset_code}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => copyToClipboard(item.asset_code, `code-${item.id}`)}
+                                      title="Salin Kode Aset"
+                                      className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-blue-700 p-0.5 shrink-0 transition-opacity"
+                                    >
+                                      {copiedKey === `code-${item.id}` ? (
+                                        <Check className="w-2.5 h-2.5 text-emerald-600" />
+                                      ) : (
+                                        <Copy className="w-2.5 h-2.5" />
+                                      )}
+                                    </button>
+                                  </div>
+                                </td>
+
+                                {/* 4. IP Address */}
+                                <td className="px-1 py-1 text-center whitespace-nowrap border-r border-slate-200">
+                                  {item.ip_address && item.ip_address !== "-" ? (
+                                    <div className="inline-flex items-center gap-0.5">
+                                      <span className="font-mono font-bold text-blue-700 bg-blue-50/90 px-1 py-0.5 rounded text-[9.5px] border border-blue-200/70 tracking-tight">
+                                        {item.ip_address}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => copyToClipboard(item.ip_address!, `ip-${item.id}`)}
+                                        title="Salin IP"
+                                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-blue-700 p-0.5 shrink-0 transition-opacity"
+                                      >
+                                        {isCopied ? (
+                                          <Check className="w-2.5 h-2.5 text-emerald-600" />
+                                        ) : (
+                                          <Copy className="w-2.5 h-2.5" />
+                                        )}
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <span className="text-slate-300 font-mono text-[10px]">—</span>
+                                  )}
+                                </td>
+
+                                {/* 5. Unit */}
+                                <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100">
+                                  <span className={`inline-block px-1.5 py-0.2 rounded text-[9px] font-black uppercase ${
+                                    item.device_type === "ROUTER"
+                                      ? "bg-orange-100 text-orange-800 border border-orange-200"
+                                      : item.device_type === "PABX"
+                                      ? "bg-purple-100 text-purple-800 border border-purple-200"
+                                      : "bg-blue-100 text-blue-800 border border-blue-200"
+                                  }`}>
+                                    {item.device_type || "PC"}
+                                  </span>
+                                </td>
+
+                                {/* 6. OS */}
+                                <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100 overflow-hidden">
+                                  {item.os && item.os !== "-" ? (
+                                    <span className="text-[9.5px] text-slate-700 font-mono font-semibold inline-block max-w-full truncate" title={item.os}>
+                                      {item.os.replace("WINDOWS 10 PRO", "Win 10 Pro").replace("WINDOWS 10", "Win 10").replace("WINDOWS 7 ULTIMATE", "Win 7 Ult").replace("WINDOWS 7", "Win 7").replace("WINDOWS 11", "Win 11")}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-300 font-mono text-[10px]">—</span>
+                                  )}
+                                </td>
+
+                                {/* 7. Proc */}
+                                <td className="px-1 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100 overflow-hidden">
+                                  {item.processor && item.processor !== "-" ? (
+                                    <span className="px-1.5 py-0.2 bg-slate-100 border border-slate-200/80 rounded text-[9.5px] font-mono font-semibold text-slate-800 inline-block max-w-full truncate" title={item.processor}>
+                                      {item.processor}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-300 font-mono text-[10px]">—</span>
+                                  )}
+                                </td>
+
+                                {/* 8. Mobo */}
+                                <td className="px-1 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100 overflow-hidden">
+                                  {item.motherboard && item.motherboard !== "-" ? (
+                                    <span className="text-[9.5px] text-slate-600 font-mono font-medium inline-block max-w-full truncate" title={item.motherboard}>
+                                      {item.motherboard}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-300 font-mono text-[10px]">—</span>
+                                  )}
+                                </td>
+
+                                {/* 9. RAM */}
+                                <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100">
+                                  {item.ram && item.ram !== "-" ? formatRamDisplay(item.ram) : <span className="text-slate-300 font-mono text-[10px]">—</span>}
+                                </td>
+
+                                {/* 10. Storage */}
+                                <td className="px-1 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-200 overflow-hidden">
+                                  {(() => {
+                                    const storage = parseStorage(item.hard_drive);
+                                    const ssdStr = storage.ssd;
+                                    const hddStr = storage.hdd;
+                                    if (!ssdStr && !hddStr) return <span className="text-slate-300 font-mono text-[10px]">—</span>;
+                                    return (
+                                      <div className="inline-flex items-center justify-center gap-1 max-w-full truncate">
+                                        {typeof ssdStr === "string" && (
+                                          <span className="px-1 py-0.2 rounded bg-blue-100 text-blue-800 border border-blue-200 text-[8.5px] font-black uppercase truncate" title={`SSD: ${ssdStr}`}>
+                                            SSD {ssdStr.replace(/v-gen|adata|wd green|lexar|seagate|kingston/gi, "").trim()}
+                                          </span>
+                                        )}
+                                        {typeof hddStr === "string" && (
+                                          <span className="px-1 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200 text-[8.5px] font-black uppercase truncate" title={`HDD: ${hddStr}`}>
+                                            HDD {hddStr.replace(/seagate|wd|toshiba|hitachi/gi, "").trim()}
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
+                                </td>
+
+                                {/* 11. Monitor */}
+                                <td className="px-1 py-1 text-center whitespace-nowrap bg-emerald-50/10 border-r border-slate-100 overflow-hidden">
+                                  {item.monitor && item.monitor !== "-" ? (
+                                    <span className="text-[9.5px] text-slate-800 font-bold inline-block max-w-full truncate" title={item.monitor}>
+                                      {item.monitor}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-300 font-mono text-[10px]">—</span>
+                                  )}
+                                </td>
+
+                                {/* 12. Printer */}
+                                <td className="px-1 py-1 text-center whitespace-nowrap bg-emerald-50/10 border-r border-slate-100 overflow-hidden">
+                                  {item.printer && item.printer !== "-" ? (
+                                    <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/90 inline-block max-w-full truncate shadow-2xs" title={item.printer}>
+                                      {item.printer}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-300 font-mono text-[10px]">—</span>
+                                  )}
+                                </td>
+
+                                {/* 13. Keyboard */}
+                                <td className="px-0.5 py-1 text-center whitespace-nowrap bg-emerald-50/10 border-r border-slate-100 overflow-hidden">
+                                  {item.keyboard && item.keyboard !== "-" ? (
+                                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-white border border-slate-200 text-slate-700 inline-block max-w-full truncate shadow-2xs" title={item.keyboard}>
+                                      {item.keyboard}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-300 font-mono text-[10px]">—</span>
+                                  )}
+                                </td>
+
+                                {/* 14. Mouse */}
+                                <td className="px-0.5 py-1 text-center whitespace-nowrap bg-emerald-50/10 border-r border-slate-200 overflow-hidden">
+                                  {item.mouse && item.mouse !== "-" ? (
+                                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-white border border-slate-200 text-slate-700 inline-block max-w-full truncate shadow-2xs" title={item.mouse}>
+                                      {item.mouse}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-300 font-mono text-[10px]">—</span>
+                                  )}
+                                </td>
+
+                                {/* 15. Status */}
+                                <td className="px-1 py-1 text-center whitespace-nowrap bg-amber-50/10 border-r border-slate-200">
+                                  <StatusBadge
+                                    status={item.status}
+                                    label={<span className="text-[8.5px] font-extrabold">{item.status}</span>}
+                                    className={
+                                      item.status === "CADANGAN"
+                                        ? "bg-amber-50 text-amber-800 border-amber-200 font-bold px-1.5 py-0.2 shadow-2xs text-[8.5px]"
+                                        : item.status === "OPERASIONAL"
+                                        ? "bg-emerald-50 text-[#006622] border-emerald-200/90 font-bold px-1.5 py-0.2 shadow-2xs text-[8.5px]"
+                                        : "px-1.5 py-0.2 shadow-2xs text-[8.5px]"
+                                    }
+                                  />
+                                </td>
+
+                                {/* 16. Aksi */}
+                                <td className="px-1 py-1 text-center whitespace-nowrap">
+                                  <div className="flex items-center justify-center gap-0.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenSticker(item)}
+                                      title="Cetak Barcode Label Stiker"
+                                      className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                                    >
+                                      <QrCode className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenTicket(item)}
+                                      title="Buka Tiket Trouble IT"
+                                      className="p-1 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                                    >
+                                      <LifeBuoy className="w-3.5 h-3.5" />
+                                    </button>
+                                    {isMIS && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleOpenEdit(item)}
+                                          title="Edit Spesifikasi"
+                                          className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                        >
+                                          <Edit2 className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDelete(item.id!, item.asset_code, item.user_name)}
+                                          title="Hapus Perangkat"
+                                          className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </Fragment>
+                      ))}
+                    </Fragment>
+                  ))}
                 </tbody>
               </table>
             </div>
