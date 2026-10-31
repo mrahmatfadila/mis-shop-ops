@@ -852,7 +852,7 @@ function OfficeContent() {
 
   return (
     <SidebarLayout onOpenScanner={() => setIsScannerOpen(true)}>
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-2.5 sm:px-4 py-5 space-y-4">
+      <main className="flex-1 w-full max-w-full px-2.5 sm:px-5 py-5 space-y-4">
         {/* Executive Header Banner */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
           <div className="flex items-center gap-3">
@@ -1116,27 +1116,27 @@ function OfficeContent() {
               description="Coba sesuaikan kata kunci pencarian atau filter lokasi/divisi."
             />
           ) : (
-            <div className="w-full rounded-2xl overflow-hidden border border-slate-200/90 shadow-xs bg-white">
-              <table className="w-full table-fixed text-left border-separate border-spacing-0 text-[10px]">
+            <div className="w-full overflow-hidden">
+              <table className="w-full min-w-full table-fixed text-left border-separate border-spacing-0 text-[10px]">
                 <colgroup>
                   {/* 1-3: Identitas & Pengguna (21.0%) */}
                   <col className="w-[2.5%]" />
                   <col className="w-[10.5%]" />
                   <col className="w-[8.0%]" />
-                  {/* 4-9: Spesifikasi PC & Hardware (49.0%) */}
+                  {/* 4-9: Spesifikasi PC & Hardware (49.5%) */}
                   <col className="w-[4.5%]" />
                   <col className="w-[7.0%]" />
                   <col className="w-[13.0%]" />
                   <col className="w-[11.0%]" />
                   <col className="w-[5.0%]" />
-                  <col className="w-[8.5%]" />
+                  <col className="w-[9.0%]" />
                   {/* 10-13: Periferal & Aksesori (25.5%) */}
                   <col className="w-[8.5%]" />
                   <col className="w-[7.5%]" />
                   <col className="w-[5.0%]" />
                   <col className="w-[4.5%]" />
-                  {/* 14: Aksi (4.5%) */}
-                  <col className="w-[4.5%]" />
+                  {/* 14: Aksi (4.0%) */}
+                  <col className="w-[4.0%]" />
                 </colgroup>
                 <thead>
                   {/* Tier 1: Kategori Kelompok Kolom */}
