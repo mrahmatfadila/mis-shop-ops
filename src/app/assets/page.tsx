@@ -2860,6 +2860,8 @@ function AssetsContent() {
       <ScannerModal
         isOpen={isScannerOpen}
         onClose={() => setIsScannerOpen(false)}
+        onRequestTicket={(asset) => setSelectedAssetForTicket(asset)}
+        onOpenSticker={(asset) => setSelectedAssetForSticker(asset)}
       />
 
       {/* Floating Hover Mini Card Detail Perangkat (Light, Professional & Modern) */}

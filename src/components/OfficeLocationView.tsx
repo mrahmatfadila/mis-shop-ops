@@ -1789,6 +1789,8 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
       <ScannerModal
         isOpen={isScannerOpen}
         onClose={() => setIsScannerOpen(false)}
+        onRequestTicket={(asset) => setSelectedAssetForTicket(asset)}
+        onOpenSticker={(asset) => setSelectedAssetForSticker(asset)}
       />
 
       {/* Hover Detail Popover Card (Matching POS Standard & 3-Tier Specification) */}

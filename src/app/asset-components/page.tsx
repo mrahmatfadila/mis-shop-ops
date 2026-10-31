@@ -1566,6 +1566,8 @@ function AssetComponentsContent() {
       <ScannerModal
         isOpen={isScannerOpen}
         onClose={() => setIsScannerOpen(false)}
+        onRequestTicket={(asset) => setSelectedAssetForTicket(asset)}
+        onOpenSticker={(asset) => setSelectedAssetForSticker(asset)}
       />
     </SidebarLayout>
   );
