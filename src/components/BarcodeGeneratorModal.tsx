@@ -23,7 +23,9 @@ import {
   Mouse,
   Keyboard,
   Scan,
-  FileText
+  FileText,
+  Globe,
+  ExternalLink
 } from "lucide-react";
 import { Asset, PosHardwareAsset } from "@/types";
 
@@ -216,6 +218,12 @@ export default function BarcodeGeneratorModal({
   const [copiedCode, setCopiedCode] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
+  // QR Mode: "url" encodes web link so phone camera opens inspection page directly; "code" encodes raw text
+  const [qrMode, setQrMode] = useState<"url" | "code">("url");
+  const [serverHost, setServerHost] = useState<string>("");
+  const [isEditingHost, setIsEditingHost] = useState(false);
+  const [customHostInput, setCustomHostInput] = useState("");
+
   const barcodeSvgRef = useRef<SVGSVGElement | null>(null);
 
   // Active selected component
@@ -229,17 +237,60 @@ export default function BarcodeGeneratorModal({
     setSelectedSize(comp.recommendedSize);
   };
 
+  // Auto-detect server LAN/VPN IP so phone on same Wi-Fi / VPN can open the web link directly
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const savedHost = localStorage.getItem("mis_qr_base_host");
+    if (savedHost) {
+      setServerHost(savedHost);
+      setCustomHostInput(savedHost);
+      return;
+    }
+
+    const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    if (!isLocal) {
+      setServerHost(window.location.origin);
+      setCustomHostInput(window.location.origin);
+    } else {
+      fetch("/api/server-info")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.success && data.primaryIp) {
+            const autoUrl = `http://${data.primaryIp}:${data.port || "3000"}`;
+            setServerHost(autoUrl);
+            setCustomHostInput(autoUrl);
+          } else {
+            setServerHost(window.location.origin);
+            setCustomHostInput(window.location.origin);
+          }
+        })
+        .catch(() => {
+          setServerHost(window.location.origin);
+          setCustomHostInput(window.location.origin);
+        });
+    }
+  }, []);
+
+  // Compute final payload encoded into QR Code
+  const qrPayload = useMemo(() => {
+    if (!currentComp) return "";
+    if (qrMode === "code") return currentComp.code;
+    const base = serverHost || (typeof window !== "undefined" ? window.location.origin : "");
+    return `${base}/scan?code=${encodeURIComponent(currentComp.code)}`;
+  }, [qrMode, serverHost, currentComp]);
+
   // Generate QR Code & Barcode for single selected component
   useEffect(() => {
-    if (!isOpen || !currentComp) return;
+    if (!isOpen || !currentComp || !qrPayload) return;
 
     let isMounted = true;
 
     const generateCodes = async () => {
       try {
         const QRCode = (await import("qrcode")).default;
-        // Generate high resolution QR code
-        const url = await QRCode.toDataURL(currentComp.code, {
+        // Generate high resolution QR code encoding full web URL or code
+        const url = await QRCode.toDataURL(qrPayload, {
           width: 320,
           margin: 1,
           errorCorrectionLevel: "H",
@@ -250,7 +301,7 @@ export default function BarcodeGeneratorModal({
         });
         if (isMounted) setQrDataUrl(url);
 
-        // Render Barcode Code128
+        // Render Barcode Code128 (Selalu encode raw code agar barcode gun / scanner kasir membaca persis kode barang)
         const JsBarcode = (await import("jsbarcode")).default;
         if (barcodeSvgRef.current) {
           JsBarcode(barcodeSvgRef.current, currentComp.code, {
@@ -274,7 +325,7 @@ export default function BarcodeGeneratorModal({
     return () => {
       isMounted = false;
     };
-  }, [isOpen, currentComp, selectedSize]);
+  }, [isOpen, currentComp, selectedSize, qrPayload]);
 
   if (!isOpen || !currentComp) return null;
 
@@ -506,6 +557,107 @@ export default function BarcodeGeneratorModal({
                 <p className="text-[10.5px] text-slate-400 mt-1 leading-tight">Scanner Barcode, Mouse, Keyboard, Fingerprint</p>
               </button>
             </div>
+          </div>
+
+          {/* QR Code Target URL Configuration Bar (Smart Web URL vs Plain Text) */}
+          <div className="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                <Globe className="w-4 h-4 text-[#006622]" />
+                <span>Target Tautan Scan QR:</span>
+              </div>
+              <div className="flex items-center gap-1 bg-white p-0.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setQrMode("url")}
+                  className={`px-2.5 py-1 rounded-lg text-[10.5px] font-bold transition-all cursor-pointer ${
+                    qrMode === "url"
+                      ? "bg-[#006622] text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                  title="Scan QR dengan kamera HP akan otomatis membuka web detail barang"
+                >
+                  Tautan Web (Kamera HP)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQrMode("code")}
+                  className={`px-2.5 py-1 rounded-lg text-[10.5px] font-bold transition-all cursor-pointer ${
+                    qrMode === "code"
+                      ? "bg-[#006622] text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                  title="Scan QR hanya berisi teks kode barang murni"
+                >
+                  Teks Kode Saja
+                </button>
+              </div>
+            </div>
+
+            {qrMode === "url" ? (
+              <div className="text-xs space-y-1">
+                {isEditingHost ? (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <input
+                      type="text"
+                      value={customHostInput}
+                      onChange={(e) => setCustomHostInput(e.target.value)}
+                      placeholder="http://172.16.x.x:3000 atau http://IP-VPN:3000"
+                      className="flex-1 min-w-[200px] px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl font-mono text-[11px] font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-[#006622] outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const cleaned = customHostInput.trim().replace(/\/$/, "");
+                        if (cleaned) {
+                          setServerHost(cleaned);
+                          localStorage.setItem("mis_qr_base_host", cleaned);
+                        }
+                        setIsEditingHost(false);
+                      }}
+                      className="px-3 py-1.5 bg-[#006622] hover:bg-[#00521b] text-white rounded-xl font-bold text-xs shadow-2xs cursor-pointer"
+                    >
+                      Simpan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomHostInput(serverHost);
+                        setIsEditingHost(false);
+                      }}
+                      className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold text-xs cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 bg-white px-3 py-2 rounded-xl border border-slate-200/90 shadow-2xs">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
+                        URL HP:
+                      </span>
+                      <span className="font-mono text-[11px] text-[#006622] font-black truncate" title={qrPayload}>
+                        {qrPayload}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingHost(true)}
+                      className="text-[10.5px] font-bold text-sky-700 hover:text-sky-900 underline shrink-0 cursor-pointer text-left sm:text-right"
+                    >
+                      Ubah Host / IP VPN Server
+                    </button>
+                  </div>
+                )}
+                <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+                  ✓ Kamera HP yang tersambung jaringan VPN/Wi-Fi akan langsung memunculkan tautan web untuk membuka rincian barang secara lengkap.
+                </p>
+              </div>
+            ) : (
+              <p className="text-[10px] text-slate-500 font-medium">
+                QR Code hanya berisi string teks: <code className="font-mono font-bold text-slate-800">{currentComp.code}</code> (cocok untuk pembacaan barcode scanner POS).
+              </p>
+            )}
           </div>
 
           {/* 3. LIVE STICKER PREVIEW CONTAINER */}
