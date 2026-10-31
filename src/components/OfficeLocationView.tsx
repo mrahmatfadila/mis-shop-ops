@@ -165,7 +165,12 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
     model: string;
     itemId: string;
     isSetAssetCode?: boolean;
-    childComponents?: { id: string; name: string; spec: string }[];
+    setSpedComponents?: { id: string; name: string; spec: string }[];
+    setPreferalComponents?: { id: string; name: string; spec: string }[];
+    userName?: string;
+    ipAddress?: string;
+    location?: string;
+    division?: string;
     assetCode?: string;
     position: string;
     price: string;
@@ -257,41 +262,47 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
     };
   };
 
-  const getChildComponents = (item: OfficeHardwareAsset) => {
+  const getCategorizedChildComponents = (item: OfficeHardwareAsset) => {
     const seq = String(item.item_no || item.id).padStart(3, "0");
-    const list: { id: string; name: string; spec: string }[] = [];
+    const sped: { id: string; name: string; spec: string }[] = [];
+    const preferal: { id: string; name: string; spec: string }[] = [];
+
+    // 1. Kelompok Spesifikasi (Sped)
     if (item.processor && item.processor !== "-") {
-      list.push({ id: `CPU-${seq}`, name: "Processor", spec: item.processor });
+      sped.push({ id: `CPU-${seq}`, name: "Processor", spec: item.processor });
     }
     if (item.motherboard && item.motherboard !== "-") {
-      list.push({ id: `MB-${seq}`, name: "Motherboard", spec: item.motherboard });
+      sped.push({ id: `MB-${seq}`, name: "Motherboard", spec: item.motherboard });
     }
     if (item.ram && item.ram !== "-") {
-      list.push({ id: `RAM-${seq}`, name: "RAM", spec: item.ram });
+      sped.push({ id: `RAM-${seq}`, name: "RAM", spec: item.ram });
     }
     const storage = parseStorage(item.hard_drive);
     if (storage.ssd) {
-      list.push({ id: `SSD-${seq}`, name: "SSD", spec: storage.ssd });
+      sped.push({ id: `SSD-${seq}`, name: "Storage SSD", spec: storage.ssd });
     }
     if (storage.hdd) {
-      list.push({ id: `HDD-${seq}`, name: "HDD", spec: storage.hdd });
-    }
-    if (item.monitor && item.monitor !== "-") {
-      list.push({ id: `MON-${seq}`, name: "Monitor", spec: item.monitor });
-    }
-    if (item.printer && item.printer !== "-") {
-      list.push({ id: `PRN-${seq}`, name: "Printer", spec: item.printer });
-    }
-    if (item.keyboard && item.keyboard !== "-") {
-      list.push({ id: `KBD-${seq}`, name: "Keyboard", spec: item.keyboard });
-    }
-    if (item.mouse && item.mouse !== "-") {
-      list.push({ id: `MOU-${seq}`, name: "Mouse", spec: item.mouse });
+      sped.push({ id: `HDD-${seq}`, name: "Storage HDD", spec: storage.hdd });
     }
     if (item.os && item.os !== "-") {
-      list.push({ id: `LIC-${seq}`, name: "OS", spec: item.os });
+      sped.push({ id: `LIC-${seq}`, name: "OS License", spec: item.os });
     }
-    return list;
+
+    // 2. Kelompok Periferal (Preferal)
+    if (item.monitor && item.monitor !== "-") {
+      preferal.push({ id: `MON-${seq}`, name: "Monitor", spec: item.monitor });
+    }
+    if (item.printer && item.printer !== "-") {
+      preferal.push({ id: `PRN-${seq}`, name: "Printer", spec: item.printer });
+    }
+    if (item.keyboard && item.keyboard !== "-") {
+      preferal.push({ id: `KBD-${seq}`, name: "Keyboard", spec: item.keyboard });
+    }
+    if (item.mouse && item.mouse !== "-") {
+      preferal.push({ id: `MOU-${seq}`, name: "Mouse", spec: item.mouse });
+    }
+
+    return { sped, preferal };
   };
 
   const getComponentProcurement = (component: string, model: string, item: OfficeHardwareAsset) => {
@@ -361,7 +372,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
 
     const { price, purchasedFrom, purchaseDate } = getComponentProcurement(component, model, item);
     const { itemId, position, isSetAssetCode } = getComponentItemId(component, item);
-    const childComponents = isSetAssetCode ? getChildComponents(item) : undefined;
+    const { sped, preferal } = isSetAssetCode ? getCategorizedChildComponents(item) : { sped: [], preferal: [] };
 
     setHoverDetail({
       x: rect.left + rect.width / 2,
@@ -370,7 +381,12 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
       model: isSetAssetCode ? `${item.device_type || "PC"} (${item.user_name})` : model,
       itemId,
       isSetAssetCode,
-      childComponents,
+      setSpedComponents: sped,
+      setPreferalComponents: preferal,
+      userName: item.user_name,
+      ipAddress: item.ip_address || "-",
+      location: item.office_location || locationKey,
+      division: item.division,
       assetCode: item.asset_code,
       position,
       price,
@@ -1079,7 +1095,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                     <th className="sticky top-[84px] z-20 px-1.5 py-1 bg-slate-50 border-b border-r border-slate-200/80 select-none">Nama Pengguna</th>
                     <th className="sticky top-[84px] z-20 px-1 py-1 text-center bg-slate-50 border-b border-r border-slate-200 select-none">IP Address</th>
 
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none" title="Arahkan kursor (hover) untuk melihat Kode Aset & detail PC">Unit</th>
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none" title="Arahkan kursor (hover) untuk melihat Kode Set & rincian ID Barang di dalamnya">Kode Set</th>
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none">OS</th>
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none">Proc</th>
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-slate-200/80 select-none">Mobo</th>
@@ -1204,7 +1220,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                               )}
                             </td>
 
-                            {/* 4. Unit (Hover for Asset Code & Specs) */}
+                            {/* 4. Kode Set (Hover for Kode Set & Rincian ID Barang) */}
                             <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100">
                               <Link
                                 href={`/asset-components?set=${encodeURIComponent(item.asset_code)}`}
@@ -1215,9 +1231,9 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                     ? "text-purple-700"
                                     : "text-blue-700"
                                 }`}
-                                onMouseEnter={(e) => handleShowDetail(e, "Unit Perangkat Office", item.device_type || "PC", item)}
+                                onMouseEnter={(e) => handleShowDetail(e, "Kode Set Komputer", item.device_type || "PC", item)}
                                 onMouseLeave={handleHideDetail}
-                                title={`Kode Aset: ${item.asset_code} (Klik untuk buka rincian ID Barang)`}
+                                title={`Kode Set: ${item.asset_code} (Klik untuk buka rincian ID Barang)`}
                               >
                                 {item.device_type || "PC"}
                               </Link>
@@ -1775,7 +1791,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
         onClose={() => setIsScannerOpen(false)}
       />
 
-      {/* Hover Detail Popover Card (Matching POS Standard) */}
+      {/* Hover Detail Popover Card (Matching POS Standard & 3-Tier Specification) */}
       {hoverDetail && (
         <div
           style={{
@@ -1785,113 +1801,184 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
           }}
           className="fixed z-[9999] pointer-events-none animate-in fade-in zoom-in-95 duration-150"
         >
-          <div className="bg-white/98 text-slate-800 rounded-2xl p-3 shadow-2xl border border-slate-200/90 backdrop-blur-md w-64 text-[10px] leading-snug">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#006622] ring-4 ring-emerald-50" />
-                <span className="font-extrabold text-[#006622] text-[10.5px] tracking-tight">
-                  {hoverDetail.component}
-                </span>
-              </div>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-[#006622] border border-emerald-200/80 text-[8.5px] font-bold">
-                {hoverDetail.status}
-              </span>
-            </div>
-
-            {/* Main Spec Highlight Box */}
-            <div className="p-2.5 bg-slate-50/90 border border-slate-200/80 rounded-xl mb-2 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-bold text-[9px]">
-                  {hoverDetail.isSetAssetCode ? "Kode Aset:" : "ID Barang:"}
-                </span>
-                <span
-                  className={`font-mono font-black ${
-                    hoverDetail.isSetAssetCode
-                      ? "text-emerald-800 bg-emerald-50 border-emerald-300"
-                      : "text-indigo-700 bg-indigo-50 border-indigo-200/90"
-                  } border px-1.5 py-0.5 rounded text-[10px] tracking-tight`}
-                >
-                  {hoverDetail.itemId}
-                </span>
-              </div>
-              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                <span className="text-slate-500 font-medium text-[9px]">
-                  {hoverDetail.isSetAssetCode ? "Tipe Unit / Pengguna:" : "Model / Spesifikasi:"}
-                </span>
-                <span className="font-mono font-black text-slate-900 text-[10.5px] truncate max-w-[140px]" title={hoverDetail.model}>
-                  {hoverDetail.model}
-                </span>
-              </div>
-              <div className="flex items-baseline justify-between gap-1 pt-1 border-t border-slate-200/60">
-                <span className="text-slate-500 font-medium text-[9px] shrink-0">Status / Posisi:</span>
-                <span className="font-mono font-bold text-emerald-800 text-[9px] truncate max-w-[150px]" title={hoverDetail.position}>
-                  {hoverDetail.position}
+          {hoverDetail.isSetAssetCode ? (
+            /* ──────── POPUP KHUSUS KODE SET: 3 KATEGORI (IDENTITAS, SPED, PREFERAL) ──────── */
+            <div className="bg-white/98 text-slate-800 rounded-2xl p-3.5 shadow-2xl border border-slate-200/90 backdrop-blur-md w-80 text-[10px] leading-snug">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#006622] ring-4 ring-emerald-50" />
+                  <span className="font-extrabold text-[#006622] text-[11px] tracking-tight">
+                    Kode Set Komputer
+                  </span>
+                </div>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-[#006622] border border-emerald-200/80 text-[8.5px] font-bold">
+                  {hoverDetail.status}
                 </span>
               </div>
 
-              {/* Rincian Komponen ID Barang di dalam Kode Aset ini */}
-              {hoverDetail.isSetAssetCode && hoverDetail.childComponents && hoverDetail.childComponents.length > 0 && (
-                <div className="pt-2 border-t border-slate-200/70 space-y-1">
-                  <div className="flex items-center justify-between text-[8.5px]">
-                    <span className="text-slate-700 font-black uppercase tracking-tight">ID Barang di dalam Kode Aset:</span>
-                    <span className="text-slate-500 font-mono font-bold">({hoverDetail.childComponents.length} Unit)</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto scrollbar-thin py-0.5">
-                    {hoverDetail.childComponents.map((c) => (
-                      <span
-                        key={c.id}
-                        className="inline-flex items-center gap-1 font-mono text-[8px] px-1 py-0.2 rounded bg-white border border-slate-200/90 text-slate-700 shadow-2xs"
-                        title={`${c.name}: ${c.spec}`}
-                      >
-                        <span className="font-bold text-indigo-700">{c.id}</span>
-                        <span className="text-slate-300">·</span>
-                        <span className="text-slate-500 max-w-[65px] truncate">{c.name}</span>
+              {/* 1. KATEGORI IDENTITAS, PENGGUNA & IP JARINGAN */}
+              <div className="p-2 bg-slate-50 border border-slate-200/90 rounded-xl mb-2 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Kode Set:</span>
+                  <span className="font-mono font-black text-emerald-900 bg-white border border-emerald-300 px-2 py-0.5 rounded text-[10.5px] shadow-2xs">
+                    {hoverDetail.itemId}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                  <span className="text-slate-500 font-medium text-[9px]">Pengguna & Divisi:</span>
+                  <span className="font-bold text-slate-900 text-[10px]">
+                    {hoverDetail.userName} <span className="text-slate-400 font-normal">({hoverDetail.division})</span>
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                  <span className="text-slate-500 font-medium text-[9px]">IP & Lokasi:</span>
+                  <span className="font-mono font-bold text-blue-700 text-[9.5px]">
+                    {hoverDetail.ipAddress} <span className="text-slate-400 font-normal">· {hoverDetail.location}</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* 2. KATEGORI SPESIFIKASI PC & HARDWARE (SPED) */}
+              <div className="p-2 bg-blue-50/50 border border-blue-200/80 rounded-xl mb-2 space-y-1">
+                <div className="flex items-center justify-between text-[9px] pb-1 border-b border-blue-100">
+                  <span className="font-black text-blue-900 uppercase tracking-tight flex items-center gap-1">
+                    💻 Spesifikasi PC & Hardware (Sped)
+                  </span>
+                  <span className="text-blue-700 font-mono font-bold text-[8.5px]">
+                    ({hoverDetail.setSpedComponents?.length || 0} ID Barang)
+                  </span>
+                </div>
+                <div className="space-y-1 max-h-28 overflow-y-auto pr-0.5 scrollbar-thin">
+                  {hoverDetail.setSpedComponents?.map((c) => (
+                    <div key={c.id} className="flex items-baseline justify-between gap-1 text-[9px] py-0.5">
+                      <span className="inline-flex items-center gap-1 shrink-0">
+                        <span className="font-mono font-black text-indigo-700 bg-white border border-indigo-200 px-1 py-0.2 rounded text-[8.5px]">
+                          {c.id}
+                        </span>
+                        <span className="text-slate-600 font-medium">{c.name}:</span>
                       </span>
-                    ))}
-                  </div>
+                      <span className="font-semibold text-slate-800 text-right truncate max-w-[150px]" title={c.spec}>
+                        {c.spec}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Details Grid */}
-            <div className="space-y-1 text-slate-600 mb-2">
-              <div className="flex justify-between items-center py-0.5">
-                <span className="text-slate-400">Harga:</span>
-                <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60 text-[9.5px]">
-                  {hoverDetail.price}
+              {/* 3. KATEGORI PERIFERAL & AKSESORI (PREFERAL) */}
+              <div className="p-2 bg-emerald-50/50 border border-emerald-200/80 rounded-xl mb-2 space-y-1">
+                <div className="flex items-center justify-between text-[9px] pb-1 border-b border-emerald-100">
+                  <span className="font-black text-[#006622] uppercase tracking-tight flex items-center gap-1">
+                    🖱️ Periferal & Aksesori (Preferal)
+                  </span>
+                  <span className="text-[#006622] font-mono font-bold text-[8.5px]">
+                    ({hoverDetail.setPreferalComponents?.length || 0} ID Barang)
+                  </span>
+                </div>
+                <div className="space-y-1 max-h-24 overflow-y-auto pr-0.5 scrollbar-thin">
+                  {hoverDetail.setPreferalComponents?.map((c) => (
+                    <div key={c.id} className="flex items-baseline justify-between gap-1 text-[9px] py-0.5">
+                      <span className="inline-flex items-center gap-1 shrink-0">
+                        <span className="font-mono font-black text-emerald-800 bg-white border border-emerald-200 px-1 py-0.2 rounded text-[8.5px]">
+                          {c.id}
+                        </span>
+                        <span className="text-slate-600 font-medium">{c.name}:</span>
+                      </span>
+                      <span className="font-semibold text-slate-800 text-right truncate max-w-[150px]" title={c.spec}>
+                        {c.spec}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Klik untuk Rincian ID Barang Lengkap */}
+              <div className="p-1.5 bg-slate-100/90 border border-slate-200 rounded-lg text-center text-[9px] text-slate-600 font-medium">
+                Klik unit untuk buka <strong className="text-indigo-700 font-bold">Rincian ID Barang Lengkap ↗</strong>
+              </div>
+            </div>
+          ) : (
+            /* ──────── POPUP STANDAR SATUAN KOMPONEN (RAM, STORAGE, PRINTER, DLL) ──────── */
+            <div className="bg-white/98 text-slate-800 rounded-2xl p-3 shadow-2xl border border-slate-200/90 backdrop-blur-md w-64 text-[10px] leading-snug">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#006622] ring-4 ring-emerald-50" />
+                  <span className="font-extrabold text-[#006622] text-[10.5px] tracking-tight">
+                    {hoverDetail.component}
+                  </span>
+                </div>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-[#006622] border border-emerald-200/80 text-[8.5px] font-bold">
+                  {hoverDetail.status}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-0.5 border-t border-slate-50">
-                <span className="text-slate-400">Toko:</span>
-                <span className="font-semibold text-slate-800 truncate max-w-[150px]" title={hoverDetail.purchasedFrom}>
-                  {hoverDetail.purchasedFrom}
-                </span>
+
+              {/* Main Spec Highlight Box */}
+              <div className="p-2.5 bg-slate-50/90 border border-slate-200/80 rounded-xl mb-2 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-bold text-[9px]">
+                    ID Barang:
+                  </span>
+                  <span className="font-mono font-black text-indigo-700 bg-indigo-50 border-indigo-200/90 border px-1.5 py-0.5 rounded text-[10px] tracking-tight">
+                    {hoverDetail.itemId}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                  <span className="text-slate-500 font-medium text-[9px]">
+                    Model / Spesifikasi:
+                  </span>
+                  <span className="font-mono font-black text-slate-900 text-[10.5px] truncate max-w-[140px]" title={hoverDetail.model}>
+                    {hoverDetail.model}
+                  </span>
+                </div>
+                <div className="flex items-baseline justify-between gap-1 pt-1 border-t border-slate-200/60">
+                  <span className="text-slate-500 font-medium text-[9px] shrink-0">Status / Posisi:</span>
+                  <span className="font-mono font-bold text-emerald-800 text-[9px] truncate max-w-[150px]" title={hoverDetail.position}>
+                    {hoverDetail.position}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between items-center py-0.5 border-t border-slate-50">
-                <span className="text-slate-400">Tanggal Pembelian:</span>
-                <span className="font-mono font-medium text-slate-700">{hoverDetail.purchaseDate}</span>
-              </div>
-              <div className="flex justify-between items-center py-0.5 border-t border-slate-50">
-                <span className="text-slate-400">Terakhir Diganti / Update:</span>
-                <span className="font-mono font-medium text-slate-700">{hoverDetail.lastChange}</span>
-              </div>
-              {hoverDetail.sn && (
+
+              {/* Details Grid */}
+              <div className="space-y-1 text-slate-600 mb-2">
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400">Harga:</span>
+                  <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60 text-[9.5px]">
+                    {hoverDetail.price}
+                  </span>
+                </div>
                 <div className="flex justify-between items-center py-0.5 border-t border-slate-50">
-                  <span className="text-slate-400">Serial Number:</span>
-                  <span className="font-mono text-slate-700 font-bold">{hoverDetail.sn}</span>
+                  <span className="text-slate-400">Toko:</span>
+                  <span className="font-semibold text-slate-800 truncate max-w-[150px]" title={hoverDetail.purchasedFrom}>
+                    {hoverDetail.purchasedFrom}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-0.5 border-t border-slate-50">
+                  <span className="text-slate-400">Tanggal Pembelian:</span>
+                  <span className="font-mono font-medium text-slate-700">{hoverDetail.purchaseDate}</span>
+                </div>
+                <div className="flex justify-between items-center py-0.5 border-t border-slate-50">
+                  <span className="text-slate-400">Terakhir Diganti / Update:</span>
+                  <span className="font-mono font-medium text-slate-700">{hoverDetail.lastChange}</span>
+                </div>
+                {hoverDetail.sn && (
+                  <div className="flex justify-between items-center py-0.5 border-t border-slate-50">
+                    <span className="text-slate-400">Serial Number:</span>
+                    <span className="font-mono text-slate-700 font-bold">{hoverDetail.sn}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Notes */}
+              {hoverDetail.notes && (
+                <div className="p-1.5 bg-slate-50 border border-slate-200/60 rounded-lg text-[9px] text-slate-600 italic">
+                  <span className="font-bold not-italic text-slate-700">Catatan: </span>
+                  {hoverDetail.notes}
                 </div>
               )}
             </div>
-
-            {/* Notes */}
-            {hoverDetail.notes && (
-              <div className="p-1.5 bg-slate-50 border border-slate-200/60 rounded-lg text-[9px] text-slate-600 italic">
-                <span className="font-bold not-italic text-slate-700">Catatan: </span>
-                {hoverDetail.notes}
-              </div>
-            )}
-          </div>
+          )}
           {/* Arrow pointing down */}
           <div className="w-3 h-3 bg-white border-r border-b border-slate-200/90 rotate-45 mx-auto -mt-1.5 shadow-sm" />
         </div>

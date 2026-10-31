@@ -171,8 +171,11 @@ function AssetsContent() {
     model: string;
     itemId: string;
     isSetAssetCode?: boolean;
-    childComponents?: { id: string; name: string; spec: string }[];
+    setSpedComponents?: { id: string; name: string; spec: string }[];
+    setPreferalComponents?: { id: string; name: string; spec: string }[];
     posCode?: string;
+    shopName?: string;
+    ipAddress?: string;
     position: string;
     price: string;
     purchasedFrom: string;
@@ -183,21 +186,27 @@ function AssetsContent() {
     notes?: string;
   } | null>(null);
 
-  const getPosChildComponents = (pos: PosHardwareAsset) => {
+  const getCategorizedPosComponents = (pos: PosHardwareAsset) => {
     const posNum = Number(pos.pos_number || pos.id || 1);
     const seq = String(posNum).padStart(3, "0");
-    const list: { id: string; name: string; spec: string }[] = [];
-    if (pos.processor && pos.processor !== "-") list.push({ id: `CPU-${seq}`, name: "Processor", spec: pos.processor });
-    if (pos.ram && pos.ram !== "-") list.push({ id: `RAM-${seq}`, name: "RAM", spec: pos.ram });
-    if (pos.ssd && pos.ssd !== "-") list.push({ id: `SSD-${seq}`, name: "Storage", spec: pos.ssd });
-    if (pos.printer && pos.printer !== "-") list.push({ id: `PRN-${seq}`, name: "Printer", spec: pos.printer });
-    if (pos.keyboard && pos.keyboard !== "-") list.push({ id: `KBD-${seq}`, name: "Keyboard", spec: pos.keyboard });
-    if (pos.mouse && pos.mouse !== "-") list.push({ id: `MOU-${seq}`, name: "Mouse", spec: pos.mouse });
-    if (pos.barcode_scanner && pos.barcode_scanner !== "-") list.push({ id: `SCN-${seq}`, name: "Scanner", spec: pos.barcode_scanner });
-    if (pos.passport_scanner && pos.passport_scanner !== "-") list.push({ id: `PAS-${seq}`, name: "Passport", spec: pos.passport_scanner });
-    if (pos.cash_drawer && pos.cash_drawer !== "-") list.push({ id: `DRW-${seq}`, name: "Cash Drawer", spec: pos.cash_drawer });
-    if (pos.os_version && pos.os_version !== "-") list.push({ id: `LIC-${seq}`, name: "OS", spec: pos.os_version });
-    return list;
+    const sped: { id: string; name: string; spec: string }[] = [];
+    const preferal: { id: string; name: string; spec: string }[] = [];
+
+    // 1. Sped
+    if (pos.processor && pos.processor !== "-") sped.push({ id: `CPU-${seq}`, name: "Processor", spec: pos.processor });
+    if (pos.ram && pos.ram !== "-") sped.push({ id: `RAM-${seq}`, name: "RAM", spec: pos.ram });
+    if (pos.ssd && pos.ssd !== "-") sped.push({ id: `SSD-${seq}`, name: "Storage", spec: pos.ssd });
+    if (pos.os_version && pos.os_version !== "-") sped.push({ id: `LIC-${seq}`, name: "OS", spec: pos.os_version });
+
+    // 2. Preferal
+    if (pos.printer && pos.printer !== "-") preferal.push({ id: `PRN-${seq}`, name: "Printer Thermal", spec: pos.printer });
+    if (pos.keyboard && pos.keyboard !== "-") preferal.push({ id: `KBD-${seq}`, name: "Keyboard Kasir", spec: pos.keyboard });
+    if (pos.mouse && pos.mouse !== "-") preferal.push({ id: `MOU-${seq}`, name: "Mouse Optik", spec: pos.mouse });
+    if (pos.barcode_scanner && pos.barcode_scanner !== "-") preferal.push({ id: `SCN-${seq}`, name: "Barcode Scanner", spec: pos.barcode_scanner });
+    if (pos.passport_scanner && pos.passport_scanner !== "-") preferal.push({ id: `PAS-${seq}`, name: "Passport Reader", spec: pos.passport_scanner });
+    if (pos.cash_drawer && pos.cash_drawer !== "-") preferal.push({ id: `DRW-${seq}`, name: "Cash Drawer", spec: pos.cash_drawer });
+
+    return { sped, preferal };
   };
 
   const getComponentItemId = (component: string, pos: PosHardwareAsset): { itemId: string; position: string; isSetAssetCode?: boolean } => {
@@ -388,17 +397,20 @@ function AssetsContent() {
 
     const { price, purchasedFrom, purchaseDate, customNote } = getComponentProcurement(component, model, pos);
     const { itemId, position, isSetAssetCode } = getComponentItemId(component, pos);
-    const childComponents = isSetAssetCode ? getPosChildComponents(pos) : undefined;
+    const { sped, preferal } = isSetAssetCode ? getCategorizedPosComponents(pos) : { sped: [], preferal: [] };
 
     setHoverDetail({
       x: rect.left + rect.width / 2,
       y: rect.top,
-      component: isSetAssetCode ? "Set Kasir POS Unit" : component,
+      component: isSetAssetCode ? "Kode Set POS Kasir" : component,
       model: isSetAssetCode ? `${pos.pos_brand || "NCR"} (${pos.pos_code})` : model,
       itemId,
       isSetAssetCode,
-      childComponents,
+      setSpedComponents: sped,
+      setPreferalComponents: preferal,
       posCode: pos.pos_code,
+      shopName: pos.shop_name || pos.terminal || "Kasir Bandara",
+      ipAddress: pos.ip_address || "-",
       position,
       price,
       purchasedFrom,
@@ -2860,122 +2872,192 @@ function AssetsContent() {
           }}
           className="fixed z-[9999] pointer-events-none animate-in fade-in zoom-in-95 duration-150"
         >
-          <div className="bg-white/98 text-slate-800 rounded-2xl p-3 shadow-2xl border border-slate-200/90 backdrop-blur-md w-64 text-[10px] leading-snug">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#006622] ring-4 ring-emerald-50" />
-                <span className="font-extrabold text-[#006622] text-[10.5px] tracking-tight">
-                  {hoverDetail.component}
-                </span>
-              </div>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-[#006622] border border-emerald-200/80 text-[8.5px] font-bold">
-                {hoverDetail.status}
-              </span>
-            </div>
-
-            {/* Main Spec Highlight Box */}
-            <div className="p-2.5 bg-slate-50/90 border border-slate-200/80 rounded-xl mb-2 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-bold text-[9px]">
-                  {hoverDetail.isSetAssetCode ? "Kode Aset (Set):" : "ID Barang:"}
-                </span>
-                <span
-                  className={`font-mono font-black ${
-                    hoverDetail.isSetAssetCode
-                      ? "text-emerald-800 bg-emerald-50 border-emerald-300"
-                      : "text-indigo-700 bg-indigo-50 border-indigo-200/90"
-                  } border px-1.5 py-0.5 rounded text-[10px] tracking-tight`}
-                >
-                  {hoverDetail.itemId}
-                </span>
-              </div>
-              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                <span className="text-slate-500 font-medium text-[9px]">
-                  {hoverDetail.isSetAssetCode ? "Tipe Unit Kasir:" : "Model / Spesifikasi:"}
-                </span>
-                <span className="font-mono font-black text-slate-900 text-[10.5px] truncate max-w-[140px]" title={hoverDetail.model}>
-                  {hoverDetail.model}
-                </span>
-              </div>
-              <div className="flex items-baseline justify-between gap-1 pt-1 border-t border-slate-200/60">
-                <span className="text-slate-500 font-medium text-[9px] shrink-0">Status / Posisi:</span>
-                <span className="font-mono font-bold text-emerald-800 text-[9px] truncate max-w-[150px]" title={hoverDetail.position}>
-                  {hoverDetail.position}
-                </span>
-              </div>
-
-              {/* Rincian Komponen ID Barang di dalam Kode Aset ini */}
-              {hoverDetail.isSetAssetCode && hoverDetail.childComponents && hoverDetail.childComponents.length > 0 && (
-                <div className="pt-2 border-t border-slate-200/70 space-y-1">
-                  <div className="flex items-center justify-between text-[8.5px]">
-                    <span className="text-slate-700 font-black uppercase tracking-tight">ID Barang di dalam Set:</span>
-                    <span className="text-slate-500 font-mono font-bold">({hoverDetail.childComponents.length} Unit)</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto scrollbar-thin py-0.5">
-                    {hoverDetail.childComponents.map((c) => (
-                      <span
-                        key={c.id}
-                        className="inline-flex items-center gap-1 font-mono text-[8px] px-1 py-0.2 rounded bg-white border border-slate-200/90 text-slate-700 shadow-2xs"
-                        title={`${c.name}: ${c.spec}`}
-                      >
-                        <span className="font-bold text-indigo-700">{c.id}</span>
-                        <span className="text-slate-300">·</span>
-                        <span className="text-slate-500 max-w-[65px] truncate">{c.name}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Spec & Detail Metadata */}
-            <div className="space-y-1.5 text-slate-600">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400 font-medium">Harga:</span>
-                <span className="font-mono font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded text-[10.5px]">
-                  {hoverDetail.price}
-                </span>
-              </div>
-              <div className="flex items-baseline justify-between gap-1.5">
-                <span className="text-slate-400 font-medium shrink-0">Toko:</span>
-                <span className="text-slate-800 font-semibold text-right text-[9.5px] truncate max-w-[150px]">
-                  {hoverDetail.purchasedFrom}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400 font-medium">Tanggal Pembelian:</span>
-                <span className="font-mono text-slate-800 font-bold text-[9.5px]">
-                  {hoverDetail.purchaseDate}
-                </span>
-              </div>
-              {hoverDetail.sn && (
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400 font-medium">Serial No (S/N):</span>
-                  <span className="font-mono font-bold text-slate-800 text-[9.5px]">
-                    {hoverDetail.sn}
+          {hoverDetail.isSetAssetCode ? (
+            /* ──────── POPUP KHUSUS KODE SET POS: 3 KATEGORI (IDENTITAS, SPED, PREFERAL) ──────── */
+            <div className="bg-white/98 text-slate-800 rounded-2xl p-3.5 shadow-2xl border border-slate-200/90 backdrop-blur-md w-80 text-[10px] leading-snug">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#006622] ring-4 ring-emerald-50" />
+                  <span className="font-extrabold text-[#006622] text-[11px] tracking-tight">
+                    Kode Set POS Kasir
                   </span>
                 </div>
-              )}
-              <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                <span className="text-slate-400 font-medium">Terakhir Diganti / Update:</span>
-                <span className="text-slate-800 font-bold font-mono text-[9.5px]">
-                  {hoverDetail.lastChange}
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-[#006622] border border-emerald-200/80 text-[8.5px] font-bold">
+                  {hoverDetail.status}
                 </span>
               </div>
-              {hoverDetail.notes && (
-                <div className="pt-1.5">
-                  <div className="text-[9px] text-slate-600 bg-slate-50 border border-slate-200/80 p-1.5 rounded-lg leading-relaxed">
-                    <strong className="text-slate-700 not-italic">Catatan: </strong>
-                    {hoverDetail.notes}
-                  </div>
-                </div>
-              )}
-            </div>
 
-            {/* Arrow beak */}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2.5 h-2.5 bg-white border-r border-b border-slate-200/90 rotate-45" />
-          </div>
+              {/* 1. KATEGORI IDENTITAS POS & IP JARINGAN */}
+              <div className="p-2 bg-slate-50 border border-slate-200/90 rounded-xl mb-2 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Kode Set:</span>
+                  <span className="font-mono font-black text-emerald-900 bg-white border border-emerald-300 px-2 py-0.5 rounded text-[10.5px] shadow-2xs">
+                    {hoverDetail.itemId}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                  <span className="text-slate-500 font-medium text-[9px]">Titik Kasir & Toko:</span>
+                  <span className="font-bold text-slate-900 text-[10px]">
+                    {hoverDetail.posCode} <span className="text-slate-400 font-normal">({hoverDetail.shopName})</span>
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                  <span className="text-slate-500 font-medium text-[9px]">IP Address:</span>
+                  <span className="font-mono font-bold text-blue-700 text-[9.5px]">
+                    {hoverDetail.ipAddress}
+                  </span>
+                </div>
+              </div>
+
+              {/* 2. KATEGORI SPESIFIKASI POS & HARDWARE (SPED) */}
+              <div className="p-2 bg-blue-50/50 border border-blue-200/80 rounded-xl mb-2 space-y-1">
+                <div className="flex items-center justify-between text-[9px] pb-1 border-b border-blue-100">
+                  <span className="font-black text-blue-900 uppercase tracking-tight flex items-center gap-1">
+                    💻 Spesifikasi POS & Hardware (Sped)
+                  </span>
+                  <span className="text-blue-700 font-mono font-bold text-[8.5px]">
+                    ({hoverDetail.setSpedComponents?.length || 0} ID Barang)
+                  </span>
+                </div>
+                <div className="space-y-1 max-h-24 overflow-y-auto pr-0.5 scrollbar-thin">
+                  {hoverDetail.setSpedComponents?.map((c) => (
+                    <div key={c.id} className="flex items-baseline justify-between gap-1 text-[9px] py-0.5">
+                      <span className="inline-flex items-center gap-1 shrink-0">
+                        <span className="font-mono font-black text-indigo-700 bg-white border border-indigo-200 px-1 py-0.2 rounded text-[8.5px]">
+                          {c.id}
+                        </span>
+                        <span className="text-slate-600 font-medium">{c.name}:</span>
+                      </span>
+                      <span className="font-semibold text-slate-800 text-right truncate max-w-[150px]" title={c.spec}>
+                        {c.spec}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. KATEGORI PERIFERAL & SCANNER KASIR (PREFERAL) */}
+              <div className="p-2 bg-emerald-50/50 border border-emerald-200/80 rounded-xl mb-2 space-y-1">
+                <div className="flex items-center justify-between text-[9px] pb-1 border-b border-emerald-100">
+                  <span className="font-black text-[#006622] uppercase tracking-tight flex items-center gap-1">
+                    🖱️ Periferal & Scanner Kasir (Preferal)
+                  </span>
+                  <span className="text-[#006622] font-mono font-bold text-[8.5px]">
+                    ({hoverDetail.setPreferalComponents?.length || 0} ID Barang)
+                  </span>
+                </div>
+                <div className="space-y-1 max-h-24 overflow-y-auto pr-0.5 scrollbar-thin">
+                  {hoverDetail.setPreferalComponents?.map((c) => (
+                    <div key={c.id} className="flex items-baseline justify-between gap-1 text-[9px] py-0.5">
+                      <span className="inline-flex items-center gap-1 shrink-0">
+                        <span className="font-mono font-black text-emerald-800 bg-white border border-emerald-200 px-1 py-0.2 rounded text-[8.5px]">
+                          {c.id}
+                        </span>
+                        <span className="text-slate-600 font-medium">{c.name}:</span>
+                      </span>
+                      <span className="font-semibold text-slate-800 text-right truncate max-w-[150px]" title={c.spec}>
+                        {c.spec}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Klik untuk Rincian ID Barang Lengkap */}
+              <div className="p-1.5 bg-slate-100/90 border border-slate-200 rounded-lg text-center text-[9px] text-slate-600 font-medium">
+                Klik unit untuk buka <strong className="text-indigo-700 font-bold">Rincian ID Barang Lengkap ↗</strong>
+              </div>
+            </div>
+          ) : (
+            /* ──────── POPUP STANDAR SATUAN KOMPONEN (KEYBOARD, SCANNER, PRINTER, DLL) ──────── */
+            <div className="bg-white/98 text-slate-800 rounded-2xl p-3 shadow-2xl border border-slate-200/90 backdrop-blur-md w-64 text-[10px] leading-snug">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#006622] ring-4 ring-emerald-50" />
+                  <span className="font-extrabold text-[#006622] text-[10.5px] tracking-tight">
+                    {hoverDetail.component}
+                  </span>
+                </div>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-[#006622] border border-emerald-200/80 text-[8.5px] font-bold">
+                  {hoverDetail.status}
+                </span>
+              </div>
+
+              {/* Main Spec Highlight Box */}
+              <div className="p-2.5 bg-slate-50/90 border border-slate-200/80 rounded-xl mb-2 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-bold text-[9px]">
+                    ID Barang:
+                  </span>
+                  <span className="font-mono font-black text-indigo-700 bg-indigo-50 border-indigo-200/90 border px-1.5 py-0.5 rounded text-[10px] tracking-tight">
+                    {hoverDetail.itemId}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                  <span className="text-slate-500 font-medium text-[9px]">
+                    Model / Spesifikasi:
+                  </span>
+                  <span className="font-mono font-black text-slate-900 text-[10.5px] truncate max-w-[140px]" title={hoverDetail.model}>
+                    {hoverDetail.model}
+                  </span>
+                </div>
+                <div className="flex items-baseline justify-between gap-1 pt-1 border-t border-slate-200/60">
+                  <span className="text-slate-500 font-medium text-[9px] shrink-0">Status / Posisi:</span>
+                  <span className="font-mono font-bold text-emerald-800 text-[9px] truncate max-w-[150px]" title={hoverDetail.position}>
+                    {hoverDetail.position}
+                  </span>
+                </div>
+              </div>
+
+              {/* Spec & Detail Metadata */}
+              <div className="space-y-1.5 text-slate-600">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-medium">Harga:</span>
+                  <span className="font-mono font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded text-[10.5px]">
+                    {hoverDetail.price}
+                  </span>
+                </div>
+                <div className="flex items-baseline justify-between gap-1.5">
+                  <span className="text-slate-400 font-medium shrink-0">Toko:</span>
+                  <span className="text-slate-800 font-semibold text-right text-[9.5px] truncate max-w-[150px]">
+                    {hoverDetail.purchasedFrom}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-medium">Tanggal Pembelian:</span>
+                  <span className="font-mono text-slate-800 font-bold text-[9.5px]">
+                    {hoverDetail.purchaseDate}
+                  </span>
+                </div>
+                {hoverDetail.sn && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 font-medium">Serial No (S/N):</span>
+                    <span className="font-mono font-bold text-slate-800 text-[9.5px]">
+                      {hoverDetail.sn}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                  <span className="text-slate-400 font-medium">Terakhir Diganti / Update:</span>
+                  <span className="text-slate-800 font-bold font-mono text-[9.5px]">
+                    {hoverDetail.lastChange}
+                  </span>
+                </div>
+                {hoverDetail.notes && (
+                  <div className="pt-1.5">
+                    <div className="text-[9px] text-slate-600 bg-slate-50 border border-slate-200/80 p-1.5 rounded-lg leading-relaxed">
+                      <strong className="text-slate-700 not-italic">Catatan: </strong>
+                      {hoverDetail.notes}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          {/* Arrow pointing down */}
+          <div className="w-3 h-3 bg-white border-r border-b border-slate-200/90 rotate-45 mx-auto -mt-1.5 shadow-sm" />
         </div>
       )}
 

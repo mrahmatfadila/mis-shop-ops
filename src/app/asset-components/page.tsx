@@ -1266,85 +1266,134 @@ function AssetComponentsContent() {
                       </div>
                     </div>
 
-                    {/* Table / Grid Komponen ID Barang di dalam Set ini */}
-                    <div className="flex-1 overflow-x-auto">
-                      <table className="w-full text-left border-collapse text-[10px]">
-                        <thead>
-                          <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-bold text-[9.5px] uppercase tracking-wider">
-                            <th className="px-3 py-1.5 w-[25%]">ID Barang</th>
-                            <th className="px-2 py-1.5 w-[20%]">Jenis</th>
-                            <th className="px-2 py-1.5 w-[40%]">Spesifikasi / Model</th>
-                            <th className="px-2 py-1.5 w-[15%] text-right">Aksi</th>
+                    {/* Table / Grid Komponen ID Barang di dalam Set ini: Dibagi atas SPED & PREFERAL */}
+                    {(() => {
+                      const spedComponents = set.components.filter((c) =>
+                        ["CPU", "MOTHERBOARD", "RAM", "SSD", "HDD", "OS"].includes(c.componentType)
+                      );
+                      const preferalComponents = set.components.filter((c) =>
+                        !["CPU", "MOTHERBOARD", "RAM", "SSD", "HDD", "OS"].includes(c.componentType)
+                      );
+
+                      const renderComponentRow = (comp: UnifiedComponentItem) => {
+                        const Icon = getComponentIcon(comp.componentType);
+                        const badgeColor = getComponentTypeBadgeColor(comp.componentType);
+                        const isCompCopied = copiedKey === `comp-${comp.id}`;
+
+                        return (
+                          <tr key={comp.id} className="hover:bg-slate-50/80 transition-colors group">
+                            {/* ID Barang */}
+                            <td className="px-3 py-1.5 whitespace-nowrap">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-mono font-black text-indigo-800 bg-indigo-50 border border-indigo-200/90 px-1.5 py-0.5 rounded text-[10px] tracking-tight shadow-2xs">
+                                  {comp.id}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => copyToClipboard(comp.id, `comp-${comp.id}`)}
+                                  title="Salin ID Barang"
+                                  className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-indigo-600 p-0.5 transition-opacity"
+                                >
+                                  {isCompCopied ? (
+                                    <Check className="w-2.5 h-2.5 text-emerald-600" />
+                                  ) : (
+                                    <Copy className="w-2.5 h-2.5" />
+                                  )}
+                                </button>
+                              </div>
+                            </td>
+
+                            {/* Jenis Komponen */}
+                            <td className="px-2 py-1.5 whitespace-nowrap">
+                              <div className="flex items-center gap-1.5">
+                                <span className={`p-1 rounded-md border ${badgeColor}`}>
+                                  <Icon className="w-3 h-3" />
+                                </span>
+                                <span className="font-bold text-slate-800 text-[10px]">
+                                  {comp.componentTypeName}
+                                </span>
+                              </div>
+                            </td>
+
+                            {/* Spesifikasi / Model */}
+                            <td className="px-2 py-1.5">
+                              <div className="truncate font-semibold text-slate-800 text-[10.5px]" title={comp.model}>
+                                {comp.model}
+                              </div>
+                              <div className="text-[9px] text-slate-400 font-mono truncate" title={`Harga: ${comp.price} • Toko: ${comp.purchasedFrom}`}>
+                                {comp.price} • {comp.purchasedFrom}
+                              </div>
+                            </td>
+
+                            {/* Aksi */}
+                            <td className="px-2 py-1.5 text-right whitespace-nowrap">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenStickerForComponent(comp)}
+                                title="Cetak Barcode ID Barang"
+                                className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors inline-block"
+                              >
+                                <QrCode className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 font-medium">
-                          {set.components.map((comp) => {
-                            const Icon = getComponentIcon(comp.componentType);
-                            const badgeColor = getComponentTypeBadgeColor(comp.componentType);
-                            const isCompCopied = copiedKey === `comp-${comp.id}`;
+                        );
+                      };
 
-                            return (
-                              <tr key={comp.id} className="hover:bg-slate-50/80 transition-colors group">
-                                {/* ID Barang */}
-                                <td className="px-3 py-1.5 whitespace-nowrap">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="font-mono font-black text-indigo-800 bg-indigo-50 border border-indigo-200/90 px-1.5 py-0.5 rounded text-[10px] tracking-tight shadow-2xs">
-                                      {comp.id}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => copyToClipboard(comp.id, `comp-${comp.id}`)}
-                                      title="Salin ID Barang"
-                                      className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-indigo-600 p-0.5 transition-opacity"
-                                    >
-                                      {isCompCopied ? (
-                                        <Check className="w-2.5 h-2.5 text-emerald-600" />
-                                      ) : (
-                                        <Copy className="w-2.5 h-2.5" />
-                                      )}
-                                    </button>
+                      return (
+                        <div className="flex-1 overflow-x-auto">
+                          <table className="w-full text-left border-collapse text-[10px]">
+                            <thead>
+                              <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-bold text-[9.5px] uppercase tracking-wider">
+                                <th className="px-3 py-1.5 w-[25%]">ID Barang</th>
+                                <th className="px-2 py-1.5 w-[20%]">Jenis</th>
+                                <th className="px-2 py-1.5 w-[40%]">Spesifikasi / Model</th>
+                                <th className="px-2 py-1.5 w-[15%] text-right">Aksi</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 font-medium">
+                              {/* ── Sub-Grup 1: Spesifikasi PC & Hardware (Sped) ── */}
+                              <tr className="bg-blue-50/70">
+                                <td colSpan={4} className="px-3 py-1 font-black text-blue-900 text-[9px] uppercase tracking-wider border-y border-blue-200/60">
+                                  <div className="flex items-center justify-between">
+                                    <span>💻 Spesifikasi PC & Hardware (Sped)</span>
+                                    <span className="font-mono text-blue-700 font-bold">{spedComponents.length} ID Barang</span>
                                   </div>
-                                </td>
-
-                                {/* Jenis Komponen */}
-                                <td className="px-2 py-1.5 whitespace-nowrap">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className={`p-1 rounded-md border ${badgeColor}`}>
-                                      <Icon className="w-3 h-3" />
-                                    </span>
-                                    <span className="font-bold text-slate-800 text-[10px]">
-                                      {comp.componentTypeName}
-                                    </span>
-                                  </div>
-                                </td>
-
-                                {/* Spesifikasi / Model */}
-                                <td className="px-2 py-1.5">
-                                  <div className="truncate font-semibold text-slate-800 text-[10.5px]" title={comp.model}>
-                                    {comp.model}
-                                  </div>
-                                  <div className="text-[9px] text-slate-400 font-mono truncate" title={`Harga: ${comp.price} • Toko: ${comp.purchasedFrom}`}>
-                                    {comp.price} • {comp.purchasedFrom}
-                                  </div>
-                                </td>
-
-                                {/* Aksi */}
-                                <td className="px-2 py-1.5 text-right whitespace-nowrap">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleOpenStickerForComponent(comp)}
-                                    title="Cetak Barcode ID Barang"
-                                    className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors inline-block"
-                                  >
-                                    <QrCode className="w-3.5 h-3.5" />
-                                  </button>
                                 </td>
                               </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
+                              {spedComponents.length > 0 ? (
+                                spedComponents.map(renderComponentRow)
+                              ) : (
+                                <tr>
+                                  <td colSpan={4} className="px-3 py-1.5 text-slate-400 italic text-[9px] text-center">
+                                    Tidak ada data komponen hardware spesifik
+                                  </td>
+                                </tr>
+                              )}
+
+                              {/* ── Sub-Grup 2: Periferal & Aksesori (Preferal) ── */}
+                              <tr className="bg-emerald-50/70">
+                                <td colSpan={4} className="px-3 py-1 font-black text-[#006622] text-[9px] uppercase tracking-wider border-y border-emerald-200/60">
+                                  <div className="flex items-center justify-between">
+                                    <span>🖱️ Periferal & Aksesori (Preferal)</span>
+                                    <span className="font-mono text-[#006622] font-bold">{preferalComponents.length} ID Barang</span>
+                                  </div>
+                                </td>
+                              </tr>
+                              {preferalComponents.length > 0 ? (
+                                preferalComponents.map(renderComponentRow)
+                              ) : (
+                                <tr>
+                                  <td colSpan={4} className="px-3 py-1.5 text-slate-400 italic text-[9px] text-center">
+                                    Tidak ada data periferal terhubung
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })()}
 
                     {/* Footer Kartu Set */}
                     <div className="px-3.5 py-2 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between text-[9.5px] text-slate-500 font-medium">
