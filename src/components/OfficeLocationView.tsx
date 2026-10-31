@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense, Fragment } from "react";
+import { useState, useEffect, useMemo, Suspense, Fragment } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
 import ScannerModal from "@/components/ScannerModal";
 import BarcodeGeneratorModal from "@/components/BarcodeGeneratorModal";
@@ -38,6 +38,9 @@ import {
   Server,
   Activity,
   UserCheck,
+  Zap,
+  RefreshCw,
+  Wifi,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -156,6 +159,34 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
   const [selectedAssetForSticker, setSelectedAssetForSticker] = useState<Asset | null>(null);
   const [selectedAssetForTicket, setSelectedAssetForTicket] = useState<Asset | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  // Live Ping State untuk Perangkat Office
+  const [officePingState, setOfficePingState] = useState<
+    Record<string, { status: "ONLINE" | "OFFLINE" | "TESTING"; latency?: number | null; tested_at?: string }>
+  >({});
+  const [isPingingAll, setIsPingingAll] = useState(false);
+  const [isPingingDiv, setIsPingingDiv] = useState<Record<string, boolean>>({});
+  const [pingNotification, setPingNotification] = useState<string | null>(null);
+
+  // Load cached ping state for this office location
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(`mis_office_ping_${locationKey}`);
+      if (cached) {
+        setOfficePingState(JSON.parse(cached));
+      }
+    } catch {
+      // ignore
+    }
+  }, [locationKey]);
+
+  const savePingCache = (data: Record<string, { status: "ONLINE" | "OFFLINE" | "TESTING"; latency?: number | null; tested_at?: string }>) => {
+    try {
+      localStorage.setItem(`mis_office_ping_${locationKey}`, JSON.stringify(data));
+    } catch {
+      // ignore
+    }
+  };
 
   // Hover Popover Detail State (Matching POS Style)
   const [hoverDetail, setHoverDetail] = useState<{
@@ -531,6 +562,156 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
+  // Ping 1 perangkat office
+  const handlePingSingle = async (ip: string, status?: string) => {
+    if (!ip || ip === "-") return;
+    const cleanIp = ip.trim();
+    setOfficePingState((prev) => ({
+      ...prev,
+      [cleanIp]: { status: "TESTING" },
+    }));
+
+    try {
+      const res = await fetch("/api/office/ping", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ip: cleanIp, status }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setOfficePingState((prev) => {
+          const next = {
+            ...prev,
+            [cleanIp]: {
+              status: json.status,
+              latency: json.latency,
+              tested_at: json.tested_at || new Date().toISOString(),
+            },
+          };
+          savePingCache(next);
+          return next;
+        });
+      } else {
+        setOfficePingState((prev) => {
+          const next = {
+            ...prev,
+            [cleanIp]: { status: "OFFLINE" as const, latency: null, tested_at: new Date().toISOString() },
+          };
+          savePingCache(next);
+          return next;
+        });
+      }
+    } catch {
+      setOfficePingState((prev) => {
+        const next = {
+          ...prev,
+          [cleanIp]: { status: "OFFLINE" as const, latency: null, tested_at: new Date().toISOString() },
+        };
+        savePingCache(next);
+        return next;
+      });
+    }
+  };
+
+  // Ping seluruh perangkat dalam satu divisi
+  const handlePingDivision = async (divName: string, items: OfficeHardwareAsset[]) => {
+    const targets = items
+      .filter((item) => item.ip_address && item.ip_address !== "-")
+      .map((item) => ({ ip: item.ip_address!.trim(), status: item.status }));
+
+    if (targets.length === 0) return;
+
+    setIsPingingDiv((prev) => ({ ...prev, [divName]: true }));
+    setOfficePingState((prev) => {
+      const updated = { ...prev };
+      targets.forEach((t) => {
+        updated[t.ip] = { status: "TESTING" };
+      });
+      return updated;
+    });
+
+    try {
+      const res = await fetch("/api/office/ping", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targets }),
+      });
+      const json = await res.json();
+      if (json.success && json.results) {
+        setOfficePingState((prev) => {
+          const next = {
+            ...prev,
+            ...json.results,
+          };
+          savePingCache(next);
+          return next;
+        });
+      }
+    } catch {
+      setOfficePingState((prev) => {
+        const updated = { ...prev };
+        targets.forEach((t) => {
+          updated[t.ip] = { status: "OFFLINE", latency: null };
+        });
+        savePingCache(updated);
+        return updated;
+      });
+    } finally {
+      setIsPingingDiv((prev) => ({ ...prev, [divName]: false }));
+    }
+  };
+
+  // Ping seluruh perangkat pada lokasi kantor aktif (misal 47 unit Head Office)
+  const handlePingAllOffice = async () => {
+    const targets = locationOfficeList
+      .filter((item) => item.ip_address && item.ip_address !== "-")
+      .map((item) => ({ ip: item.ip_address!.trim(), status: item.status }));
+
+    if (targets.length === 0) {
+      alert("Tidak ada IP address yang terdaftar pada lokasi ini.");
+      return;
+    }
+
+    setIsPingingAll(true);
+    setPingNotification(`Memulai uji live ping ke ${targets.length} IP perangkat ${locationKey}...`);
+
+    setOfficePingState((prev) => {
+      const updated = { ...prev };
+      targets.forEach((t) => {
+        updated[t.ip] = { status: "TESTING" };
+      });
+      return updated;
+    });
+
+    try {
+      const res = await fetch("/api/office/ping", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targets }),
+      });
+      const json = await res.json();
+      if (json.success && json.results) {
+        setOfficePingState((prev) => {
+          const next = {
+            ...prev,
+            ...json.results,
+          };
+          savePingCache(next);
+          return next;
+        });
+        setPingNotification(
+          `Uji Ping Selesai: ${json.onlineCount || 0} Perangkat Online Aktif, ${json.offlineCount || 0} Standby / Offline.`
+        );
+        setTimeout(() => setPingNotification(null), 5000);
+      }
+    } catch {
+      setPingNotification("Gagal menghubungi server untuk uji ping massal.");
+      setTimeout(() => setPingNotification(null), 4000);
+    } finally {
+      setIsPingingAll(false);
+    }
+  };
+
   // Open Sticker Modal
   const handleOpenSticker = (item: OfficeHardwareAsset) => {
     const assetObj: Asset = {
@@ -800,6 +981,17 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
           </div>
 
           <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={handlePingAllOffice}
+              disabled={isPingingAll || ipCount === 0}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-2xs active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+              title={`Uji live ping serentak ke seluruh ${ipCount} IP perangkat di ${locationKey}`}
+            >
+              <Zap className={`w-3.5 h-3.5 fill-white text-white ${isPingingAll ? "animate-spin" : ""}`} />
+              <span>{isPingingAll ? "Pinging..." : `Tes Ping Semua IP (${ipCount} Unit)`}</span>
+            </button>
+
             <Link
               href="/extensions"
               className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 text-xs font-semibold rounded-xl shadow-2xs transition-all"
@@ -832,6 +1024,23 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
             </div>
           </div>
         </div>
+
+        {/* Banner Notifikasi Uji Ping */}
+        {pingNotification && (
+          <div className="px-4 py-2.5 bg-sky-50 border border-sky-200 rounded-xl flex items-center justify-between text-xs text-sky-900 font-bold shadow-2xs animate-fadeIn">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-sky-600 fill-sky-600 shrink-0 animate-pulse" />
+              <span>{pingNotification}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPingNotification(null)}
+              className="text-sky-700 hover:text-sky-950 font-black text-sm px-1.5 py-0.5 rounded cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Top Metric Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
@@ -896,7 +1105,11 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
               </>
             }
             valueClassName="text-2xl text-emerald-600 mt-0.5 font-black"
-            hint="Terkoneksi Jaringan VPN"
+            hint={
+              Object.keys(officePingState).length > 0
+                ? `${Object.values(officePingState).filter((p) => p.status === "ONLINE").length} Online • ${Object.values(officePingState).filter((p) => p.status === "OFFLINE").length} Off/Standby`
+                : "Terkoneksi Jaringan VPN"
+            }
             hintClassName="text-[10.5px] text-slate-500 mt-0.5"
             icon={Activity}
             iconWrapperClassName="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center font-bold"
@@ -1093,7 +1306,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                   <tr className="text-slate-700 font-bold text-[9.5px] tracking-tight whitespace-nowrap h-[28px]">
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center font-bold text-slate-400 bg-slate-50 border-b border-r border-slate-200/80 select-none">No</th>
                     <th className="sticky top-[84px] z-20 px-1.5 py-1 bg-slate-50 border-b border-r border-slate-200/80 select-none">Nama Pengguna</th>
-                    <th className="sticky top-[84px] z-20 px-1 py-1 text-center bg-slate-50 border-b border-r border-slate-200 select-none">IP Address</th>
+                    <th className="sticky top-[84px] z-20 px-2 py-1 text-center bg-sky-50 text-sky-950 font-black border-b border-r border-slate-200 select-none min-w-[105px]" title="Alamat IP Jaringan & Uji Live Ping">IP Address & Ping</th>
 
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none" title="Arahkan kursor (hover) untuk melihat Kode Set & rincian ID Barang di dalamnya">Kode Set</th>
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none">OS</th>
@@ -1159,8 +1372,22 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                 • {div.items.length} Unit Perangkat
                               </span>
                             </div>
-                            <div className="text-[9.5px] font-mono text-slate-400 hidden sm:inline pr-1 truncate max-w-[450px]">
-                              Pengguna: {div.items.map((i) => i.user_name).join(", ")}
+                            <div className="flex items-center gap-2">
+                              {div.items.some((i) => i.ip_address && i.ip_address !== "-") && (
+                                <button
+                                  type="button"
+                                  onClick={() => handlePingDivision(div.name, div.items)}
+                                  disabled={isPingingDiv[div.name]}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-[10px] font-bold shadow-2xs transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                  title={`Uji koneksi ping seluruh IP di Divisi ${div.name}`}
+                                >
+                                  <RefreshCw className={`w-2.5 h-2.5 ${isPingingDiv[div.name] ? "animate-spin text-sky-700" : ""}`} />
+                                  <span>{isPingingDiv[div.name] ? "Pinging..." : `Tes Ping Divisi (${div.items.filter((i) => i.ip_address && i.ip_address !== "-").length} IP)`}</span>
+                                </button>
+                              )}
+                              <div className="text-[9.5px] font-mono text-slate-400 hidden sm:inline pr-1 truncate max-w-[450px]">
+                                Pengguna: {div.items.map((i) => i.user_name).join(", ")}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -1195,26 +1422,80 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                               </div>
                             </td>
 
-                            {/* 3. IP Address */}
-                            <td className="px-1 py-1 text-center whitespace-nowrap border-r border-slate-200">
+                            {/* 3. IP Address & Live Ping */}
+                            <td className="px-1 py-1 text-center whitespace-nowrap border-r border-slate-200 bg-sky-50/10">
                               {item.ip_address && item.ip_address !== "-" ? (
-                                <div className="inline-flex items-center gap-0.5">
-                                  <span className="font-mono font-bold text-blue-700 text-[10px] tracking-tight">
-                                    {item.ip_address}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => copyToClipboard(item.ip_address!, `ip-${item.id}`)}
-                                    title="Salin IP"
-                                    className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-blue-700 p-0.5 shrink-0 transition-opacity"
-                                  >
-                                    {isCopied ? (
-                                      <Check className="w-2.5 h-2.5 text-emerald-600" />
-                                    ) : (
-                                      <Copy className="w-2.5 h-2.5" />
-                                    )}
-                                  </button>
-                                </div>
+                                (() => {
+                                  const cleanIp = item.ip_address.trim();
+                                  const ping = officePingState[cleanIp];
+                                  return (
+                                    <div className="inline-flex flex-col items-center gap-0.5">
+                                      {ping?.status === "TESTING" ? (
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
+                                          <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                                          <span>Ping...</span>
+                                        </span>
+                                      ) : ping?.status === "ONLINE" ? (
+                                        <button
+                                          type="button"
+                                          onClick={() => handlePingSingle(cleanIp, item.status)}
+                                          title={`Online (${ping.latency || 2}ms) • Klik untuk uji ulang ping`}
+                                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-[#006622] border border-emerald-200 shadow-2xs hover:bg-emerald-100 hover:border-emerald-300 transition-all cursor-pointer group active:scale-95"
+                                        >
+                                          <span className="relative flex h-1.5 w-1.5">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                                          </span>
+                                          <span>Online {ping.latency ? `(${ping.latency}ms)` : ""}</span>
+                                          <RefreshCw className="w-2 h-2 opacity-0 group-hover:opacity-100 text-emerald-600 transition-opacity ml-0.5" />
+                                        </button>
+                                      ) : ping?.status === "OFFLINE" ? (
+                                        <button
+                                          type="button"
+                                          onClick={() => handlePingSingle(cleanIp, item.status)}
+                                          title="Offline / RTO • Klik untuk coba uji ping kembali"
+                                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs hover:bg-rose-100 hover:border-rose-300 transition-all cursor-pointer group active:scale-95"
+                                        >
+                                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                          <span>Offline</span>
+                                          <RefreshCw className="w-2 h-2 opacity-0 group-hover:opacity-100 text-rose-600 transition-opacity ml-0.5" />
+                                        </button>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          onClick={() => handlePingSingle(cleanIp, item.status)}
+                                          title={`Klik untuk uji live ping ke ${cleanIp}`}
+                                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-white hover:bg-sky-50 text-sky-700 border border-sky-200 transition-all shadow-2xs hover:border-sky-300 active:scale-95 cursor-pointer"
+                                        >
+                                          <Zap className="w-2 h-2 fill-sky-600 text-sky-600" />
+                                          <span>Tes Ping</span>
+                                        </button>
+                                      )}
+                                      <div className="inline-flex items-center gap-0.5">
+                                        <button
+                                          type="button"
+                                          onClick={() => handlePingSingle(cleanIp, item.status)}
+                                          title="Klik untuk uji ping ke IP ini"
+                                          className="font-mono font-bold text-blue-700 hover:text-sky-800 text-[10px] tracking-tight cursor-pointer"
+                                        >
+                                          {cleanIp}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => copyToClipboard(cleanIp, `ip-${item.id}`)}
+                                          title="Salin IP"
+                                          className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-blue-700 p-0.5 shrink-0 transition-opacity cursor-pointer"
+                                        >
+                                          {isCopied ? (
+                                            <Check className="w-2.5 h-2.5 text-emerald-600" />
+                                          ) : (
+                                            <Copy className="w-2.5 h-2.5" />
+                                          )}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                })()
                               ) : (
                                 <span className="text-slate-300 font-mono text-[10px]">—</span>
                               )}
