@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, Suspense } from "react";
+import React, { useState, useMemo, Suspense, Fragment } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import SidebarLayout from "@/components/SidebarLayout";
@@ -721,18 +721,35 @@ function AssetComponentsContent() {
     return unifiedSets.filter((set) => {
       // Scope filter
       if (selectedScope === "HEAD_OFFICE") {
+        if (set.setCategory !== "OFFICE") return false;
         const loc = set.location.toLowerCase();
         if (!loc.includes("head") && !loc.includes("pusat")) return false;
       } else if (selectedScope === "WHS") {
+        if (set.setCategory !== "OFFICE") return false;
         const loc = set.location.toLowerCase();
         if (!loc.includes("warehouse") && !loc.includes("whs")) return false;
       } else if (selectedScope === "T2") {
+        if (set.setCategory !== "OFFICE") return false;
         const loc = set.location.toLowerCase();
         if (!loc.includes("terminal 2") && !loc.includes("t2")) return false;
       } else if (selectedScope === "T3") {
+        if (set.setCategory !== "OFFICE") return false;
         const loc = set.location.toLowerCase();
         if (!loc.includes("terminal 3") && !loc.includes("t3")) return false;
       } else if (selectedScope === "SBY") {
+        if (set.setCategory !== "OFFICE") return false;
+        const loc = set.location.toLowerCase();
+        if (!loc.includes("surabaya") && !loc.includes("sby")) return false;
+      } else if (selectedScope === "POS_T2") {
+        if (set.setCategory !== "POS") return false;
+        const loc = set.location.toLowerCase();
+        if (!loc.includes("terminal 2") && !loc.includes("t2")) return false;
+      } else if (selectedScope === "POS_T3") {
+        if (set.setCategory !== "POS") return false;
+        const loc = set.location.toLowerCase();
+        if (!loc.includes("terminal 3") && !loc.includes("t3")) return false;
+      } else if (selectedScope === "POS_SBY") {
+        if (set.setCategory !== "POS") return false;
         const loc = set.location.toLowerCase();
         if (!loc.includes("surabaya") && !loc.includes("sby")) return false;
       } else if (selectedScope === "POS") {
@@ -779,18 +796,35 @@ function AssetComponentsContent() {
     return allComponents.filter((comp) => {
       // Scope filter
       if (selectedScope === "HEAD_OFFICE") {
+        if (comp.parentType !== "OFFICE") return false;
         const loc = comp.location.toLowerCase();
         if (!loc.includes("head") && !loc.includes("pusat")) return false;
       } else if (selectedScope === "WHS") {
+        if (comp.parentType !== "OFFICE") return false;
         const loc = comp.location.toLowerCase();
         if (!loc.includes("warehouse") && !loc.includes("whs")) return false;
       } else if (selectedScope === "T2") {
+        if (comp.parentType !== "OFFICE") return false;
         const loc = comp.location.toLowerCase();
         if (!loc.includes("terminal 2") && !loc.includes("t2")) return false;
       } else if (selectedScope === "T3") {
+        if (comp.parentType !== "OFFICE") return false;
         const loc = comp.location.toLowerCase();
         if (!loc.includes("terminal 3") && !loc.includes("t3")) return false;
       } else if (selectedScope === "SBY") {
+        if (comp.parentType !== "OFFICE") return false;
+        const loc = comp.location.toLowerCase();
+        if (!loc.includes("surabaya") && !loc.includes("sby")) return false;
+      } else if (selectedScope === "POS_T2") {
+        if (comp.parentType !== "POS") return false;
+        const loc = comp.location.toLowerCase();
+        if (!loc.includes("terminal 2") && !loc.includes("t2")) return false;
+      } else if (selectedScope === "POS_T3") {
+        if (comp.parentType !== "POS") return false;
+        const loc = comp.location.toLowerCase();
+        if (!loc.includes("terminal 3") && !loc.includes("t3")) return false;
+      } else if (selectedScope === "POS_SBY") {
+        if (comp.parentType !== "POS") return false;
         const loc = comp.location.toLowerCase();
         if (!loc.includes("surabaya") && !loc.includes("sby")) return false;
       } else if (selectedScope === "POS") {
@@ -1057,32 +1091,46 @@ function AssetComponentsContent() {
             </span>
             {[
               { key: "ALL", label: "Semua Perangkat", count: unifiedSets.length },
-              { key: "HEAD_OFFICE", label: "Aset Head Office", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("head") || s.location.toLowerCase().includes("pusat")).length },
-              { key: "WHS", label: "Aset Warehouse", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("warehouse") || s.location.toLowerCase().includes("whs")).length },
-              { key: "T2", label: "Aset Terminal 2", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("terminal 2") || s.location.toLowerCase().includes("t2")).length },
-              { key: "T3", label: "Aset Terminal 3", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("terminal 3") || s.location.toLowerCase().includes("t3")).length },
-              { key: "SBY", label: "Aset Surabaya", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("surabaya") || s.location.toLowerCase().includes("sby")).length },
-              { key: "POS", label: "Kasir POS Bandara", count: unifiedSets.filter((s) => s.setCategory === "POS").length },
+              { key: "HEAD_OFFICE", label: "Aset Head Office", count: unifiedSets.filter((s) => s.setCategory === "OFFICE" && (s.location.toLowerCase().includes("head") || s.location.toLowerCase().includes("pusat"))).length },
+              { key: "WHS", label: "Aset Warehouse", count: unifiedSets.filter((s) => s.setCategory === "OFFICE" && (s.location.toLowerCase().includes("warehouse") || s.location.toLowerCase().includes("whs"))).length },
+              { key: "T2", label: "Aset Terminal 2", count: unifiedSets.filter((s) => s.setCategory === "OFFICE" && (s.location.toLowerCase().includes("terminal 2") || s.location.toLowerCase().includes("t2"))).length },
+              { key: "T3", label: "Aset Terminal 3", count: unifiedSets.filter((s) => s.setCategory === "OFFICE" && (s.location.toLowerCase().includes("terminal 3") || s.location.toLowerCase().includes("t3"))).length },
+              { key: "SBY", label: "Aset Surabaya", count: unifiedSets.filter((s) => s.setCategory === "OFFICE" && (s.location.toLowerCase().includes("surabaya") || s.location.toLowerCase().includes("sby"))).length },
+              { key: "POS_T2", label: "POS T2 JKT", count: unifiedSets.filter((s) => s.setCategory === "POS" && (s.location.toLowerCase().includes("terminal 2") || s.location.toLowerCase().includes("t2"))).length, isPos: true },
+              { key: "POS_T3", label: "POS T3 JKT", count: unifiedSets.filter((s) => s.setCategory === "POS" && (s.location.toLowerCase().includes("terminal 3") || s.location.toLowerCase().includes("t3"))).length, isPos: true },
+              { key: "POS_SBY", label: "POS SBY", count: unifiedSets.filter((s) => s.setCategory === "POS" && (s.location.toLowerCase().includes("surabaya") || s.location.toLowerCase().includes("sby"))).length, isPos: true },
             ].map((scope) => (
-              <button
-                key={scope.key}
-                type="button"
-                onClick={() => setSelectedScope(scope.key)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                  selectedScope === scope.key
-                    ? "bg-[#006622] text-white shadow-2xs"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200/80"
-                }`}
-              >
-                <span>{scope.label}</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                    selectedScope === scope.key ? "bg-[#00551c] text-white" : "bg-slate-200 text-slate-600"
+              <Fragment key={scope.key}>
+                {scope.key === "POS_T2" && (
+                  <div className="h-5 w-px bg-slate-300 mx-1 shrink-0" />
+                )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedScope(scope.key)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                    selectedScope === scope.key
+                      ? scope.isPos
+                        ? "bg-[#006622] text-white shadow-2xs"
+                        : "bg-slate-900 text-white shadow-2xs"
+                      : scope.isPos
+                      ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200/80"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200/80"
                   }`}
                 >
-                  {scope.count}
-                </span>
-              </button>
+                  <span>{scope.label}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                      selectedScope === scope.key
+                        ? "bg-black/20 text-white"
+                        : scope.isPos
+                        ? "bg-emerald-200/80 text-emerald-900 font-bold"
+                        : "bg-slate-200 text-slate-600"
+                    }`}
+                  >
+                    {scope.count}
+                  </span>
+                </button>
+              </Fragment>
             ))}
           </div>
 
