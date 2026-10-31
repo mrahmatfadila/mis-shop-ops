@@ -1150,10 +1150,9 @@ function EdcContent() {
                       key={group.key}
                       className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all overflow-hidden"
                     >
-                      {/* DF Card Header (Clickable Accordion) */}
+                      {/* DF Card Header (Area luar panah tidak dapat diklik untuk mencegah salah pencet) */}
                       <div
-                        onClick={() => toggleDfCollapse(group.key)}
-                        className="px-4 py-3 bg-gradient-to-r from-slate-50/90 via-slate-50/60 to-white border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 cursor-pointer select-none hover:bg-slate-100/50 transition-colors"
+                        className="px-4 py-3 bg-gradient-to-r from-slate-50/90 via-slate-50/60 to-white border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 select-none"
                       >
                         <div className="flex items-center gap-3">
                           <div
@@ -1233,13 +1232,18 @@ function EdcContent() {
                             )}
                           </div>
 
-                          <div className="p-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-700">
+                          <button
+                            type="button"
+                            onClick={() => toggleDfCollapse(group.key)}
+                            title={isCollapsed ? "Buka rincian meja kasir" : "Tutup rincian meja kasir"}
+                            className="p-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 shadow-2xs transition-all cursor-pointer active:scale-95 focus:outline-none"
+                          >
                             {isCollapsed ? (
                               <ChevronDown className="w-4 h-4" />
                             ) : (
                               <ChevronUp className="w-4 h-4" />
                             )}
-                          </div>
+                          </button>
                         </div>
                       </div>
 
