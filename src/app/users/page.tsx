@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense, Fragment } from "react";
+import { useEffect, useState, useRef, Suspense, Fragment } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { User, UserRole } from "@/types";
 import {
@@ -26,7 +26,11 @@ import {
   UserCheck,
   ShieldCheck,
   SlidersHorizontal,
-  Lock
+  Lock,
+  ChevronDown,
+  MapPin,
+  Globe,
+  Plane,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import AccessDenied from "@/components/AccessDenied";
@@ -192,6 +196,63 @@ const ROLE_OPTIONS: { role: UserRole; label: string; desc: string; badge: string
   },
 ];
 
+const LOCATION_OPTIONS = [
+  {
+    value: "",
+    label: "Semua Wilayah Penugasan",
+    badge: "Semua Wilayah",
+    desc: "Seluruh Toko PB, SAM & Office",
+    icon: Globe,
+    color: "text-slate-600",
+    bg: "bg-slate-100",
+  },
+  {
+    value: "Terminal 2",
+    label: "Bandara Terminal 2 (T2)",
+    badge: "Terminal 2",
+    desc: "Area Keberangkatan & Kedatangan T2",
+    icon: Plane,
+    color: "text-sky-600",
+    bg: "bg-sky-50",
+  },
+  {
+    value: "Terminal 3",
+    label: "Bandara Terminal 3 (T3)",
+    badge: "Terminal 3",
+    desc: "Area Concourse & Garbarata Gate T3",
+    icon: Plane,
+    color: "text-emerald-600",
+    bg: "bg-emerald-50",
+  },
+  {
+    value: "Plaza Bali",
+    label: "Plaza Bali (Duty Free)",
+    badge: "Plaza Bali",
+    desc: "Toko Internasional Bebas Bea",
+    icon: Store,
+    color: "text-[#006622]",
+    bg: "bg-emerald-50/70",
+  },
+  {
+    value: "SAM",
+    label: "Toko SAM (Duty Paid)",
+    badge: "Toko SAM",
+    desc: "Toko Domestik & Convenience",
+    icon: Store,
+    color: "text-amber-600",
+    bg: "bg-amber-50",
+  },
+  {
+    value: "Semua Toko",
+    label: "Semua Toko / Head Office",
+    badge: "Head Office",
+    desc: "Kantor Pusat & Lintas Lokasi",
+    icon: Building2,
+    color: "text-indigo-600",
+    bg: "bg-indigo-50",
+  },
+];
+
 function UsersContent() {
   const { user: currentUser, isAdmin } = useAuth();
 
@@ -206,6 +267,18 @@ function UsersContent() {
   const [selectedGroup, setSelectedGroup] = useState<UserGroupKey>("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
+  const [isLocDropdownOpen, setIsLocDropdownOpen] = useState(false);
+  const locDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (locDropdownRef.current && !locDropdownRef.current.contains(event.target as Node)) {
+        setIsLocDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // UI state
   const [visiblePasswords, setVisiblePasswords] = useState<Record<number, boolean>>({});
@@ -380,13 +453,37 @@ function UsersContent() {
     }
 
     if (selectedLocation) {
-      if (!u.shop_location?.toLowerCase().includes(selectedLocation.toLowerCase())) {
+      if (selectedLocation === "Terminal 2") {
+        if (!u.shop_location?.toLowerCase().includes("terminal 2") && !u.shop_location?.toLowerCase().includes("t2") && !u.role?.includes("T2")) {
+          return false;
+        }
+      } else if (selectedLocation === "Terminal 3") {
+        if (!u.shop_location?.toLowerCase().includes("terminal 3") && !u.shop_location?.toLowerCase().includes("t3") && !u.role?.includes("T3")) {
+          return false;
+        }
+      } else if (selectedLocation === "Plaza Bali") {
+        if (!u.shop_location?.toLowerCase().includes("plaza bali") && !u.role?.toLowerCase().includes("plazabali")) {
+          return false;
+        }
+      } else if (selectedLocation === "SAM") {
+        if (!u.shop_location?.toLowerCase().includes("sam") && !u.role?.toLowerCase().includes("sam")) {
+          return false;
+        }
+      } else if (selectedLocation === "Semua Toko") {
+        if (!u.shop_location?.toLowerCase().includes("semua toko") && u.role !== "ADMIN" && u.role !== "MIS" && u.role !== "MANAGER" && u.role !== "IT_PROCUREMENT") {
+          return false;
+        }
+      } else if (!u.shop_location?.toLowerCase().includes(selectedLocation.toLowerCase())) {
         return false;
       }
     }
 
     return true;
   });
+
+  const currentLocOption =
+    LOCATION_OPTIONS.find((opt) => opt.value === selectedLocation) || LOCATION_OPTIONS[0];
+  const CurrentLocIcon = currentLocOption.icon;
 
   const getRoleBadgeStyle = (role: UserRole) => {
     const opt = ROLE_OPTIONS.find((r) => r.role === role);
@@ -648,18 +745,96 @@ function UsersContent() {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <select
-                value={selectedLocation}
-                onChange={(e) => setSelectedLocation(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-purple-500/20"
-              >
-                <option value="">Semua Wilayah Penugasan</option>
-                <option value="Terminal 2">Bandara Terminal 2 (T2)</option>
-                <option value="Terminal 3">Bandara Terminal 3 (T3)</option>
-                <option value="Plaza Bali">Plaza Bali</option>
-                <option value="SAM">Toko SAM</option>
-                <option value="Semua Toko">Semua Toko / Head Office</option>
-              </select>
+              {/* Custom Modern Dropdown Wilayah Penugasan */}
+              <div className="relative" ref={locDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsLocDropdownOpen(!isLocDropdownOpen)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 border shadow-2xs cursor-pointer select-none ${
+                    selectedLocation
+                      ? "bg-purple-50 border-purple-300 text-purple-950 ring-2 ring-purple-500/20"
+                      : "bg-slate-50 hover:bg-slate-100/90 border-slate-200 text-slate-700 hover:border-slate-300"
+                  }`}
+                  title="Filter Berdasarkan Wilayah Penugasan"
+                >
+                  <div
+                    className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${currentLocOption.bg} ${currentLocOption.color}`}
+                  >
+                    <CurrentLocIcon className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="font-bold tracking-tight">{currentLocOption.label}</span>
+                  {selectedLocation && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
+                  )}
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ml-0.5 ${
+                      isLocDropdownOpen ? "rotate-180 text-purple-600" : ""
+                    }`}
+                  />
+                </button>
+
+                {isLocDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <MapPin className="w-3 h-3 text-purple-600" />
+                        Pilih Wilayah Penugasan
+                      </span>
+                      {selectedLocation && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedLocation("");
+                            setIsLocDropdownOpen(false);
+                          }}
+                          className="text-[10px] font-bold text-rose-600 hover:underline cursor-pointer"
+                        >
+                          Reset
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="py-1 space-y-0.5">
+                      {LOCATION_OPTIONS.map((opt) => {
+                        const isSelected = selectedLocation === opt.value;
+                        const IconComp = opt.icon;
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                              setSelectedLocation(opt.value);
+                              setIsLocDropdownOpen(false);
+                            }}
+                            className={`w-full px-2.5 py-2 rounded-xl text-left transition-all flex items-center gap-2.5 group cursor-pointer ${
+                              isSelected
+                                ? "bg-purple-100/80 text-purple-950 font-bold"
+                                : "hover:bg-slate-100/90 text-slate-700"
+                            }`}
+                          >
+                            <div
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                                isSelected
+                                  ? "bg-purple-600 text-white shadow-xs"
+                                  : `${opt.bg} ${opt.color} group-hover:scale-105`
+                              }`}
+                            >
+                              <IconComp className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-black tracking-tight truncate">{opt.label}</p>
+                              <p className="text-[10px] text-slate-400 truncate">{opt.desc}</p>
+                            </div>
+                            {isSelected && (
+                              <Check className="w-4 h-4 text-purple-700 shrink-0 ml-1" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {(searchTerm || selectedGroup !== "ALL" || selectedLocation) && (
                 <button
