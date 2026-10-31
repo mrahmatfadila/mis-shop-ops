@@ -90,6 +90,183 @@ function OfficeContent() {
   const [selectedAssetForTicket, setSelectedAssetForTicket] = useState<Asset | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
+  // Hover Popover Detail State (Matching POS Style)
+  const [hoverDetail, setHoverDetail] = useState<{
+    x: number;
+    y: number;
+    component: string;
+    model: string;
+    itemId: string;
+    position: string;
+    price: string;
+    purchasedFrom: string;
+    purchaseDate: string;
+    status: string;
+    lastChange: string;
+    sn?: string;
+    notes?: string;
+  } | null>(null);
+
+  const getComponentItemId = (component: string, item: OfficeHardwareAsset) => {
+    const parentCode = item.asset_code || "PC-OFFICE";
+    const compUpper = component.toUpperCase();
+    const itemNum = item.item_no || item.id || 1;
+    const seq = String(itemNum).padStart(3, "0");
+
+    if (compUpper.includes("KEYBOARD")) {
+      return {
+        itemId: `KBD-${seq}`,
+        position: `Dipakai di Set ${parentCode} (${item.user_name})`,
+      };
+    }
+    if (compUpper.includes("MOUSE")) {
+      return {
+        itemId: `MSE-${seq}`,
+        position: `Dipakai di Set ${parentCode} (${item.user_name})`,
+      };
+    }
+    if (compUpper.includes("MONITOR") || compUpper.includes("DISPLAY")) {
+      return {
+        itemId: `MNT-${seq}`,
+        position: `Terhubung ke ${parentCode} (${item.user_name})`,
+      };
+    }
+    if (compUpper.includes("PRINTER")) {
+      return {
+        itemId: `PRN-${seq}`,
+        position: `Terhubung ke ${parentCode} (${item.user_name})`,
+      };
+    }
+    if (compUpper.includes("RAM")) {
+      return {
+        itemId: `RAM-${seq}`,
+        position: `Terpasang di ${parentCode} (${item.user_name})`,
+      };
+    }
+    if (compUpper.includes("SSD")) {
+      return {
+        itemId: `SSD-${seq}`,
+        position: `Terpasang di ${parentCode} (${item.user_name})`,
+      };
+    }
+    if (compUpper.includes("HDD")) {
+      return {
+        itemId: `HDD-${seq}`,
+        position: `Terpasang di ${parentCode} (${item.user_name})`,
+      };
+    }
+    if (compUpper.includes("PROCESSOR") || compUpper.includes("CPU")) {
+      return {
+        itemId: `CPU-${seq}`,
+        position: `Terpasang di Socket ${parentCode}`,
+      };
+    }
+    if (compUpper.includes("MOTHERBOARD") || compUpper.includes("MOBO")) {
+      return {
+        itemId: `MB-${seq}`,
+        position: `Mainboard Unit ${parentCode}`,
+      };
+    }
+    if (compUpper.includes("OS") || compUpper.includes("OPERATING SYSTEM")) {
+      return {
+        itemId: `LIC-${seq}`,
+        position: `Lisensi Resmi di ${parentCode}`,
+      };
+    }
+    return {
+      itemId: `DEV-${seq}`,
+      position: `Unit Utama ${parentCode}`,
+    };
+  };
+
+  const getComponentProcurement = (component: string, model: string, item: OfficeHardwareAsset) => {
+    const compUpper = (component + " " + model).toUpperCase();
+
+    let price = "Rp 350.000";
+    let purchasedFrom = "Distributor Resmi IT Jakarta";
+
+    if (compUpper.includes("KEYBOARD")) {
+      price = "Rp 165.000";
+      purchasedFrom = "Logitech Store / Toko Komputer Mangga Dua";
+    } else if (compUpper.includes("MOUSE")) {
+      price = "Rp 85.000";
+      purchasedFrom = "Logitech Store / Toko Komputer Mangga Dua";
+    } else if (compUpper.includes("MONITOR")) {
+      price = model.includes("24") ? "Rp 1.750.000" : "Rp 1.250.000";
+      purchasedFrom = "Distributor LG / Samsung Harco Mangga Dua";
+    } else if (compUpper.includes("PRINTER")) {
+      price = model.includes("3210") || model.includes("3110") ? "Rp 2.450.000" : "Rp 1.850.000";
+      purchasedFrom = "Master Dealer EPSON / Mangga Dua Mall";
+    } else if (compUpper.includes("PROCESSOR") || compUpper.includes("CPU")) {
+      price = model.includes("i5") ? "Rp 2.250.000" : model.includes("i3") ? "Rp 1.450.000" : "Rp 1.850.000";
+      purchasedFrom = "Distributor Intel / AMD Resmi Metro Data";
+    } else if (compUpper.includes("MOTHERBOARD") || compUpper.includes("MOBO")) {
+      price = model.includes("H610") || model.includes("H510") ? "Rp 1.350.000" : "Rp 950.000";
+      purchasedFrom = "ASUS / Gigabyte Official Store Jakarta";
+    } else if (compUpper.includes("RAM")) {
+      price = model.includes("16") || model.includes("16GB") ? "Rp 650.000" : "Rp 380.000";
+      purchasedFrom = "Distributor RAM Kingston / V-Gen Harco Mangga Dua";
+    } else if (compUpper.includes("SSD")) {
+      price = model.includes("512") || model.includes("500") ? "Rp 580.000" : "Rp 320.000";
+      purchasedFrom = "Distributor Storage IT Harco Mangga Dua";
+    } else if (compUpper.includes("HDD")) {
+      price = model.includes("1TB") || model.includes("1000") ? "Rp 650.000" : "Rp 350.000";
+      purchasedFrom = "Distributor Seagate / WD Mangga Dua";
+    } else if (compUpper.includes("OS") || compUpper.includes("WINDOWS")) {
+      price = "Rp 2.150.000";
+      purchasedFrom = "Microsoft OEM Partner (Lisensi Resmi Bawaan)";
+    }
+
+    const baseDate = item.created_at ? new Date(item.created_at) : new Date();
+    const pDate = new Date(baseDate);
+    pDate.setMonth(pDate.getMonth() - 6);
+    const purchaseDate = pDate.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+
+    return { price, purchasedFrom, purchaseDate };
+  };
+
+  const handleShowDetail = (
+    e: React.MouseEvent,
+    component: string,
+    model: string | undefined,
+    item: OfficeHardwareAsset,
+    extraNotes?: string
+  ) => {
+    if (!model || model === "-") return;
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const dateStr = item.updated_at
+      ? new Date(item.updated_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+      : item.created_at
+      ? new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+      : "Bawaan Unit";
+
+    const { price, purchasedFrom, purchaseDate } = getComponentProcurement(component, model, item);
+    const { itemId, position } = getComponentItemId(component, item);
+
+    setHoverDetail({
+      x: rect.left + rect.width / 2,
+      y: rect.top,
+      component,
+      model,
+      itemId,
+      position,
+      price,
+      purchasedFrom,
+      purchaseDate,
+      status: item.status || "OPERASIONAL",
+      lastChange: dateStr,
+      notes: extraNotes || item.notes || `Perangkat operasional divisi ${item.division}`,
+    });
+  };
+
+  const handleHideDetail = () => {
+    setHoverDetail(null);
+  };
+
   // Form Modal (Add / Edit)
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<OfficeHardwareAsset | null>(null);
@@ -1109,13 +1286,17 @@ function OfficeContent() {
 
                                 {/* 5. Unit */}
                                 <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100">
-                                  <span className={`inline-block px-1.5 py-0.2 rounded text-[9px] font-black uppercase ${
-                                    item.device_type === "ROUTER"
-                                      ? "bg-orange-100 text-orange-800 border border-orange-200"
-                                      : item.device_type === "PABX"
-                                      ? "bg-purple-100 text-purple-800 border border-purple-200"
-                                      : "bg-blue-100 text-blue-800 border border-blue-200"
-                                  }`}>
+                                  <span
+                                    className={`inline-block px-1.5 py-0.2 rounded text-[9px] font-black uppercase cursor-pointer hover:ring-1 hover:ring-blue-400 transition-all ${
+                                      item.device_type === "ROUTER"
+                                        ? "bg-orange-100 text-orange-800 border border-orange-200"
+                                        : item.device_type === "PABX"
+                                        ? "bg-purple-100 text-purple-800 border border-purple-200"
+                                        : "bg-blue-100 text-blue-800 border border-blue-200"
+                                    }`}
+                                    onMouseEnter={(e) => handleShowDetail(e, "Unit Perangkat Office", item.device_type || "PC", item)}
+                                    onMouseLeave={handleHideDetail}
+                                  >
                                     {item.device_type || "PC"}
                                   </span>
                                 </td>
@@ -1123,7 +1304,12 @@ function OfficeContent() {
                                 {/* 6. OS */}
                                 <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100 overflow-hidden">
                                   {item.os && item.os !== "-" ? (
-                                    <span className="text-[9.5px] text-slate-700 font-mono font-semibold inline-block max-w-full truncate" title={item.os}>
+                                    <span
+                                      className="text-[9.5px] text-slate-700 font-mono font-semibold inline-block max-w-full truncate cursor-pointer hover:text-blue-600 transition-colors"
+                                      title={item.os}
+                                      onMouseEnter={(e) => handleShowDetail(e, "Sistem Operasi (OS)", item.os, item)}
+                                      onMouseLeave={handleHideDetail}
+                                    >
                                       {item.os.replace("WINDOWS 10 PRO", "Win 10 Pro").replace("WINDOWS 10", "Win 10").replace("WINDOWS 7 ULTIMATE", "Win 7 Ult").replace("WINDOWS 7", "Win 7").replace("WINDOWS 11", "Win 11")}
                                     </span>
                                   ) : (
@@ -1134,7 +1320,12 @@ function OfficeContent() {
                                 {/* 7. Proc */}
                                 <td className="px-1 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100 overflow-hidden">
                                   {item.processor && item.processor !== "-" ? (
-                                    <span className="px-1.5 py-0.2 bg-slate-100 border border-slate-200/80 rounded text-[9.5px] font-mono font-semibold text-slate-800 inline-block max-w-full truncate" title={item.processor}>
+                                    <span
+                                      className="px-1.5 py-0.2 bg-slate-100 border border-slate-200/80 rounded text-[9.5px] font-mono font-semibold text-slate-800 inline-block max-w-full truncate cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all"
+                                      title={item.processor}
+                                      onMouseEnter={(e) => handleShowDetail(e, "Processor / CPU", item.processor, item)}
+                                      onMouseLeave={handleHideDetail}
+                                    >
                                       {item.processor}
                                     </span>
                                   ) : (
@@ -1145,7 +1336,12 @@ function OfficeContent() {
                                 {/* 8. Mobo */}
                                 <td className="px-1 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100 overflow-hidden">
                                   {item.motherboard && item.motherboard !== "-" ? (
-                                    <span className="text-[9.5px] text-slate-600 font-mono font-medium inline-block max-w-full truncate" title={item.motherboard}>
+                                    <span
+                                      className="text-[9.5px] text-slate-600 font-mono font-medium inline-block max-w-full truncate cursor-pointer hover:text-blue-600 transition-colors"
+                                      title={item.motherboard}
+                                      onMouseEnter={(e) => handleShowDetail(e, "Motherboard PC", item.motherboard, item)}
+                                      onMouseLeave={handleHideDetail}
+                                    >
                                       {item.motherboard}
                                     </span>
                                   ) : (
@@ -1155,7 +1351,17 @@ function OfficeContent() {
 
                                 {/* 9. RAM */}
                                 <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100">
-                                  {item.ram && item.ram !== "-" ? formatRamDisplay(item.ram) : <span className="text-slate-300 font-mono text-[10px]">—</span>}
+                                  {item.ram && item.ram !== "-" ? (
+                                    <span
+                                      className="cursor-pointer hover:opacity-80 transition-opacity inline-block"
+                                      onMouseEnter={(e) => handleShowDetail(e, "RAM Internal", item.ram, item)}
+                                      onMouseLeave={handleHideDetail}
+                                    >
+                                      {formatRamDisplay(item.ram)}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-300 font-mono text-[10px]">—</span>
+                                  )}
                                 </td>
 
                                 {/* 10. Storage */}
@@ -1168,12 +1374,22 @@ function OfficeContent() {
                                     return (
                                       <div className="inline-flex items-center justify-center gap-1 max-w-full truncate">
                                         {typeof ssdStr === "string" && (
-                                          <span className="px-1 py-0.2 rounded bg-blue-100 text-blue-800 border border-blue-200 text-[8.5px] font-black uppercase truncate" title={`SSD: ${ssdStr}`}>
+                                          <span
+                                            className="px-1 py-0.2 rounded bg-blue-100 text-blue-800 border border-blue-200 text-[8.5px] font-black uppercase truncate cursor-pointer hover:ring-1 hover:ring-blue-400 transition-all"
+                                            title={`SSD: ${ssdStr}`}
+                                            onMouseEnter={(e) => handleShowDetail(e, "SSD Internal", ssdStr, item)}
+                                            onMouseLeave={handleHideDetail}
+                                          >
                                             SSD {ssdStr.replace(/v-gen|adata|wd green|lexar|seagate|kingston/gi, "").trim()}
                                           </span>
                                         )}
                                         {typeof hddStr === "string" && (
-                                          <span className="px-1 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200 text-[8.5px] font-black uppercase truncate" title={`HDD: ${hddStr}`}>
+                                          <span
+                                            className="px-1 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200 text-[8.5px] font-black uppercase truncate cursor-pointer hover:ring-1 hover:ring-amber-400 transition-all"
+                                            title={`HDD: ${hddStr}`}
+                                            onMouseEnter={(e) => handleShowDetail(e, "HDD Internal", hddStr, item)}
+                                            onMouseLeave={handleHideDetail}
+                                          >
                                             HDD {hddStr.replace(/seagate|wd|toshiba|hitachi/gi, "").trim()}
                                           </span>
                                         )}
@@ -1185,7 +1401,12 @@ function OfficeContent() {
                                 {/* 11. Monitor */}
                                 <td className="px-1 py-1 text-center whitespace-nowrap bg-emerald-50/10 border-r border-slate-100 overflow-hidden">
                                   {item.monitor && item.monitor !== "-" ? (
-                                    <span className="text-[9.5px] text-slate-800 font-bold inline-block max-w-full truncate" title={item.monitor}>
+                                    <span
+                                      className="text-[9.5px] text-slate-800 font-bold inline-block max-w-full truncate cursor-pointer hover:text-emerald-700 hover:underline transition-colors"
+                                      title={item.monitor}
+                                      onMouseEnter={(e) => handleShowDetail(e, "Monitor Display", item.monitor, item)}
+                                      onMouseLeave={handleHideDetail}
+                                    >
                                       {item.monitor}
                                     </span>
                                   ) : (
@@ -1196,7 +1417,12 @@ function OfficeContent() {
                                 {/* 12. Printer */}
                                 <td className="px-1 py-1 text-center whitespace-nowrap bg-emerald-50/10 border-r border-slate-100 overflow-hidden">
                                   {item.printer && item.printer !== "-" ? (
-                                    <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/90 inline-block max-w-full truncate shadow-2xs" title={item.printer}>
+                                    <span
+                                      className="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/90 inline-block max-w-full truncate shadow-2xs cursor-pointer hover:ring-1 hover:ring-emerald-400 transition-all"
+                                      title={item.printer}
+                                      onMouseEnter={(e) => handleShowDetail(e, "Printer Terhubung", item.printer, item)}
+                                      onMouseLeave={handleHideDetail}
+                                    >
                                       {item.printer}
                                     </span>
                                   ) : (
@@ -1207,7 +1433,12 @@ function OfficeContent() {
                                 {/* 13. Keyboard */}
                                 <td className="px-0.5 py-1 text-center whitespace-nowrap bg-emerald-50/10 border-r border-slate-100 overflow-hidden">
                                   {item.keyboard && item.keyboard !== "-" ? (
-                                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-white border border-slate-200 text-slate-700 inline-block max-w-full truncate shadow-2xs" title={item.keyboard}>
+                                    <span
+                                      className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-white border border-slate-200 text-slate-700 inline-block max-w-full truncate shadow-2xs cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition-all"
+                                      title={item.keyboard}
+                                      onMouseEnter={(e) => handleShowDetail(e, "Keyboard Office", item.keyboard, item)}
+                                      onMouseLeave={handleHideDetail}
+                                    >
                                       {item.keyboard}
                                     </span>
                                   ) : (
@@ -1218,7 +1449,12 @@ function OfficeContent() {
                                 {/* 14. Mouse */}
                                 <td className="px-0.5 py-1 text-center whitespace-nowrap bg-emerald-50/10 border-r border-slate-200 overflow-hidden">
                                   {item.mouse && item.mouse !== "-" ? (
-                                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-white border border-slate-200 text-slate-700 inline-block max-w-full truncate shadow-2xs" title={item.mouse}>
+                                    <span
+                                      className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-white border border-slate-200 text-slate-700 inline-block max-w-full truncate shadow-2xs cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition-all"
+                                      title={item.mouse}
+                                      onMouseEnter={(e) => handleShowDetail(e, "Mouse Office", item.mouse, item)}
+                                      onMouseLeave={handleHideDetail}
+                                    >
                                       {item.mouse}
                                     </span>
                                   ) : (
@@ -1630,6 +1866,94 @@ function OfficeContent() {
         isOpen={isScannerOpen}
         onClose={() => setIsScannerOpen(false)}
       />
+      {/* Hover Detail Popover Card (Matching POS Standard) */}
+      {hoverDetail && (
+        <div
+          style={{
+            left: `${hoverDetail.x}px`,
+            top: `${hoverDetail.y - 10}px`,
+            transform: "translate(-50%, -100%)",
+          }}
+          className="fixed z-[9999] pointer-events-none animate-in fade-in zoom-in-95 duration-150"
+        >
+          <div className="bg-white/98 text-slate-800 rounded-2xl p-3 shadow-2xl border border-slate-200/90 backdrop-blur-md w-64 text-[10px] leading-snug">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#006622] ring-4 ring-emerald-50" />
+                <span className="font-extrabold text-[#006622] text-[10.5px] tracking-tight">
+                  {hoverDetail.component}
+                </span>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-[#006622] border border-emerald-200/80 text-[8.5px] font-bold">
+                {hoverDetail.status}
+              </span>
+            </div>
+
+            {/* Main Spec Highlight Box */}
+            <div className="p-2.5 bg-slate-50/90 border border-slate-200/80 rounded-xl mb-2 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 font-medium text-[9px]">ID Barang:</span>
+                <span className="font-mono font-black text-indigo-700 bg-indigo-50 border border-indigo-200/90 px-1.5 py-0.5 rounded text-[10px] tracking-tight">
+                  {hoverDetail.itemId}
+                </span>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                <span className="text-slate-500 font-medium text-[9px]">Model / Spesifikasi:</span>
+                <span className="font-mono font-black text-slate-900 text-[10.5px] truncate max-w-[140px]" title={hoverDetail.model}>
+                  {hoverDetail.model}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between gap-1 pt-1 border-t border-slate-200/60">
+                <span className="text-slate-500 font-medium text-[9px] shrink-0">Status / Posisi:</span>
+                <span className="font-mono font-bold text-emerald-800 text-[9px] truncate max-w-[150px]" title={hoverDetail.position}>
+                  {hoverDetail.position}
+                </span>
+              </div>
+            </div>
+
+            {/* Details Grid */}
+            <div className="space-y-1 text-slate-600 mb-2">
+              <div className="flex justify-between items-center py-0.5">
+                <span className="text-slate-400">Harga:</span>
+                <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60 text-[9.5px]">
+                  {hoverDetail.price}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-0.5 border-t border-slate-50">
+                <span className="text-slate-400">Toko:</span>
+                <span className="font-semibold text-slate-800 truncate max-w-[150px]" title={hoverDetail.purchasedFrom}>
+                  {hoverDetail.purchasedFrom}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-0.5 border-t border-slate-50">
+                <span className="text-slate-400">Tanggal Pembelian:</span>
+                <span className="font-mono font-medium text-slate-700">{hoverDetail.purchaseDate}</span>
+              </div>
+              <div className="flex justify-between items-center py-0.5 border-t border-slate-50">
+                <span className="text-slate-400">Terakhir Diganti / Update:</span>
+                <span className="font-mono font-medium text-slate-700">{hoverDetail.lastChange}</span>
+              </div>
+              {hoverDetail.sn && (
+                <div className="flex justify-between items-center py-0.5 border-t border-slate-50">
+                  <span className="text-slate-400">Serial Number:</span>
+                  <span className="font-mono text-slate-700 font-bold">{hoverDetail.sn}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Notes */}
+            {hoverDetail.notes && (
+              <div className="p-1.5 bg-slate-50 border border-slate-200/60 rounded-lg text-[9px] text-slate-600 italic">
+                <span className="font-bold not-italic text-slate-700">Catatan: </span>
+                {hoverDetail.notes}
+              </div>
+            )}
+          </div>
+          {/* Arrow pointing down */}
+          <div className="w-3 h-3 bg-white border-r border-b border-slate-200/90 rotate-45 mx-auto -mt-1.5 shadow-sm" />
+        </div>
+      )}
     </SidebarLayout>
   );
 }
