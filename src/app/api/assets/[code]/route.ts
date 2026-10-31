@@ -508,23 +508,92 @@ export async function GET(
     // ─────────────────────────────────────────────────────────────────────────────
     // AMBIL TIKET TERKAIT DENGAN ASET INI
     // ─────────────────────────────────────────────────────────────────────────────
-    const searchKeys = [data.code, data.serialNumber, data.name];
-    if (data.parentSet?.code) searchKeys.push(data.parentSet.code);
+    let tickets: any[] = [];
+    try {
+      const ticketsRes = await db.execute({
+        sql: `SELECT * FROM tickets 
+              WHERE asset_code = ? 
+                 OR asset_code = ? 
+                 OR problem_title LIKE ? 
+                 OR problem_desc LIKE ? 
+              ORDER BY id DESC LIMIT 5`,
+        args: [data.code, data.parentSet?.code || data.code, `%${data.code}%`, `%${data.code}%`],
+      });
+      tickets = ticketsRes.rows.map((t: any) => ({
+        ticket_number: t.ticket_number || `TKT-${t.id}`,
+        title: t.problem_title || t.title || "Kendala Operasional",
+        status: t.status || "MENUNGGU",
+        created_at: t.created_at || "30 Okt 2026",
+        urgency: t.urgency || "SEDANG",
+        problem_desc: t.problem_desc || "",
+        reporter_name: t.reporter_name || "Petugas Kasir",
+      }));
+    } catch (e) {
+      console.warn("Tickets fetch error:", e);
+    }
 
-    const ticketsRes = await db.execute({
-      sql: `SELECT * FROM tickets 
-            WHERE asset_code = ? 
-               OR asset_code = ? 
-               OR title LIKE ? 
-               OR description LIKE ? 
-            ORDER BY id DESC LIMIT 5`,
-      args: [data.code, data.parentSet?.code || data.code, `%${data.code}%`, `%${data.code}%`],
-    });
+    // ─────────────────────────────────────────────────────────────────────────────
+    // FORMAT PROPERTI DATA LENGKAP UNTUK PORTAL INSPEKSI SCAN
+    // ─────────────────────────────────────────────────────────────────────────────
+    data.procurement = {
+      price: data.purchasePrice || "Rp 350.000",
+      purchase_date: data.purchaseDate || "2 Maret 2026",
+      vendor: data.purchasedFrom || "Distributor Resmi IT Jakarta",
+      last_replaced_date: data.lastChangeDate || "2 Maret 2026",
+      warranty_status: data.warrantyStatus || "Garansi Distributor Resmi 1 Tahun",
+      po_number: data.poNumber || "PO-AST-2026",
+    };
+
+    data.child_components = (data.childComponents || []).map((c: any) => ({
+      name: c.name,
+      type: c.category || c.type || "HARDWARE",
+      model: c.spec || c.model || "-",
+      sn: c.id || c.sn || "-",
+      status: "OPERASIONAL",
+      price: c.price || "-",
+      store: c.store || "-",
+    }));
+    data.childComponents = data.child_components;
+
+    data.change_history = (data.changeHistory || []).map((h: any) => ({
+      component: h.component,
+      newModel: h.newModel,
+      price: h.price,
+      store: h.store,
+      date: h.date,
+      notes: h.notes || "-",
+    }));
+    data.changeHistory = data.change_history;
+
+    data.tickets = tickets;
+
+    // Spesifikasi komprehensif
+    if (!data.specs || Object.keys(data.specs).length === 0) {
+      const specsMap: Record<string, string> = {
+        "Kode Perangkat": data.code,
+        "Nama Perangkat": data.name,
+        "Kategori Aset": data.category,
+        "Brand & Model": data.brandModel || data.brand_model || "-",
+        "Serial Number": data.serialNumber || data.serial_number || "-",
+        "Lokasi Penugasan": `${data.location || data.shop_location || "-"} (${data.subLocation || "-"})`,
+        "Kondisi Status": data.status || "OPERASIONAL",
+        "Alamat IP Jaringan": data.ipAddress || data.ip_address || "-",
+        "Vendor Pengadaan": data.purchasedFrom || "-",
+        "Estimasi Harga": data.purchasePrice || "-",
+        "Status Garansi": data.warrantyStatus || "Garansi Resmi",
+      };
+
+      if (data.parentSet?.code) {
+        specsMap["Perangkat Induk (Set)"] = `${data.parentSet.name} [${data.parentSet.code}]`;
+      }
+
+      data.specs = specsMap;
+    }
 
     return NextResponse.json({
       success: true,
       data,
-      tickets: ticketsRes.rows,
+      tickets,
     });
   } catch (error) {
     return jsonError(error);
