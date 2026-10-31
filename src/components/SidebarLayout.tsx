@@ -41,7 +41,8 @@ import {
   User,
   Users,
   BookOpen,
-  Boxes
+  Boxes,
+  Network
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types";
@@ -324,6 +325,15 @@ export default function SidebarLayout({
           icon: Boxes,
           badge: "Set & ID",
           badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200/60",
+          requiresMIS: true,
+        },
+        {
+          href: "/network",
+          label: "Data Jaringan",
+          sub: "Router, Switch & AP Toko",
+          icon: Network,
+          badge: stats?.networkCount !== undefined ? `${stats.networkCount}` : "17",
+          badgeColor: "bg-slate-100 text-slate-600 border-slate-200/60",
           requiresMIS: true,
         },
         {

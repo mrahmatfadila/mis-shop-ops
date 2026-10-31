@@ -15,6 +15,7 @@ const SYSTEM_MENUS: MenuItemDef[] = [
   { key: "dashboard", label: "Dashboard Kontrol", href: "/dashboard", group: "Ringkasan", description: "Ringkasan KPI, metrik aset live, dan statistik sistem" },
   { key: "assets", label: "Kasir POS", href: "/assets", group: "Master Aset", description: "Master hardware POS, spesifikasi PC kasir & AnyDesk remote" },
   { key: "pos-topology", label: "Topologi Kasir", href: "/pos-topology", group: "Master Aset", description: "Denah tata letak dan detail 1 set POS Terminal Bandara" },
+  { key: "network", label: "Data Jaringan", href: "/network", group: "Master Aset", description: "Router Gateway, Switch Hub, Access Point Wi-Fi & Infrastruktur Network Toko" },
   { key: "edc", label: "Mesin EDC Bank", href: "/edc", group: "Master Aset", description: "Inventaris mesin EDC BCA, Mandiri, BRI & BNI" },
   { key: "office", label: "PC Office & WHS", href: "/office", group: "Master Aset", description: "PC & Printer kantor pusat, cabang, serta gudang warehouse" },
   { key: "t3-assets", label: "Aset Tetap T3", href: "/t3-assets", group: "Master Aset", description: "Inventaris aset tetap Terminal 3 (DF1 s/d DF7)" },

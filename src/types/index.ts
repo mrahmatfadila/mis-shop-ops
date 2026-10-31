@@ -46,6 +46,31 @@ export interface Asset {
   updated_at?: string;
 }
 
+export type NetworkDeviceType = 'ROUTER' | 'SWITCH' | 'ACCESS_POINT' | 'MODEM' | 'FIREWALL' | 'OTHER';
+
+export interface NetworkAsset {
+  id?: number;
+  asset_code: string;
+  name: string;
+  device_type: NetworkDeviceType;
+  brand_model: string;
+  serial_number: string;
+  mac_address?: string;
+  ip_address?: string;
+  subnet_mask?: string;
+  gateway?: string;
+  vlan?: string;
+  port_count?: string;
+  location: string;
+  counter_zone?: string;
+  firmware_version?: string;
+  status: 'OPERASIONAL' | 'CADANGAN' | 'PERBAIKAN' | 'RUSAK';
+  purchase_date?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Ticket {
   id?: number;
   ticket_number: string;

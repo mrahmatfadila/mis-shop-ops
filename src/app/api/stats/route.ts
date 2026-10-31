@@ -26,6 +26,7 @@ export async function GET() {
       extensionsRes,
       purchasesRes,
       knowledgeRes,
+      networkCountRes,
     ] = await Promise.all([
       db.execute("SELECT COUNT(*) as c FROM assets"),
       db.execute("SELECT COUNT(*) as c FROM assets WHERE status = 'OPERASIONAL'"),
@@ -44,6 +45,7 @@ export async function GET() {
       db.execute("SELECT COUNT(*) as c FROM phone_extensions"),
       db.execute("SELECT COUNT(*) as c FROM purchases"),
       db.execute("SELECT COUNT(*) as c FROM knowledge_base WHERE is_published = 1"),
+      db.execute("SELECT COUNT(*) as c FROM network_assets"),
     ]);
 
     let officeHeadOfficeCount = 0;
@@ -94,6 +96,7 @@ export async function GET() {
         extensionCount: Number(extensionsRes.rows[0].c),
         purchaseCount: Number(purchasesRes.rows[0].c),
         knowledgeCount: Number(knowledgeRes.rows[0].c),
+        networkCount: Number(networkCountRes.rows[0]?.c || 0),
       },
     });
   } catch (error) {

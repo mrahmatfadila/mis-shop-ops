@@ -38,7 +38,8 @@ import {
   X,
   Store,
   CheckCheck,
-  BookOpen
+  BookOpen,
+  Network
 } from "lucide-react";
 import { UserRole } from "@/types";
 
@@ -60,6 +61,7 @@ const MENU_ICONS: Record<string, any> = {
   dashboard: LayoutDashboard,
   assets: Laptop,
   "pos-topology": Map,
+  network: Network,
   edc: CreditCard,
   office: Building2,
   "t3-assets": Layers,
