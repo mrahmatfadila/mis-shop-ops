@@ -1106,14 +1106,14 @@ function PurchasesContent() {
         </div>
 
         {/* 4. Total Pipeline Funnel Cards (Company-Wide Distribution Filter) */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm overflow-x-auto">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5">
             <div>
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-emerald-100 text-[#006622] font-black text-[11px]">
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-100 text-[#006622] font-black text-xs shadow-2xs">
                   Σ
                 </span>
-                <p className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                <p className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider">
                   Distribusi Total Pipeline Pengadaan (Klik Tahap Untuk Filter)
                 </p>
               </div>
@@ -1125,120 +1125,123 @@ function PurchasesContent() {
               <button
                 type="button"
                 onClick={() => setSelectedStatus("")}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-all self-start sm:self-auto cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-950 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 shadow-2xs transition-all self-start sm:self-auto cursor-pointer"
               >
                 <span>Hapus Filter ({selectedStatus})</span>
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
-          <div className="flex items-center justify-between min-w-[760px] gap-2">
-            {[
-              {
-                step: 1,
-                statusCode: "PENGAJUAN",
-                title: "1. Pengajuan",
-                role: "MIS OPS",
-                count: stats.pendingManager,
-                activeTheme: "bg-amber-50/70 border-amber-300 hover:bg-amber-100/70",
-                badgeActive: "bg-amber-500 text-white",
-                stepColor: "text-amber-700 font-bold",
-              },
-              {
-                step: 2,
-                statusCode: "DISETUJUI_MANAGER",
-                title: "2. Disetujui",
-                role: "MIS Manager",
-                count: stats.readyCapex,
-                activeTheme: "bg-blue-50/70 border-blue-300 hover:bg-blue-100/70",
-                badgeActive: "bg-blue-600 text-white",
-                stepColor: "text-blue-700 font-bold",
-              },
-              {
-                step: 3,
-                statusCode: "PROSES_ORDER",
-                title: "3. CAPEX & Order",
-                role: "MIS Proc",
-                count: stats.inOrder,
-                activeTheme: "bg-purple-50/70 border-purple-300 hover:bg-purple-100/70",
-                badgeActive: "bg-purple-600 text-white",
-                stepColor: "text-purple-700 font-bold",
-              },
-              {
-                step: 4,
-                statusCode: "SUDAH_DATANG",
-                title: "4. QC Barang",
-                role: "MIS Proc",
-                count: stats.arrivedProc,
-                activeTheme: "bg-indigo-50/70 border-indigo-300 hover:bg-indigo-100/70",
-                badgeActive: "bg-indigo-600 text-white",
-                stepColor: "text-indigo-700 font-bold",
-              },
-              {
-                step: 5,
-                statusCode: "SIAP_KIRIM_T3",
-                title: "5. Siap Kirim T3",
-                role: "MIS Proc",
-                count: stats.readyShipT3,
-                activeTheme: "bg-cyan-50/70 border-cyan-300 hover:bg-cyan-100/70",
-                badgeActive: "bg-cyan-600 text-white",
-                stepColor: "text-cyan-700 font-bold",
-              },
-              {
-                step: 6,
-                statusCode: "DITERIMA_T3",
-                title: "6. Diterima T3",
-                role: "MIS OPS",
-                count: stats.completedT3,
-                activeTheme: "bg-emerald-50/70 border-emerald-300 hover:bg-emerald-100/70",
-                badgeActive: "bg-[#006622] text-white",
-                stepColor: "text-[#006622] font-bold",
-              },
-            ].map((st, idx) => {
-              const isCurrentFilter = selectedStatus === st.statusCode;
-              const hasItems = st.count > 0;
-              return (
-                <div key={st.step} className="flex-1 flex items-center">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedStatus(isCurrentFilter ? "" : st.statusCode)}
-                    className={`flex-1 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                      isCurrentFilter
-                        ? "bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-slate-900/30"
-                        : hasItems
-                        ? `${st.activeTheme} ring-1 ring-slate-900/5`
-                        : "bg-slate-50/60 border-slate-200/80 text-slate-400 hover:bg-slate-100"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[10px] font-black ${isCurrentFilter ? "text-emerald-300" : hasItems ? st.stepColor : "text-slate-400"}`}>
-                        Step {st.step}
-                      </span>
-                      <span
-                        className={`text-[10px] font-black px-1.5 py-0.2 rounded ${
-                          isCurrentFilter
-                            ? "bg-emerald-500 text-white"
-                            : hasItems
-                            ? st.badgeActive
-                            : "bg-slate-200 text-slate-500"
-                        }`}
-                      >
-                        {st.count} Dokumen
-                      </span>
-                    </div>
-                    <p className={`text-xs font-bold mt-1 leading-tight truncate ${isCurrentFilter ? "text-white" : hasItems ? "text-slate-900 font-extrabold" : "text-slate-500"}`}>
-                      {st.title}
-                    </p>
-                    <p className={`text-[10px] font-medium truncate mt-0.5 ${isCurrentFilter ? "text-slate-300" : "text-slate-500"}`}>
-                      PIC: {st.role}
-                    </p>
-                  </button>
-                  {idx < 5 && (
-                    <ChevronRight className="w-4 h-4 text-slate-300 mx-1 shrink-0" />
-                  )}
-                </div>
-              );
-            })}
+          
+          <div className="overflow-x-auto pb-1 [scrollbar-width:thin]">
+            <div className="flex items-stretch justify-between min-w-[1080px] gap-3">
+              {[
+                {
+                  step: 1,
+                  statusCode: "PENGAJUAN",
+                  title: "1. Pengajuan",
+                  role: "MIS OPS",
+                  count: stats.pendingManager,
+                  activeTheme: "bg-amber-50/80 border-amber-300 hover:bg-amber-100/80",
+                  badgeActive: "bg-amber-500 text-white",
+                  stepColor: "text-amber-700 font-bold",
+                },
+                {
+                  step: 2,
+                  statusCode: "DISETUJUI_MANAGER",
+                  title: "2. Disetujui",
+                  role: "MIS Manager",
+                  count: stats.readyCapex,
+                  activeTheme: "bg-blue-50/80 border-blue-300 hover:bg-blue-100/80",
+                  badgeActive: "bg-blue-600 text-white",
+                  stepColor: "text-blue-700 font-bold",
+                },
+                {
+                  step: 3,
+                  statusCode: "PROSES_ORDER",
+                  title: "3. CAPEX & Order",
+                  role: "MIS Proc",
+                  count: stats.inOrder,
+                  activeTheme: "bg-purple-50/80 border-purple-300 hover:bg-purple-100/80",
+                  badgeActive: "bg-purple-600 text-white",
+                  stepColor: "text-purple-700 font-bold",
+                },
+                {
+                  step: 4,
+                  statusCode: "SUDAH_DATANG",
+                  title: "4. QC Barang",
+                  role: "MIS Proc",
+                  count: stats.arrivedProc,
+                  activeTheme: "bg-indigo-50/80 border-indigo-300 hover:bg-indigo-100/80",
+                  badgeActive: "bg-indigo-600 text-white",
+                  stepColor: "text-indigo-700 font-bold",
+                },
+                {
+                  step: 5,
+                  statusCode: "SIAP_KIRIM_T3",
+                  title: "5. Siap Kirim T3",
+                  role: "MIS Proc",
+                  count: stats.readyShipT3,
+                  activeTheme: "bg-cyan-50/80 border-cyan-300 hover:bg-cyan-100/80",
+                  badgeActive: "bg-cyan-600 text-white",
+                  stepColor: "text-cyan-700 font-bold",
+                },
+                {
+                  step: 6,
+                  statusCode: "DITERIMA_T3",
+                  title: "6. Diterima T3",
+                  role: "MIS OPS",
+                  count: stats.completedT3,
+                  activeTheme: "bg-emerald-50/80 border-emerald-300 hover:bg-emerald-100/80",
+                  badgeActive: "bg-[#006622] text-white",
+                  stepColor: "text-[#006622] font-bold",
+                },
+              ].map((st, idx) => {
+                const isCurrentFilter = selectedStatus === st.statusCode;
+                const hasItems = st.count > 0;
+                return (
+                  <div key={st.step} className="flex-1 flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedStatus(isCurrentFilter ? "" : st.statusCode)}
+                      className={`flex-1 p-3.5 sm:p-4 rounded-2xl border text-left transition-all cursor-pointer shadow-2xs min-w-[155px] ${
+                        isCurrentFilter
+                          ? "bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-slate-900/30"
+                          : hasItems
+                          ? `${st.activeTheme} ring-1 ring-slate-900/5`
+                          : "bg-slate-50/60 border-slate-200/80 text-slate-400 hover:bg-slate-100"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className={`text-[10px] font-black tracking-wider uppercase ${isCurrentFilter ? "text-emerald-300" : hasItems ? st.stepColor : "text-slate-400"}`}>
+                          Step {st.step}
+                        </span>
+                        <span
+                          className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+                            isCurrentFilter
+                              ? "bg-emerald-500 text-white"
+                              : hasItems
+                              ? st.badgeActive
+                              : "bg-slate-200 text-slate-500"
+                          }`}
+                        >
+                          {st.count} Dokumen
+                        </span>
+                      </div>
+                      <p className={`text-xs sm:text-[13px] font-bold leading-tight truncate ${isCurrentFilter ? "text-white" : hasItems ? "text-slate-900 font-black" : "text-slate-500"}`}>
+                        {st.title}
+                      </p>
+                      <p className={`text-[10.5px] font-medium truncate mt-1 ${isCurrentFilter ? "text-slate-300" : "text-slate-500"}`}>
+                        PIC: <span className="font-semibold">{st.role}</span>
+                      </p>
+                    </button>
+                    {idx < 5 && (
+                      <ChevronRight className="w-4 h-4 text-slate-300 mx-1 shrink-0" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -1366,17 +1369,18 @@ function PurchasesContent() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-700">
-                <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+            <div className="overflow-x-auto [scrollbar-width:thin]">
+              <table className="w-full text-left text-xs text-slate-700 min-w-[1300px]">
+                <thead className="bg-slate-50/90 border-b border-slate-200/90 text-slate-500 font-bold uppercase tracking-wider text-[10.5px]">
                   <tr>
-                    <th className="px-4 py-3">No. Dokumen & Status</th>
-                    <th className="px-4 py-3">Barang & Kategori</th>
-                    <th className="px-4 py-3">Lokasi / Target Kasir</th>
-                    <th className="px-4 py-3">Data CAPEX & Toko Pembelian</th>
-                    <th className="px-4 py-3">Harga & Total</th>
-                    <th className="px-4 py-3">Timeline Pengadaan</th>
-                    <th className="px-4 py-3 text-right">Aksi Wewenang</th>
+                    <th className="px-4 py-3.5 w-[170px]">No. Dokumen & Pemohon</th>
+                    <th className="px-4 py-3.5 w-[210px]">Barang & Kategori</th>
+                    <th className="px-4 py-3.5 w-[170px]">Lokasi / Target Kasir</th>
+                    <th className="px-4 py-3.5 w-[240px]">Alur & Status Pipeline</th>
+                    <th className="px-4 py-3.5 w-[190px]">Data CAPEX & Toko</th>
+                    <th className="px-4 py-3.5 w-[140px]">Harga & Anggaran</th>
+                    <th className="px-4 py-3.5 w-[160px]">Timeline Milestone</th>
+                    <th className="px-4 py-3.5 w-[220px] text-right">Aksi Wewenang</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -1394,44 +1398,104 @@ function PurchasesContent() {
                           item.status === "PENGAJUAN" ? "border-l-4 border-l-amber-500 bg-amber-50/20" : ""
                         }`}
                       >
-                        {/* 1. Document & Status */}
-                        <td className="px-4 py-3.5 align-top whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 font-mono font-bold text-slate-900">
+                        {/* 1. Document & Requester (Bersih & Tidak Numpuk) */}
+                        <td className="px-4 py-4 align-top whitespace-nowrap">
+                          <div className="flex items-center gap-1.5 font-mono font-bold text-slate-900 text-xs">
                             <span>{item.po_number}</span>
                             <button
                               type="button"
                               onClick={() => copyToClipboard(item.po_number, `po-${item.id}`)}
-                              className="text-slate-400 hover:text-slate-700"
+                              className="text-slate-400 hover:text-slate-700 p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer"
                               title="Salin No Request"
                             >
                               {copiedKey === `po-${item.id}` ? (
-                                <Check className="w-3 h-3 text-emerald-600" />
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
                               ) : (
-                                <Copy className="w-3 h-3" />
+                                <Copy className="w-3.5 h-3.5" />
                               )}
                             </button>
                           </div>
                           
-                          <div className="mt-1.5 flex items-center gap-1.5">
+                          <div className="mt-2 space-y-0.5 text-[11px]">
+                            <p className="text-slate-600 font-medium">
+                              Oleh: <span className="font-bold text-slate-800">{item.requester}</span>
+                            </p>
+                            <p className="text-slate-400 text-[10px]">
+                              Diajukan: {item.request_date || "-"}
+                            </p>
+                          </div>
+                        </td>
+
+                        {/* 2. Item & Category */}
+                        <td className="px-4 py-4 align-top max-w-[210px]">
+                          <p className="font-bold text-slate-900 text-xs leading-snug">
+                            {item.item_name}
+                          </p>
+                          {item.brand_model && item.brand_model !== "-" && (
+                            <p className="text-[11px] text-blue-700 font-semibold mt-0.5 truncate">
+                              Model: {item.brand_model}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                              {item.category}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-700 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60">
+                              {qty} {item.unit || "Unit"}
+                            </span>
+                          </div>
+                          {item.notes && (
+                            <p className="text-[10.5px] text-slate-500 italic mt-1.5 line-clamp-2 leading-relaxed bg-slate-50/60 p-1.5 rounded-lg border border-slate-100">
+                              "{item.notes}"
+                            </p>
+                          )}
+                        </td>
+
+                        {/* 3. Target Location & POS Code */}
+                        <td className="px-4 py-4 align-top whitespace-nowrap">
+                          <p className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+                            <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span>{item.target_location}</span>
+                          </p>
+                          {item.target_pos_code && item.target_pos_code !== "-" && (
+                            <div className="mt-1.5">
+                              <span className="inline-block text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md shadow-2xs">
+                                Target: {item.target_pos_code}
+                              </span>
+                            </div>
+                          )}
+                          {item.installed_pos_code && item.installed_pos_code !== "-" && (
+                            <div className="mt-1">
+                              <span className="inline-block text-[10px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md shadow-2xs">
+                                Terpasang: {item.installed_pos_code}
+                              </span>
+                            </div>
+                          )}
+                        </td>
+
+                        {/* 4. ALUR & STATUS PIPELINE (KOLOM KHUSUS DEDIKASI - DIPISAH AGAR LEGA & RAPI) */}
+                        <td className="px-4 py-4 align-top w-[240px]">
+                          {/* Badge Status Utama */}
+                          <div>
                             <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${stObj.bg} ${stObj.color} ${stObj.border}`}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold border ${stObj.bg} ${stObj.color} ${stObj.border} shadow-2xs`}
                             >
-                              <span className={`w-1.5 h-1.5 rounded-full ${stObj.dot}`} />
+                              <span className={`w-1.5 h-1.5 rounded-full ${stObj.dot} animate-pulse`} />
                               {stObj.badgeLabel}
                             </span>
                           </div>
 
-                          {/* Mini Per-Item Step Stepper (Pintar & Canggih) */}
-                          <div className="mt-2.5 pt-2 border-t border-slate-100 max-w-[170px]">
-                            <div className="flex items-center justify-between text-[10px] mb-1 font-semibold">
+                          {/* Visual Stepper Card 6-Segment */}
+                          <div className="mt-2 p-2.5 bg-slate-50/90 rounded-xl border border-slate-200/80 space-y-1.5">
+                            <div className="flex items-center justify-between text-[10px] font-bold">
                               <span className={itemStep.step > 0 ? itemStep.theme.textColor : "text-rose-600"}>
-                                {itemStep.step > 0 ? `Step ${itemStep.step} / 6` : "Ditolak"}
+                                {itemStep.step > 0 ? `Tahap ${itemStep.step} dari 6` : "Ditolak"}
                               </span>
-                              <span className="text-[9px] font-bold text-slate-400">
+                              <span className="text-[9.5px] font-black text-slate-500 font-mono">
                                 {itemStep.progressPercent}%
                               </span>
                             </div>
-                            
+
                             {/* 6-Segment Visual Bar */}
                             <div className="grid grid-cols-6 gap-1 w-full">
                               {[1, 2, 3, 4, 5, 6].map((stNum) => {
@@ -1441,7 +1505,7 @@ function PurchasesContent() {
                                   <div
                                     key={stNum}
                                     title={`Tahap ${stNum}`}
-                                    className={`h-1.5 rounded-xs transition-all ${
+                                    className={`h-1.5 rounded-full transition-all ${
                                       isCurrent
                                         ? `${itemStep.theme.badgeBg} animate-pulse ring-1 ring-offset-0.5 ${itemStep.theme.ringColor}`
                                         : isPassed
@@ -1452,74 +1516,16 @@ function PurchasesContent() {
                                 );
                               })}
                             </div>
-                            
-                            <p className="text-[10px] text-slate-500 font-medium mt-1 truncate" title={itemStep.label}>
-                              {itemStep.step === 1
-                                ? "⏳ Review Manager"
-                                : itemStep.step === 2
-                                ? "📝 Input No CAPEX"
-                                : itemStep.step === 3
-                                ? "🛍️ Sedang Dipesan"
-                                : itemStep.step === 4
-                                ? "📦 Tiba di Proc"
-                                : itemStep.step === 5
-                                ? "🚚 Kirim ke Lokasi"
-                                : itemStep.step === 6
-                                ? "✅ Terpasang di POS"
-                                : "❌ Perlu Revisi"}
-                            </p>
-                          </div>
 
-                          <p className="text-[10px] text-slate-400 mt-1.5">
-                            Oleh: <span className="font-semibold text-slate-600">{item.requester}</span>
-                          </p>
-                        </td>
-
-                        {/* 2. Item & Category */}
-                        <td className="px-4 py-3.5 align-top max-w-[220px]">
-                          <p className="font-bold text-slate-900 text-xs leading-tight">
-                            {item.item_name}
-                          </p>
-                          {item.brand_model && item.brand_model !== "-" && (
-                            <p className="text-[11px] text-blue-700 font-semibold mt-0.5 truncate">
-                              Model: {item.brand_model}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                            <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                              {item.category}
-                            </span>
-                            <span className="text-[10px] font-bold text-slate-700">
-                              {qty} {item.unit || "Unit"}
-                            </span>
-                          </div>
-                          {item.notes && (
-                            <p className="text-[10px] text-slate-400 italic mt-1 line-clamp-2">
-                              "{item.notes}"
-                            </p>
-                          )}
-                        </td>
-
-                        {/* 3. Target Location & POS Code */}
-                        <td className="px-4 py-3.5 align-top whitespace-nowrap">
-                          <p className="font-bold text-slate-800 flex items-center gap-1">
-                            <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                            <span>{item.target_location}</span>
-                          </p>
-                          {item.target_pos_code && item.target_pos_code !== "-" && (
-                            <div className="mt-1 flex items-center gap-1">
-                              <span className="text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 rounded">
-                                Target: {item.target_pos_code}
+                            <div className="flex items-center justify-between text-[9.5px] pt-0.5 text-slate-500">
+                              <span className="font-semibold truncate max-w-[120px]" title={itemStep.label}>
+                                {itemStep.shortLabel}
+                              </span>
+                              <span className="text-[9px] font-medium text-slate-400">
+                                PIC: {itemStep.picRole}
                               </span>
                             </div>
-                          )}
-                          {item.installed_pos_code && item.installed_pos_code !== "-" && (
-                            <div className="mt-1 flex items-center gap-1">
-                              <span className="text-[10px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.2 rounded">
-                                Terpasang: {item.installed_pos_code}
-                              </span>
-                            </div>
-                          )}
+                          </div>
                         </td>
 
                         {/* 4. CAPEX & Store Data (Procurement) */}
@@ -1611,12 +1617,12 @@ function PurchasesContent() {
                           )}
                         </td>
 
-                        {/* 7. Role Actions */}
-                        <td className="px-4 py-3.5 align-top text-right whitespace-nowrap">
-                          <div className="flex flex-col items-end gap-1.5">
+                        {/* 8. Role Actions (Luas, tombol sejajar rapi, tidak terpotong) */}
+                        <td className="px-4 py-4 align-top text-right whitespace-nowrap min-w-[220px]">
+                          <div className="flex flex-col items-end gap-2">
                             {/* Action: 1. Manager Review (If PENGAJUAN) */}
                             {item.status === "PENGAJUAN" && (isManager || isAdmin) && (
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1.5 flex-wrap justify-end">
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -1625,7 +1631,7 @@ function PurchasesContent() {
                                     setManagerNotes("");
                                     setIsManagerModalOpen(true);
                                   }}
-                                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-2xs transition-all active:scale-95"
+                                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
                                   title="Buka form review lengkap dan catatan instruksi"
                                 >
                                   <CheckSquare className="w-3.5 h-3.5" />
@@ -1635,10 +1641,10 @@ function PurchasesContent() {
                                 <button
                                   type="button"
                                   onClick={() => handleQuickApprove(item)}
-                                  className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold bg-[#006622] hover:bg-[#00521b] text-white shadow-2xs transition-all active:scale-95"
+                                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#006622] hover:bg-[#00521b] text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
                                   title="1-Klik Setujui Cepat & Teruskan ke Procurement"
                                 >
-                                  <Zap className="w-3 h-3 fill-white" />
+                                  <Zap className="w-3.5 h-3.5 fill-white" />
                                   <span>Setuju Cepat</span>
                                 </button>
 
@@ -1650,7 +1656,7 @@ function PurchasesContent() {
                                     setManagerNotes("");
                                     setIsManagerModalOpen(true);
                                   }}
-                                  className="p-1 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-all active:scale-95"
+                                  className="p-1.5 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-all active:scale-95 cursor-pointer"
                                   title="Tolak / Minta Revisi Spesifikasi"
                                 >
                                   <X className="w-3.5 h-3.5" />
