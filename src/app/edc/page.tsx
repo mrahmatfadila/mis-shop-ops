@@ -232,14 +232,36 @@ function EdcContent() {
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
-  // Live Ping State untuk Mesin EDC BRI (Status per IP address)
+  // Live Ping State untuk Mesin EDC (Status per IP address)
   const [briPingState, setBriPingState] = useState<
-    Record<string, { status: "ONLINE" | "OFFLINE" | "TESTING"; latency?: number | null }>
+    Record<string, { status: "ONLINE" | "OFFLINE" | "TESTING"; latency?: number | null; tested_at?: string }>
   >({});
   const [isPingingGroup, setIsPingingGroup] = useState<Record<string, boolean>>({});
+  const [isPingingAll, setIsPingingAll] = useState(false);
+  const [pingNotification, setPingNotification] = useState<string | null>(null);
+
+  // Load cached ping state on mount agar status tersimpan saat pindah tab / refresh
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem("mis_edc_ping_state");
+      if (cached) {
+        setBriPingState(JSON.parse(cached));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const savePingCache = (data: Record<string, { status: "ONLINE" | "OFFLINE" | "TESTING"; latency?: number | null; tested_at?: string }>) => {
+    try {
+      localStorage.setItem("mis_edc_ping_state", JSON.stringify(data));
+    } catch {
+      // ignore
+    }
+  };
 
   // Handler: Ping 1 mesin EDC BRI berdasarkan lokasi POS
-  const handlePingBri = async (posLoc: string) => {
+  const handlePingBri = async (posLoc: string, isActive?: string) => {
     const ip = getBriEdcIp(posLoc);
     setBriPingState((prev) => ({
       ...prev,
@@ -250,39 +272,55 @@ function EdcContent() {
       const res = await fetch("/api/edc/ping", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ip, pos_location: posLoc }),
+        body: JSON.stringify({ ip, pos_location: posLoc, is_active: isActive }),
       });
       const json = await res.json();
       if (json.success) {
-        setBriPingState((prev) => ({
-          ...prev,
-          [ip]: {
-            status: json.status,
-            latency: json.latency,
-          },
-        }));
+        setBriPingState((prev) => {
+          const next = {
+            ...prev,
+            [ip]: {
+              status: json.status,
+              latency: json.latency,
+              tested_at: json.tested_at || new Date().toISOString(),
+            },
+          };
+          savePingCache(next);
+          return next;
+        });
       } else {
-        setBriPingState((prev) => ({
-          ...prev,
-          [ip]: { status: "OFFLINE", latency: null },
-        }));
+        setBriPingState((prev) => {
+          const next = {
+            ...prev,
+            [ip]: { status: "OFFLINE" as const, latency: null, tested_at: new Date().toISOString() },
+          };
+          savePingCache(next);
+          return next;
+        });
       }
     } catch {
-      setBriPingState((prev) => ({
-        ...prev,
-        [ip]: { status: "OFFLINE", latency: null },
-      }));
+      setBriPingState((prev) => {
+        const next = {
+          ...prev,
+          [ip]: { status: "OFFLINE" as const, latency: null, tested_at: new Date().toISOString() },
+        };
+        savePingCache(next);
+        return next;
+      });
     }
   };
 
   // Handler: Ping batch seluruh mesin EDC BRI dalam satu kelompok DF
   const handlePingBriGroup = async (groupKey: string, items: EdcAsset[]) => {
-    const ips = items.map((item) => getBriEdcIp(item.pos_location));
+    const targets = items.map((item) => ({
+      ip: getBriEdcIp(item.pos_location),
+      is_active: item.is_active,
+    }));
     setIsPingingGroup((prev) => ({ ...prev, [groupKey]: true }));
     setBriPingState((prev) => {
       const updated = { ...prev };
-      ips.forEach((ip) => {
-        updated[ip] = { status: "TESTING" };
+      targets.forEach((t) => {
+        updated[t.ip] = { status: "TESTING" };
       });
       return updated;
     });
@@ -291,25 +329,78 @@ function EdcContent() {
       const res = await fetch("/api/edc/ping", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ips }),
+        body: JSON.stringify({ targets }),
       });
       const json = await res.json();
       if (json.success && json.results) {
-        setBriPingState((prev) => ({
-          ...prev,
-          ...json.results,
-        }));
+        setBriPingState((prev) => {
+          const next = {
+            ...prev,
+            ...json.results,
+          };
+          savePingCache(next);
+          return next;
+        });
       }
     } catch {
       setBriPingState((prev) => {
         const updated = { ...prev };
-        ips.forEach((ip) => {
-          updated[ip] = { status: "OFFLINE", latency: null };
+        targets.forEach((t) => {
+          updated[t.ip] = { status: "OFFLINE", latency: null };
         });
+        savePingCache(updated);
         return updated;
       });
     } finally {
       setIsPingingGroup((prev) => ({ ...prev, [groupKey]: false }));
+    }
+  };
+
+  // Handler: Ping serentak SELURUH mesin EDC di semua toko (53 Titik)
+  const handlePingAllEdc = async () => {
+    if (edcList.length === 0) return;
+    setIsPingingAll(true);
+    setPingNotification(`Memulai uji live ping serentak ke seluruh ${edcList.length} mesin EDC...`);
+
+    const targets = edcList.map((item) => ({
+      ip: getBriEdcIp(item.pos_location),
+      is_active: item.is_active,
+    }));
+
+    setBriPingState((prev) => {
+      const updated = { ...prev };
+      targets.forEach((t) => {
+        updated[t.ip] = { status: "TESTING" };
+      });
+      return updated;
+    });
+
+    try {
+      const res = await fetch("/api/edc/ping", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targets }),
+      });
+      const json = await res.json();
+      if (json.success && json.results) {
+        setBriPingState((prev) => {
+          const next = {
+            ...prev,
+            ...json.results,
+          };
+          savePingCache(next);
+          return next;
+        });
+        setPingNotification(
+          `Uji Ping Selesai: ${json.onlineCount || 0} EDC Online Aktif, ${json.offlineCount || 0} Standby / Offline.`
+        );
+        setTimeout(() => setPingNotification(null), 5000);
+      }
+    } catch {
+      setPingNotification("Gagal menghubungi server untuk uji ping massal.");
+      setTimeout(() => setPingNotification(null), 4000);
+    } finally {
+      setIsPingingAll(false);
     }
   };
 
@@ -844,7 +935,17 @@ function EdcContent() {
             </button>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+            <button
+              type="button"
+              onClick={handlePingAllEdc}
+              disabled={isPingingAll || edcList.length === 0}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-lg shadow-2xs active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+              title="Uji live ping koneksi seluruh mesin EDC serentak"
+            >
+              <Zap className={`w-3.5 h-3.5 fill-white text-white ${isPingingAll ? "animate-spin" : ""}`} />
+              <span>{isPingingAll ? "Pinging..." : "Tes Ping Semua EDC"}</span>
+            </button>
             <button
               onClick={handleExportCsv}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-lg shadow-2xs transition-colors"
@@ -868,7 +969,22 @@ function EdcContent() {
           </div>
         </div>
 
-        {/* 4 Kartu Metrik KPI Modern yang Ramping & Elegan */}
+        {/* Banner Notifikasi Uji Ping */}
+        {pingNotification && (
+          <div className="px-4 py-2.5 bg-sky-50 border border-sky-200 rounded-xl flex items-center justify-between text-xs text-sky-900 font-bold shadow-2xs animate-fadeIn">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-sky-600 fill-sky-600 shrink-0 animate-pulse" />
+              <span>{pingNotification}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPingNotification(null)}
+              className="text-sky-700 hover:text-sky-950 font-black text-sm px-1.5 py-0.5 rounded cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Card 1: Terminal 3 */}
           <div
@@ -955,6 +1071,20 @@ function EdcContent() {
                 BNI: {bniTidCount}
               </span>
             </div>
+            {Object.keys(briPingState).length > 0 && (
+              <div className="flex items-center gap-1.5 mt-2 pt-1.5 border-t border-slate-100 text-[10px] font-bold">
+                <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  {Object.values(briPingState).filter((p) => p.status === "ONLINE").length} Ping Online
+                </span>
+                {Object.values(briPingState).some((p) => p.status === "OFFLINE") && (
+                  <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/60">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                    {Object.values(briPingState).filter((p) => p.status === "OFFLINE").length} Off/Standby
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Card 4: Total Titik POS */}
@@ -1447,29 +1577,41 @@ function EdcContent() {
 
                                     {/* 7. MESIN EDC BRI (ONLINE PING IP + FITUR + TID + MID) */}
                                     <td className="px-2 py-2 text-center whitespace-nowrap bg-sky-50/20">
-                                      <div className="inline-flex flex-col items-center gap-0.5">
+                                      <div className="inline-flex flex-col items-center gap-1">
                                         {briPing?.status === "TESTING" ? (
                                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
                                             <RefreshCw className="w-2.5 h-2.5 animate-spin" />
                                             <span>Ping...</span>
                                           </span>
                                         ) : briPing?.status === "ONLINE" ? (
-                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-[#006622] border border-emerald-200 shadow-2xs">
+                                          <button
+                                            type="button"
+                                            onClick={() => handlePingBri(edc.pos_location, edc.is_active)}
+                                            title={`Online (${briPing.latency || 2}ms) • Klik untuk uji ulang ping`}
+                                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-[#006622] border border-emerald-200 shadow-2xs hover:bg-emerald-100 hover:border-emerald-300 transition-all cursor-pointer group active:scale-95"
+                                          >
                                             <span className="relative flex h-1.5 w-1.5">
                                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                                             </span>
                                             <span>Online {briPing.latency ? `(${briPing.latency}ms)` : ""}</span>
-                                          </span>
+                                            <RefreshCw className="w-2 h-2 opacity-0 group-hover:opacity-100 text-emerald-600 transition-opacity ml-0.5" />
+                                          </button>
                                         ) : briPing?.status === "OFFLINE" ? (
-                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
+                                          <button
+                                            type="button"
+                                            onClick={() => handlePingBri(edc.pos_location, edc.is_active)}
+                                            title="Offline / RTO • Klik untuk coba uji ping kembali"
+                                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs hover:bg-rose-100 hover:border-rose-300 transition-all cursor-pointer group active:scale-95"
+                                          >
                                             <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                             <span>Offline</span>
-                                          </span>
+                                            <RefreshCw className="w-2 h-2 opacity-0 group-hover:opacity-100 text-rose-600 transition-opacity ml-0.5" />
+                                          </button>
                                         ) : (
                                           <button
                                             type="button"
-                                            onClick={() => handlePingBri(edc.pos_location)}
+                                            onClick={() => handlePingBri(edc.pos_location, edc.is_active)}
                                             title={`Klik untuk uji live ping ke ${briIp}`}
                                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-white hover:bg-sky-50 text-sky-700 border border-sky-200 transition-all shadow-2xs hover:border-sky-300 active:scale-95 cursor-pointer"
                                           >
@@ -1477,14 +1619,28 @@ function EdcContent() {
                                             <span>Tes Ping</span>
                                           </button>
                                         )}
-                                        <button
-                                          type="button"
-                                          onClick={() => handlePingBri(edc.pos_location)}
-                                          title="Klik untuk uji ping ke IP ini"
-                                          className="font-mono text-[9px] text-slate-400 hover:text-sky-700 font-semibold cursor-pointer tracking-tight"
-                                        >
-                                          {briIp}
-                                        </button>
+                                        <div className="flex items-center gap-1">
+                                          <button
+                                            type="button"
+                                            onClick={() => handlePingBri(edc.pos_location, edc.is_active)}
+                                            title="Klik untuk uji ping ke IP ini"
+                                            className="font-mono text-[9px] text-slate-400 hover:text-sky-700 font-semibold cursor-pointer tracking-tight"
+                                          >
+                                            {briIp}
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => copyToClipboard(briIp, `ip-${edc.pos_location}`)}
+                                            title="Salin IP EDC"
+                                            className="text-slate-300 hover:text-slate-600 cursor-pointer"
+                                          >
+                                            {copiedKey === `ip-${edc.pos_location}` ? (
+                                              <Check className="w-2.5 h-2.5 text-emerald-600" />
+                                            ) : (
+                                              <Copy className="w-2 h-2" />
+                                            )}
+                                          </button>
+                                        </div>
                                       </div>
                                     </td>
                                     <td className="px-1 py-2 text-center">{renderFeatureBadge(edc.bri_credit)}</td>
