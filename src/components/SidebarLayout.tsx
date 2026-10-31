@@ -40,7 +40,8 @@ import {
   MapPin,
   User,
   Users,
-  BookOpen
+  BookOpen,
+  Boxes
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types";
@@ -317,6 +318,15 @@ export default function SidebarLayout({
           requiresMIS: true,
         },
         {
+          href: "/asset-components",
+          label: "Rincian ID Barang",
+          sub: "Relasi Kode Aset & Komponen",
+          icon: Boxes,
+          badge: "Set & ID",
+          badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200/60",
+          requiresMIS: true,
+        },
+        {
           href: "/edc",
           label: "Mesin EDC Bank",
           sub: "BCA, BNI, Mandiri & BRI",
@@ -492,7 +502,7 @@ export default function SidebarLayout({
 
     // 3. PROCUREMENT SUPPORT: difokuskan pada pengadaan, pembelian, kasir POS & PC Office
     if (role === "IT_PROCUREMENT") {
-      return ["/dashboard", "/assets", "/office", "/purchases", "/tickets", "/extensions", "/knowledge-base"].some(
+      return ["/dashboard", "/assets", "/office", "/asset-components", "/purchases", "/tickets", "/extensions", "/knowledge-base"].some(
         (p) => href === p || href.startsWith(p + "/")
       );
     }

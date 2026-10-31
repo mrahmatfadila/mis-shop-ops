@@ -170,6 +170,9 @@ function AssetsContent() {
     component: string;
     model: string;
     itemId: string;
+    isSetAssetCode?: boolean;
+    childComponents?: { id: string; name: string; spec: string }[];
+    posCode?: string;
     position: string;
     price: string;
     purchasedFrom: string;
@@ -180,7 +183,24 @@ function AssetsContent() {
     notes?: string;
   } | null>(null);
 
-  const getComponentItemId = (component: string, pos: PosHardwareAsset) => {
+  const getPosChildComponents = (pos: PosHardwareAsset) => {
+    const posNum = Number(pos.pos_number || pos.id || 1);
+    const seq = String(posNum).padStart(3, "0");
+    const list: { id: string; name: string; spec: string }[] = [];
+    if (pos.processor && pos.processor !== "-") list.push({ id: `CPU-${seq}`, name: "Processor", spec: pos.processor });
+    if (pos.ram && pos.ram !== "-") list.push({ id: `RAM-${seq}`, name: "RAM", spec: pos.ram });
+    if (pos.ssd && pos.ssd !== "-") list.push({ id: `SSD-${seq}`, name: "Storage", spec: pos.ssd });
+    if (pos.printer && pos.printer !== "-") list.push({ id: `PRN-${seq}`, name: "Printer", spec: pos.printer });
+    if (pos.keyboard && pos.keyboard !== "-") list.push({ id: `KBD-${seq}`, name: "Keyboard", spec: pos.keyboard });
+    if (pos.mouse && pos.mouse !== "-") list.push({ id: `MOU-${seq}`, name: "Mouse", spec: pos.mouse });
+    if (pos.barcode_scanner && pos.barcode_scanner !== "-") list.push({ id: `SCN-${seq}`, name: "Scanner", spec: pos.barcode_scanner });
+    if (pos.passport_scanner && pos.passport_scanner !== "-") list.push({ id: `PAS-${seq}`, name: "Passport", spec: pos.passport_scanner });
+    if (pos.cash_drawer && pos.cash_drawer !== "-") list.push({ id: `DRW-${seq}`, name: "Cash Drawer", spec: pos.cash_drawer });
+    if (pos.os_version && pos.os_version !== "-") list.push({ id: `LIC-${seq}`, name: "OS", spec: pos.os_version });
+    return list;
+  };
+
+  const getComponentItemId = (component: string, pos: PosHardwareAsset): { itemId: string; position: string; isSetAssetCode?: boolean } => {
     const compUpper = component.toUpperCase();
     const posNum = Number(pos.pos_number || pos.id || 1);
     const seq = String(posNum).padStart(3, "0");
@@ -194,7 +214,7 @@ function AssetsContent() {
     }
     if (compUpper.includes("MOUSE")) {
       return {
-        itemId: `MSE-${seq}`,
+        itemId: `MOU-${seq}`,
         position: `Dipakai di Set ${parentCode}`
       };
     }
@@ -248,8 +268,9 @@ function AssetsContent() {
     }
     if (compUpper.includes("UNIT") || compUpper.includes("POS")) {
       return {
-        itemId: `POS-${seq}`,
-        position: `Unit Utama ${parentCode}`
+        itemId: pos.pos_code,
+        position: `Set Unit Kasir ${parentCode} (${pos.shop_name || pos.terminal})`,
+        isSetAssetCode: true,
       };
     }
 
@@ -366,14 +387,18 @@ function AssetsContent() {
       : "Bawaan Unit";
 
     const { price, purchasedFrom, purchaseDate, customNote } = getComponentProcurement(component, model, pos);
-    const { itemId, position } = getComponentItemId(component, pos);
+    const { itemId, position, isSetAssetCode } = getComponentItemId(component, pos);
+    const childComponents = isSetAssetCode ? getPosChildComponents(pos) : undefined;
 
     setHoverDetail({
       x: rect.left + rect.width / 2,
       y: rect.top,
-      component,
-      model,
+      component: isSetAssetCode ? "Set Kasir POS Unit" : component,
+      model: isSetAssetCode ? `${pos.pos_brand || "NCR"} (${pos.pos_code})` : model,
       itemId,
+      isSetAssetCode,
+      childComponents,
+      posCode: pos.pos_code,
       position,
       price,
       purchasedFrom,
@@ -2852,13 +2877,23 @@ function AssetsContent() {
             {/* Main Spec Highlight Box */}
             <div className="p-2.5 bg-slate-50/90 border border-slate-200/80 rounded-xl mb-2 space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium text-[9px]">ID Barang:</span>
-                <span className="font-mono font-black text-indigo-700 bg-indigo-50 border border-indigo-200/90 px-1.5 py-0.5 rounded text-[10px] tracking-tight">
+                <span className="text-slate-500 font-bold text-[9px]">
+                  {hoverDetail.isSetAssetCode ? "Kode Aset (Set):" : "ID Barang:"}
+                </span>
+                <span
+                  className={`font-mono font-black ${
+                    hoverDetail.isSetAssetCode
+                      ? "text-emerald-800 bg-emerald-50 border-emerald-300"
+                      : "text-indigo-700 bg-indigo-50 border-indigo-200/90"
+                  } border px-1.5 py-0.5 rounded text-[10px] tracking-tight`}
+                >
                   {hoverDetail.itemId}
                 </span>
               </div>
               <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                <span className="text-slate-500 font-medium text-[9px]">Model / Spesifikasi:</span>
+                <span className="text-slate-500 font-medium text-[9px]">
+                  {hoverDetail.isSetAssetCode ? "Tipe Unit Kasir:" : "Model / Spesifikasi:"}
+                </span>
                 <span className="font-mono font-black text-slate-900 text-[10.5px] truncate max-w-[140px]" title={hoverDetail.model}>
                   {hoverDetail.model}
                 </span>
@@ -2869,6 +2904,29 @@ function AssetsContent() {
                   {hoverDetail.position}
                 </span>
               </div>
+
+              {/* Rincian Komponen ID Barang di dalam Kode Aset ini */}
+              {hoverDetail.isSetAssetCode && hoverDetail.childComponents && hoverDetail.childComponents.length > 0 && (
+                <div className="pt-2 border-t border-slate-200/70 space-y-1">
+                  <div className="flex items-center justify-between text-[8.5px]">
+                    <span className="text-slate-700 font-black uppercase tracking-tight">ID Barang di dalam Set:</span>
+                    <span className="text-slate-500 font-mono font-bold">({hoverDetail.childComponents.length} Unit)</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto scrollbar-thin py-0.5">
+                    {hoverDetail.childComponents.map((c) => (
+                      <span
+                        key={c.id}
+                        className="inline-flex items-center gap-1 font-mono text-[8px] px-1 py-0.2 rounded bg-white border border-slate-200/90 text-slate-700 shadow-2xs"
+                        title={`${c.name}: ${c.spec}`}
+                      >
+                        <span className="font-bold text-indigo-700">{c.id}</span>
+                        <span className="text-slate-300">·</span>
+                        <span className="text-slate-500 max-w-[65px] truncate">{c.name}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Spec & Detail Metadata */}

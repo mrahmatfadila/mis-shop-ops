@@ -164,6 +164,9 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
     component: string;
     model: string;
     itemId: string;
+    isSetAssetCode?: boolean;
+    childComponents?: { id: string; name: string; spec: string }[];
+    assetCode?: string;
     position: string;
     price: string;
     purchasedFrom: string;
@@ -175,7 +178,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
   } | null>(null);
 
   // Helper ID barang terstandarisasi untuk modal hover
-  const getComponentItemId = (component: string, item: OfficeHardwareAsset) => {
+  const getComponentItemId = (component: string, item: OfficeHardwareAsset): { itemId: string; position: string; isSetAssetCode?: boolean } => {
     const seq = String(item.item_no || item.id).padStart(3, "0");
     const compUpper = component.toUpperCase();
     const parentCode = item.asset_code || `AST-${seq}`;
@@ -243,7 +246,8 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
     if (compUpper.includes("UNIT") || compUpper.includes("PC") || compUpper.includes("ROUTER") || compUpper.includes("PABX")) {
       return {
         itemId: item.asset_code,
-        position: `Unit Utama ${item.user_name} (${item.office_location || locationKey})`,
+        position: `Set Unit Utama ${item.user_name} (${item.office_location || locationKey})`,
+        isSetAssetCode: true,
       };
     }
 
@@ -251,6 +255,43 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
       itemId: `DEV-${seq}`,
       position: `Unit Utama ${parentCode}`,
     };
+  };
+
+  const getChildComponents = (item: OfficeHardwareAsset) => {
+    const seq = String(item.item_no || item.id).padStart(3, "0");
+    const list: { id: string; name: string; spec: string }[] = [];
+    if (item.processor && item.processor !== "-") {
+      list.push({ id: `CPU-${seq}`, name: "Processor", spec: item.processor });
+    }
+    if (item.motherboard && item.motherboard !== "-") {
+      list.push({ id: `MB-${seq}`, name: "Motherboard", spec: item.motherboard });
+    }
+    if (item.ram && item.ram !== "-") {
+      list.push({ id: `RAM-${seq}`, name: "RAM", spec: item.ram });
+    }
+    const storage = parseStorage(item.hard_drive);
+    if (storage.ssd) {
+      list.push({ id: `SSD-${seq}`, name: "SSD", spec: storage.ssd });
+    }
+    if (storage.hdd) {
+      list.push({ id: `HDD-${seq}`, name: "HDD", spec: storage.hdd });
+    }
+    if (item.monitor && item.monitor !== "-") {
+      list.push({ id: `MON-${seq}`, name: "Monitor", spec: item.monitor });
+    }
+    if (item.printer && item.printer !== "-") {
+      list.push({ id: `PRN-${seq}`, name: "Printer", spec: item.printer });
+    }
+    if (item.keyboard && item.keyboard !== "-") {
+      list.push({ id: `KBD-${seq}`, name: "Keyboard", spec: item.keyboard });
+    }
+    if (item.mouse && item.mouse !== "-") {
+      list.push({ id: `MOU-${seq}`, name: "Mouse", spec: item.mouse });
+    }
+    if (item.os && item.os !== "-") {
+      list.push({ id: `LIC-${seq}`, name: "OS", spec: item.os });
+    }
+    return list;
   };
 
   const getComponentProcurement = (component: string, model: string, item: OfficeHardwareAsset) => {
@@ -319,14 +360,18 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
       : "Bawaan Unit";
 
     const { price, purchasedFrom, purchaseDate } = getComponentProcurement(component, model, item);
-    const { itemId, position } = getComponentItemId(component, item);
+    const { itemId, position, isSetAssetCode } = getComponentItemId(component, item);
+    const childComponents = isSetAssetCode ? getChildComponents(item) : undefined;
 
     setHoverDetail({
       x: rect.left + rect.width / 2,
       y: rect.top,
-      component,
-      model,
+      component: isSetAssetCode ? "Set Komputer Unit" : component,
+      model: isSetAssetCode ? `${item.device_type || "PC"} (${item.user_name})` : model,
       itemId,
+      isSetAssetCode,
+      childComponents,
+      assetCode: item.asset_code,
       position,
       price,
       purchasedFrom,
@@ -1161,7 +1206,8 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
 
                             {/* 4. Unit (Hover for Asset Code & Specs) */}
                             <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100">
-                              <span
+                              <Link
+                                href={`/asset-components?set=${encodeURIComponent(item.asset_code)}`}
                                 className={`font-mono font-black text-[9.5px] uppercase cursor-pointer hover:underline ${
                                   item.device_type === "ROUTER"
                                     ? "text-orange-700"
@@ -1171,10 +1217,10 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                 }`}
                                 onMouseEnter={(e) => handleShowDetail(e, "Unit Perangkat Office", item.device_type || "PC", item)}
                                 onMouseLeave={handleHideDetail}
-                                title={`Kode Aset: ${item.asset_code} (Hover untuk detail lengkap)`}
+                                title={`Kode Aset: ${item.asset_code} (Klik untuk buka rincian ID Barang)`}
                               >
                                 {item.device_type || "PC"}
-                              </span>
+                              </Link>
                             </td>
 
                             {/* 5. OS */}
@@ -1756,13 +1802,23 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
             {/* Main Spec Highlight Box */}
             <div className="p-2.5 bg-slate-50/90 border border-slate-200/80 rounded-xl mb-2 space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium text-[9px]">ID Barang:</span>
-                <span className="font-mono font-black text-indigo-700 bg-indigo-50 border border-indigo-200/90 px-1.5 py-0.5 rounded text-[10px] tracking-tight">
+                <span className="text-slate-500 font-bold text-[9px]">
+                  {hoverDetail.isSetAssetCode ? "Kode Aset:" : "ID Barang:"}
+                </span>
+                <span
+                  className={`font-mono font-black ${
+                    hoverDetail.isSetAssetCode
+                      ? "text-emerald-800 bg-emerald-50 border-emerald-300"
+                      : "text-indigo-700 bg-indigo-50 border-indigo-200/90"
+                  } border px-1.5 py-0.5 rounded text-[10px] tracking-tight`}
+                >
                   {hoverDetail.itemId}
                 </span>
               </div>
               <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                <span className="text-slate-500 font-medium text-[9px]">Model / Spesifikasi:</span>
+                <span className="text-slate-500 font-medium text-[9px]">
+                  {hoverDetail.isSetAssetCode ? "Tipe Unit / Pengguna:" : "Model / Spesifikasi:"}
+                </span>
                 <span className="font-mono font-black text-slate-900 text-[10.5px] truncate max-w-[140px]" title={hoverDetail.model}>
                   {hoverDetail.model}
                 </span>
@@ -1773,6 +1829,29 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                   {hoverDetail.position}
                 </span>
               </div>
+
+              {/* Rincian Komponen ID Barang di dalam Kode Aset ini */}
+              {hoverDetail.isSetAssetCode && hoverDetail.childComponents && hoverDetail.childComponents.length > 0 && (
+                <div className="pt-2 border-t border-slate-200/70 space-y-1">
+                  <div className="flex items-center justify-between text-[8.5px]">
+                    <span className="text-slate-700 font-black uppercase tracking-tight">ID Barang di dalam Kode Aset:</span>
+                    <span className="text-slate-500 font-mono font-bold">({hoverDetail.childComponents.length} Unit)</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto scrollbar-thin py-0.5">
+                    {hoverDetail.childComponents.map((c) => (
+                      <span
+                        key={c.id}
+                        className="inline-flex items-center gap-1 font-mono text-[8px] px-1 py-0.2 rounded bg-white border border-slate-200/90 text-slate-700 shadow-2xs"
+                        title={`${c.name}: ${c.spec}`}
+                      >
+                        <span className="font-bold text-indigo-700">{c.id}</span>
+                        <span className="text-slate-300">·</span>
+                        <span className="text-slate-500 max-w-[65px] truncate">{c.name}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Details Grid */}
@@ -1828,3 +1907,4 @@ export default function OfficeLocationView(props: OfficeLocationViewProps) {
     </Suspense>
   );
 }
+
