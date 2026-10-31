@@ -1024,7 +1024,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
         </div>
 
         {/* Assets Master Table */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm relative">
           {isLoading ? (
             <LoadingState
               className="p-12"
@@ -1039,7 +1039,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
               description="Coba sesuaikan kata kunci pencarian atau filter divisi/status."
             />
           ) : (
-            <div className="w-full overflow-hidden">
+            <div className="w-full rounded-2xl">
               <table className="w-full min-w-full table-fixed text-left border-separate border-spacing-0 text-[10px]">
                 <colgroup>
                   {/* 1-3: Identitas & Pengguna (21.0%) */}
@@ -1461,7 +1461,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
 
           {/* Table Bottom Footer Bar */}
           {!isLoading && officeList.length > 0 && (
-            <div className="p-3.5 bg-slate-50/80 border-t border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 font-medium">
+            <div className="p-3.5 bg-slate-50/80 border-t border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 font-medium rounded-b-2xl">
               <div className="flex items-center gap-2 flex-wrap">
                 <span>
                   Menampilkan <strong className="text-slate-800">{officeList.length}</strong> dari <strong className="text-slate-800">{locationOfficeList.length}</strong> unit {pageTitle}
