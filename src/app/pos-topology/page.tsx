@@ -31,6 +31,11 @@ import {
   ShieldCheck,
   Cable,
   Server,
+  Zap,
+  ZapOff,
+  WifiOff,
+  Activity,
+  RefreshCw,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import AccessDenied from "@/components/AccessDenied";
@@ -451,16 +456,29 @@ function SvgStoreBuilding({
   edcCount,
   isSelected,
   onSelect,
+  hasPower = true,
+  hasInternet = true,
+  onTogglePower,
 }: {
   store: StoreNode;
   posCount: number;
   edcCount: number;
   isSelected: boolean;
   onSelect: () => void;
+  hasPower?: boolean;
+  hasInternet?: boolean;
+  onTogglePower?: () => void;
 }) {
   const { x, y, w, h, roofColor, wallColor } = store;
   const awningCount = 5;
   const stripeW = (w - 10) / awningCount;
+
+  // Power and network outage visual themes
+  const isDarkOutage = !hasPower;
+  const isNoInternet = hasPower && !hasInternet;
+
+  const displayRoof = isDarkOutage ? "#334155" : roofColor;
+  const displayWall = isDarkOutage ? "#1e293b" : isSelected ? "#ffffff" : wallColor;
 
   return (
     <g onClick={onSelect} className="cursor-pointer">
@@ -472,8 +490,8 @@ function SvgStoreBuilding({
           height={h + 9}
           rx="10"
           fill="none"
-          stroke={roofColor}
-          strokeWidth="2.2"
+          stroke={displayRoof}
+          strokeWidth="2.4"
           strokeDasharray="5 2.5"
         />
       )}
@@ -497,13 +515,13 @@ function SvgStoreBuilding({
         width={w}
         height={h}
         rx="7"
-        fill={isSelected ? "#ffffff" : wallColor}
-        stroke={roofColor}
+        fill={displayWall}
+        stroke={isDarkOutage ? "#ef4444" : isNoInternet ? "#f59e0b" : displayRoof}
         strokeWidth={isSelected ? "2.6" : "1.6"}
       />
 
       {/* Store Roof Header */}
-      <rect x={x} y={y} width={w} height="18" rx="6" fill={roofColor} />
+      <rect x={x} y={y} width={w} height="18" rx="6" fill={displayRoof} />
 
       {/* Striped Store Awning */}
       {Array.from({ length: awningCount }).map((_, i) => (
@@ -514,23 +532,54 @@ function SvgStoreBuilding({
           width={stripeW - 1}
           height="5"
           rx="1.5"
-          fill={i % 2 === 0 ? roofColor : "#ffffff"}
-          stroke={roofColor}
+          fill={i % 2 === 0 ? displayRoof : isDarkOutage ? "#475569" : "#ffffff"}
+          stroke={displayRoof}
           strokeWidth="0.5"
         />
       ))}
 
       {/* Store Title on Roof */}
       <text
-        x={x + w / 2}
+        x={x + (w - 18) / 2}
         y={y + 12}
         textAnchor="middle"
         fill="#ffffff"
-        fontSize="8.8"
+        fontSize="8.5"
         fontWeight="900"
       >
         {store.roofTitle}
       </text>
+
+      {/* Interactive Power Switch on Roof (Click to toggle power) */}
+      <g
+        onClick={(e) => {
+          e.stopPropagation();
+          onTogglePower?.();
+        }}
+        className="cursor-pointer"
+      >
+        <title>{hasPower ? "Klik untuk simulasi Mati Lampu (Power Outage)" : "Klik untuk Menyalakan Listrik Toko"}</title>
+        <rect
+          x={x + w - 18}
+          y={y + 2.5}
+          width="15"
+          height="13"
+          rx="3.5"
+          fill={hasPower ? "#10b981" : "#ef4444"}
+          stroke="#ffffff"
+          strokeWidth="0.8"
+        />
+        <text
+          x={x + w - 10.5}
+          y={y + 11.5}
+          textAnchor="middle"
+          fill="#ffffff"
+          fontSize="7.5"
+          fontWeight="bold"
+        >
+          ⚡
+        </text>
+      </g>
 
       {/* Store Window Display */}
       <rect
@@ -539,30 +588,83 @@ function SvgStoreBuilding({
         width={w - 12}
         height="23.5"
         rx="4"
-        fill="#ffffff"
-        stroke="#cbd5e1"
+        fill={isDarkOutage ? "#0f172a" : "#ffffff"}
+        stroke={isDarkOutage ? "#ef4444" : isNoInternet ? "#f59e0b" : "#cbd5e1"}
         strokeWidth="0.8"
       />
-      <text
-        x={x + w / 2}
-        y={y + 33.5}
-        textAnchor="middle"
-        fill="#0f172a"
-        fontSize="8.2"
-        fontWeight="900"
-      >
-        {store.dfdLabel}
-      </text>
-      <text
-        x={x + w / 2}
-        y={y + 43}
-        textAnchor="middle"
-        fill={roofColor}
-        fontSize="7.8"
-        fontWeight="800"
-      >
-        {posCount} POS • {edcCount} EDC
-      </text>
+
+      {isDarkOutage ? (
+        <>
+          <rect x={x + 10} y={y + 26.5} width={w - 20} height="17.5" rx="3" fill="#ef4444" opacity="0.95" />
+          <text
+            x={x + w / 2}
+            y={y + 34}
+            textAnchor="middle"
+            fill="#ffffff"
+            fontSize="6.8"
+            fontWeight="900"
+          >
+            ⚡ MATI LAMPU
+          </text>
+          <text
+            x={x + w / 2}
+            y={y + 41.5}
+            textAnchor="middle"
+            fill="#fecaca"
+            fontSize="6"
+            fontWeight="bold"
+          >
+            OFFLINE
+          </text>
+        </>
+      ) : isNoInternet ? (
+        <>
+          <rect x={x + 10} y={y + 26.5} width={w - 20} height="17.5" rx="3" fill="#f59e0b" opacity="0.95" />
+          <text
+            x={x + w / 2}
+            y={y + 34}
+            textAnchor="middle"
+            fill="#ffffff"
+            fontSize="6.8"
+            fontWeight="900"
+          >
+            ⚠️ INET PUTUS
+          </text>
+          <text
+            x={x + w / 2}
+            y={y + 41.5}
+            textAnchor="middle"
+            fill="#fef3c7"
+            fontSize="5.8"
+            fontWeight="bold"
+          >
+            (Downstream)
+          </text>
+        </>
+      ) : (
+        <>
+          <text
+            x={x + w / 2}
+            y={y + 33.5}
+            textAnchor="middle"
+            fill="#0f172a"
+            fontSize="8.2"
+            fontWeight="900"
+          >
+            {store.dfdLabel}
+          </text>
+          <text
+            x={x + w / 2}
+            y={y + 43}
+            textAnchor="middle"
+            fill={roofColor}
+            fontSize="7.8"
+            fontWeight="800"
+          >
+            {posCount} POS • {edcCount} EDC
+          </text>
+        </>
+      )}
 
       {/* Gate Footer Tag */}
       <rect
@@ -571,17 +673,17 @@ function SvgStoreBuilding({
         width={w - 14}
         height="11"
         rx="3"
-        fill={isSelected ? roofColor : "#e2e8f0"}
+        fill={isDarkOutage ? "#ef4444" : isNoInternet ? "#f59e0b" : isSelected ? roofColor : "#e2e8f0"}
       />
       <text
         x={x + w / 2}
         y={y + h - 6.8}
         textAnchor="middle"
-        fill={isSelected ? "#ffffff" : "#334155"}
+        fill={isDarkOutage || isNoInternet || isSelected ? "#ffffff" : "#334155"}
         fontSize="6.8"
         fontWeight="900"
       >
-        {store.gateLabel}
+        {isDarkOutage ? "⚡ POWER OFF" : isNoInternet ? "NO NETWORK" : store.gateLabel}
       </text>
     </g>
   );
@@ -1654,6 +1756,57 @@ function PosTopologyContent() {
   const [selectedStoreId, setSelectedStoreId] = useState<string>("DF1");
   const [selectedPos, setSelectedPos] = useState<PosHardwareAsset | null>(null);
 
+  // Power state for daisy-chain network simulation (DF1 to DF7)
+  const [storePower, setStorePower] = useState<Record<string, boolean>>({
+    DF1: true,
+    DF2: true,
+    DF3: true,
+    DF4: true,
+    DF5: true,
+    DF6: true,
+    DF7: true,
+    GGO01: true,
+  });
+
+  const CHAIN_ORDER = useMemo(() => ["DF1", "DF2", "DF3", "DF4", "DF5", "DF6", "DF7"], []);
+
+  // Compute internet connectivity for each store along the daisy chain:
+  // DF1 -> DF2 -> DF3 -> DF4 -> DF5 -> DF6 -> DF7
+  // Jika salah satu toko mati lampu (misal DF3), maka DF3 s/d DF7 otomatis mati internetnya!
+  const storeInternet = useMemo(() => {
+    const inetMap: Record<string, boolean> = {};
+    let linkAlive = true;
+
+    for (const storeId of CHAIN_ORDER) {
+      if (!storePower[storeId]) {
+        linkAlive = false;
+      }
+      inetMap[storeId] = linkAlive;
+    }
+    inetMap["GGO01"] = storePower["GGO01"] ?? true;
+    return inetMap;
+  }, [storePower, CHAIN_ORDER]);
+
+  const toggleStorePower = (storeId: string) => {
+    setStorePower((prev) => ({
+      ...prev,
+      [storeId]: !prev[storeId],
+    }));
+  };
+
+  const resetAllPower = () => {
+    setStorePower({
+      DF1: true,
+      DF2: true,
+      DF3: true,
+      DF4: true,
+      DF5: true,
+      DF6: true,
+      DF7: true,
+      GGO01: true,
+    });
+  };
+
   const [allPos, setAllPos] = useState<PosHardwareAsset[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -1719,7 +1872,7 @@ function PosTopologyContent() {
       title="Topologi & Denah Toko Kasir"
       subtitle="Gate 10: DF1 (DFD1) s/d Tikungan Kanan DF6 (DFD6) & Kiri DF7 (DFD7) + Gate 3: GGO01 (SAM)"
     >
-      <div className="p-4 sm:p-5 space-y-4 max-w-[1440px] mx-auto">
+      <div className="px-2.5 sm:px-4 py-3 space-y-3 w-full max-w-[1720px] mx-auto">
         {/* ── TOP HEADER & TERMINAL PILLS ── */}
         <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 shadow-2xs flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -1750,9 +1903,9 @@ function PosTopologyContent() {
                   key={tab.key}
                   type="button"
                   onClick={() => setSelectedTerminal(tab.key)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer ${
                     active
-                      ? "bg-[#006622] text-white"
+                      ? "bg-[#006622] text-white shadow-2xs"
                       : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                   }`}
                 >
@@ -1770,6 +1923,109 @@ function PosTopologyContent() {
             })}
           </div>
         </div>
+
+        {/* ── SIMULASI DAYA LISTRIK & KABEL JARINGAN BERANTAI (DAISY-CHAIN BUS) ── */}
+        {selectedTerminal === "Terminal 3" && (
+          <div className="bg-slate-900 text-white rounded-2xl p-3.5 border border-slate-700/80 shadow-md space-y-2.5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex items-start sm:items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shrink-0">
+                  <Activity className="w-4.5 h-4.5 animate-pulse" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs sm:text-sm font-black tracking-wide text-white">
+                      SIMULASI KABEL JARINGAN INTERNET BERANTAI (DAISY-CHAIN BUS)
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">
+                      DF1 ➔ DF2 ➔ DF3 ➔ DF4 ➔ DF5 ➔ DF6 ➔ DF7
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                    Sinyal internet mengalir berantai dari <b>DF1 s/d DF7</b>. Jika salah satu toko mati lampu (misal DF3), internet di toko tersebut dan toko setelahnya (DF4–DF7) otomatis padam, serta animasi aliran kabel akan berhenti di DF3.
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+                <button
+                  type="button"
+                  onClick={() => toggleStorePower("DF3")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95 ${
+                    !storePower["DF3"]
+                      ? "bg-amber-500 hover:bg-amber-600 text-slate-950 ring-2 ring-amber-400/30"
+                      : "bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40"
+                  }`}
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>{!storePower["DF3"] ? "⚡ Nyalakan DF3" : "⚡ Tes: Matikan DF3"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={resetAllPower}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  title="Nyalakan seluruh listrik toko"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Reset Semua ON</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Grid 7 Pills Toko Terminal 3 */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 pt-1 border-t border-slate-800">
+              {CHAIN_ORDER.map((storeId) => {
+                const isPowerOn = storePower[storeId] ?? true;
+                const isInetOn = storeInternet[storeId] ?? true;
+
+                return (
+                  <div
+                    key={storeId}
+                    className={`p-2 rounded-xl border transition-all flex flex-col justify-between ${
+                      !isPowerOn
+                        ? "bg-rose-950/40 border-rose-700 text-rose-200"
+                        : !isInetOn
+                        ? "bg-amber-950/40 border-amber-700 text-amber-200"
+                        : "bg-slate-800/80 border-slate-700 text-slate-200"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono font-black text-xs text-white">
+                        {storeId}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleStorePower(storeId)}
+                        className={`px-1.5 py-0.5 rounded text-[9px] font-black cursor-pointer transition-colors ${
+                          isPowerOn
+                            ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                            : "bg-rose-600 hover:bg-rose-700 text-white animate-pulse"
+                        }`}
+                        title={`Klik untuk matikan / nyalakan listrik ${storeId}`}
+                      >
+                        {isPowerOn ? "⚡ ON" : "⚡ MATI"}
+                      </button>
+                    </div>
+
+                    <div className="mt-1.5 flex items-center justify-between text-[9px]">
+                      <span className="text-slate-400">Net Flow:</span>
+                      <span
+                        className={`font-bold flex items-center gap-1 ${
+                          isInetOn ? "text-emerald-400" : "text-rose-400"
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${isInetOn ? "bg-emerald-400 animate-pulse" : "bg-rose-500"}`} />
+                        {isInetOn ? "ONLINE" : "PUTUS"}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── MAIN SPLIT VIEW: SEJAJAR TINGGI ATAS & BAWAH (items-stretch) ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
@@ -1802,14 +2058,27 @@ function PosTopologyContent() {
 
             <div className="p-3 bg-slate-100/60 flex-1 flex items-center justify-center">
               {selectedTerminal === "Terminal 3" ? (
-                <svg viewBox="0 0 880 445" className="w-full h-auto select-none">
+                <svg viewBox="0 0 880 460" className="w-full h-auto select-none">
+                  {/* STYLE TAG FOR ANIMATED CABLE DATA PACKETS FLOWING LEFT (DF1 -> DF2 -> ... -> DF7) */}
+                  <defs>
+                    <style>{`
+                      @keyframes cableFlowLeft {
+                        from { stroke-dashoffset: 24; }
+                        to { stroke-dashoffset: 0; }
+                      }
+                      .active-cable-flow {
+                        animation: cableFlowLeft 0.75s linear infinite;
+                      }
+                    `}</style>
+                  </defs>
+
                   <path
-                    d="M 40 20 L 180 20 L 180 336 L 860 336 L 860 436 L 96 436 Q 40 436 40 380 Z"
+                    d="M 40 20 L 180 20 L 180 336 L 860 336 L 860 454 L 96 454 Q 40 454 40 380 Z"
                     fill="#cbd5e1"
                     transform="translate(4, 5)"
                   />
                   <path
-                    d="M 40 20 L 180 20 L 180 336 L 860 336 L 860 436 L 96 436 Q 40 436 40 380 Z"
+                    d="M 40 20 L 180 20 L 180 336 L 860 336 L 860 454 L 96 454 Q 40 454 40 380 Z"
                     fill="#f8fafc"
                     stroke="#334155"
                     strokeWidth="2.5"
@@ -1929,6 +2198,131 @@ function PosTopologyContent() {
                     TIKUNGAN GATE 4–5: KIRI DF7 • KANAN DF6
                   </text>
 
+                  {/* ────────────────────────────────────────────────────────── */}
+                  {/* KABEL JARINGAN BERANTAI ANIMASI: DF1 ➔ DF2 ➔ DF3 ➔ DF7    */}
+                  {/* ────────────────────────────────────────────────────────── */}
+                  {/* Conduit Cable Tray Base */}
+                  <rect x="52" y="424" width="804" height="18" rx="9" fill="#0f172a" stroke="#334155" strokeWidth="1.2" />
+                  <text x="66" y="436" fill="#64748b" fontSize="6.8" fontWeight="900" letterSpacing="0.4">
+                    KABEL JARINGAN BERANTAI: DF1 ➔ DF2 ➔ DF3 ➔ DF4 ➔ DF5 ➔ DF6 ➔ DF7
+                  </text>
+                  <text x="844" y="436" textAnchor="end" fill="#10b981" fontSize="6.8" fontWeight="900">
+                    ⚡ SERVER / ISP ➔
+                  </text>
+
+                  {/* MAIN FEED: SERVER TO DF1 (x=844 to x=794) */}
+                  {storePower["DF1"] ? (
+                    <path
+                      d="M 844 433 L 794 433"
+                      stroke="#10b981"
+                      strokeWidth="3.5"
+                      strokeDasharray="6 3"
+                      className="active-cable-flow"
+                      strokeLinecap="round"
+                    />
+                  ) : (
+                    <path
+                      d="M 844 433 L 794 433"
+                      stroke="#ef4444"
+                      strokeWidth="2.2"
+                      strokeDasharray="4 3"
+                      opacity="0.45"
+                      strokeLinecap="round"
+                    />
+                  )}
+
+                  {/* 6 CABLE SEGMENTS (DF1 -> DF2 -> DF3 -> DF4 -> DF5 -> DF6 -> DF7) */}
+                  {[
+                    { from: "DF1", to: "DF2", fromX: 794, toX: 680 },
+                    { from: "DF2", to: "DF3", fromX: 680, toX: 566 },
+                    { from: "DF3", to: "DF4", fromX: 566, toX: 452 },
+                    { from: "DF4", to: "DF5", fromX: 452, toX: 338 },
+                    { from: "DF5", to: "DF6", fromX: 338, toX: 224 },
+                    { from: "DF6", to: "DF7", fromX: 224, toX: 110 },
+                  ].map((seg) => {
+                    // Segment is active only if the upstream store has power AND internet!
+                    const isSegActive = (storePower[seg.from] ?? true) && (storeInternet[seg.from] ?? true);
+
+                    return (
+                      <g key={`${seg.from}-${seg.to}`}>
+                        {isSegActive ? (
+                          <>
+                            <path
+                              d={`M ${seg.fromX} 433 L ${seg.toX} 433`}
+                              stroke="#10b981"
+                              strokeWidth="3.5"
+                              strokeDasharray="6 3"
+                              className="active-cable-flow"
+                              strokeLinecap="round"
+                            />
+                            {/* Glowing packet particle indicator */}
+                            <circle cx={(seg.fromX + seg.toX) / 2} cy="433" r="2.2" fill="#a7f3d0" />
+                          </>
+                        ) : (
+                          <path
+                            d={`M ${seg.fromX} 433 L ${seg.toX} 433`}
+                            stroke="#ef4444"
+                            strokeWidth="2.2"
+                            strokeDasharray="4 3"
+                            opacity="0.45"
+                            strokeLinecap="round"
+                          />
+                        )}
+                      </g>
+                    );
+                  })}
+
+                  {/* DROP CABLES & SWITCH NODES FOR EACH STORE */}
+                  {[
+                    { id: "DF1", x: 794 },
+                    { id: "DF2", x: 680 },
+                    { id: "DF3", x: 566 },
+                    { id: "DF4", x: 452 },
+                    { id: "DF5", x: 338 },
+                    { id: "DF6", x: 224 },
+                    { id: "DF7", x: 110 },
+                  ].map((node) => {
+                    const isPowerOn = storePower[node.id] ?? true;
+                    const isInetOn = storeInternet[node.id] ?? true;
+
+                    return (
+                      <g key={node.id}>
+                        {/* Vertical patch drop cable from store (y=422) down to backbone (y=433) */}
+                        <line
+                          x1={node.x}
+                          y1="422"
+                          x2={node.x}
+                          y2="433"
+                          stroke={isPowerOn && isInetOn ? "#10b981" : "#ef4444"}
+                          strokeWidth="2"
+                          strokeDasharray={isPowerOn && isInetOn ? "3 2" : "2 2"}
+                        />
+
+                        {/* Node LED switch icon */}
+                        {isPowerOn && isInetOn ? (
+                          <>
+                            <circle cx={node.x} cy="433" r="4.5" fill="#10b981" stroke="#ffffff" strokeWidth="1.2" />
+                            <circle cx={node.x} cy="433" r="7.5" fill="none" stroke="#10b981" strokeWidth="1" opacity="0.7" className="animate-ping" />
+                          </>
+                        ) : !isPowerOn ? (
+                          <>
+                            <circle cx={node.x} cy="433" r="4.5" fill="#ef4444" stroke="#ffffff" strokeWidth="1.2" />
+                            <text x={node.x} y="446" textAnchor="middle" fill="#ef4444" fontSize="6" fontWeight="900">
+                              ⚡ MATI
+                            </text>
+                          </>
+                        ) : (
+                          <>
+                            <circle cx={node.x} cy="433" r="4.5" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.2" />
+                            <text x={node.x} y="446" textAnchor="middle" fill="#f59e0b" fontSize="5.8" fontWeight="900">
+                              NO INET
+                            </text>
+                          </>
+                        )}
+                      </g>
+                    );
+                  })}
+
                   {/* RENDER TOKO BUILDINGS */}
                   {T3_STORES.map((store) => {
                     const storePos = getStorePosList(store);
@@ -1945,6 +2339,9 @@ function PosTopologyContent() {
                         edcCount={edcCount}
                         isSelected={isSelected}
                         onSelect={() => setSelectedStoreId(store.id)}
+                        hasPower={storePower[store.id] ?? true}
+                        hasInternet={storeInternet[store.id] ?? true}
+                        onTogglePower={() => toggleStorePower(store.id)}
                       />
                     );
                   })}
@@ -2012,7 +2409,12 @@ function PosTopologyContent() {
               <>
                 <div
                   className="h-14 px-4 text-white flex items-center justify-between gap-3 flex-shrink-0"
-                  style={{ backgroundColor: currentStore.roofColor }}
+                  style={{
+                    backgroundColor:
+                      (storePower[currentStore.id] ?? true)
+                        ? currentStore.roofColor
+                        : "#334155",
+                  }}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="px-2.5 py-1 rounded-lg bg-white/15 border border-white/25 text-center flex-shrink-0">
@@ -2021,19 +2423,46 @@ function PosTopologyContent() {
                       </span>
                     </div>
                     <div className="min-w-0">
-                      <h3 className="text-sm font-black text-white truncate leading-tight">
-                        {currentStore.fullName}
-                      </h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-black text-white truncate leading-tight">
+                          {currentStore.fullName}
+                        </h3>
+                        {!(storePower[currentStore.id] ?? true) && (
+                          <span className="px-1.5 py-0.2 rounded bg-rose-500 text-white text-[9px] font-black uppercase">
+                            Mati Lampu
+                          </span>
+                        )}
+                        {(storePower[currentStore.id] ?? true) && !(storeInternet[currentStore.id] ?? true) && (
+                          <span className="px-1.5 py-0.2 rounded bg-amber-500 text-slate-950 text-[9px] font-black uppercase">
+                            Inet Putus
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[10px] text-white/85 font-semibold truncate">
                         📍 {currentStore.gateLabel} • {currentStore.wing}
                       </p>
                     </div>
                   </div>
 
-                  <div className="text-right flex-shrink-0 bg-black/20 px-3 py-1 rounded-xl">
-                    <span className="text-sm font-black block leading-none">
-                      {currentStorePos.length} POS
-                    </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => toggleStorePower(currentStore.id)}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-colors shadow-2xs ${
+                        (storePower[currentStore.id] ?? true)
+                          ? "bg-white/20 hover:bg-white/30 text-white border border-white/30"
+                          : "bg-rose-500 hover:bg-rose-600 text-white"
+                      }`}
+                      title="Klik untuk matikan / nyalakan listrik toko ini"
+                    >
+                      {(storePower[currentStore.id] ?? true) ? "⚡ Matikan" : "⚡ Nyalakan"}
+                    </button>
+
+                    <div className="text-right flex-shrink-0 bg-black/25 px-2.5 py-1 rounded-xl">
+                      <span className="text-xs font-black block leading-none">
+                        {currentStorePos.length} POS
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -2045,6 +2474,40 @@ function PosTopologyContent() {
                     Klik POS untuk buka detail
                   </span>
                 </div>
+
+                {/* ALERT CALLOUT IF POWER OR INTERNET DOWN */}
+                {!(storePower[currentStore.id] ?? true) ? (
+                  <div className="mx-4 mt-3 p-3 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-between gap-2 text-rose-800">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <ZapOff className="w-5 h-5 text-rose-600 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-black leading-tight">Toko Sedang Mati Lampu (Power Off)</p>
+                        <p className="text-[10.5px] text-rose-600 leading-snug mt-0.5">
+                          Seluruh unit kasir POS di toko ini padam dan tidak menerima daya listrik.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleStorePower(currentStore.id)}
+                      className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold shadow-2xs cursor-pointer shrink-0"
+                    >
+                      Nyalakan
+                    </button>
+                  </div>
+                ) : !(storeInternet[currentStore.id] ?? true) ? (
+                  <div className="mx-4 mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between gap-2 text-amber-900">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <WifiOff className="w-5 h-5 text-amber-600 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-black leading-tight">Koneksi Internet Terputus</p>
+                        <p className="text-[10.5px] text-amber-700 leading-snug mt-0.5">
+                          Toko ini memiliki listrik normal, tetapi jaringan internet padam karena toko sebelumnya di jalur berantai mati lampu.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="p-4 bg-slate-50/40 flex-1 flex flex-col justify-center">
                   {isLoading ? (
@@ -2058,20 +2521,34 @@ function PosTopologyContent() {
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-auto">
                       {currentStorePos.map((pos, idx) => {
-                        const isOp = pos.status === "OPERASIONAL";
+                        const isStorePowered = storePower[currentStore.id] ?? true;
+                        const isStoreNet = storeInternet[currentStore.id] ?? true;
+                        const isOp = pos.status === "OPERASIONAL" && isStorePowered && isStoreNet;
 
                         return (
                           <button
                             key={pos.pos_code}
                             type="button"
                             onClick={() => setSelectedPos(pos)}
-                            className="group bg-white hover:bg-emerald-50/50 rounded-2xl p-3 border-2 border-slate-200 hover:border-[#006622] shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-between text-center"
+                            className={`group bg-white rounded-2xl p-3 border-2 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-between text-center cursor-pointer ${
+                              !isStorePowered
+                                ? "border-rose-200 hover:border-rose-400 bg-rose-50/20"
+                                : !isStoreNet
+                                ? "border-amber-200 hover:border-amber-400 bg-amber-50/20"
+                                : "border-slate-200 hover:border-[#006622] hover:bg-emerald-50/50"
+                            }`}
                           >
                             <div className="w-full py-0.5 group-hover:scale-105 transition-transform">
                               <PosMachineIllustration
                                 brand={pos.pos_brand}
                                 posNumber={idx + 1}
-                                accentColor={currentStore.roofColor}
+                                accentColor={
+                                  !isStorePowered
+                                    ? "#ef4444"
+                                    : !isStoreNet
+                                    ? "#f59e0b"
+                                    : currentStore.roofColor
+                                }
                                 isOperational={isOp}
                               />
                             </div>
@@ -2080,8 +2557,16 @@ function PosTopologyContent() {
                               <p className="text-[11px] font-black text-slate-900 group-hover:text-[#006622] tracking-tight truncate w-full">
                                 {pos.pos_code}
                               </p>
-                              <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-slate-100 group-hover:bg-emerald-100/80 text-slate-600 group-hover:text-[#006622] text-[9px] font-bold">
-                                {pos.pos_brand} • Detail
+                              <span
+                                className={`inline-block mt-1 px-2 py-0.5 rounded-md text-[9px] font-bold ${
+                                  !isStorePowered
+                                    ? "bg-rose-100 text-rose-700"
+                                    : !isStoreNet
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-slate-100 group-hover:bg-emerald-100/80 text-slate-600 group-hover:text-[#006622]"
+                                }`}
+                              >
+                                {!isStorePowered ? "PADAM" : !isStoreNet ? "NO INET" : `${pos.pos_brand} • Detail`}
                               </span>
                             </div>
                           </button>
