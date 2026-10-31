@@ -79,6 +79,16 @@ Git: baseline `6f175a0` → … → commit final Lead. **Tidak ada push ke GitHu
 4. **Backup otomatis harian** (`scripts/backup-db.mjs` sudah siap, tinggal dijadwalkan Task Scheduler).
 5. 17 orphan `edc_assets.pos_location` (data lama) — bersihkan atau biarkan?
 
+## 5b. UPDATE 31 Okt 11:15 — kondisi pagi (tool eksternal masih bekerja)
+Saat verifikasi pagi, **Antigravity IDE masih aktif** dan sudah membuat **22 commit tambahan** setelah sprint kita (`7bf0380..HEAD`) — mayoritas **redesign halaman Office** (tabel kompak, hover popover detail, kode aset standar ISO 55001, aturan baru di `AI_RULES.md`); commit terakhir 11:11. Kondisi terverifikasi (read-only, tanpa mengganggu tool eksternal):
+
+- **Commit sprint kita utuh** di history (`6f175a0 → e6c8621 → 9d7385e → 5e64216 → 7bf0380`) dan dipakai sebagai fondasi pekerjaan lanjutan.
+- `tsc --noEmit` **0 error** · `scripts/verify.mjs` **4/4 LULUS** (77,5 s) · smoke **47 PASS / 0 FAIL** (run hangat; run pertama sempat 12 FAIL karena cold-compile dev server, bukan bug) · `regression.mjs` **PASS** · DB **15 tabel = 982 baris, integrity ok**.
+- Server `:3000` hidup, **tetapi mode DEV** (`next dev`; `.next/BUILD_ID` belum ada) — bukan mode produksi yang disiapkan semalam. Ini akibat tool eksternal menjalankan dev server saat mengedit.
+- Working tree git **bersih** (perubahan tool eksternal sudah di-commit olehnya).
+
+Rekomendasi: setelah tool eksternal selesai, jalankan `start-server.bat` (otomatis `npm run build` + `next start`) untuk kembali ke mode produksi. Jangan dijalankan selagi agent eksternal masih mengedit.
+
 ## 6. Cara pakai yang baru
 ```powershell
 # verifikasi cepat (aman, read-only)
