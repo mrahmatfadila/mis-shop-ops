@@ -239,7 +239,7 @@ function OfficeContent() {
   const handleShowDetail = (
     e: React.MouseEvent,
     component: string,
-    model: string | undefined,
+    model: string | null | undefined,
     item: OfficeHardwareAsset,
     extraNotes?: string
   ) => {
@@ -711,6 +711,47 @@ function OfficeContent() {
   };
 
   // Helper: Parse Storage (SSD vs HDD)
+  const formatStorageShort = (raw: string, type: "SSD" | "HDD"): string => {
+    if (!raw) return "";
+    const upper = raw.toUpperCase().trim();
+
+    // Determine clean capacity
+    let cap = "";
+    if (upper.includes("1863") || upper.includes("2000") || upper.includes("2TB")) {
+      cap = "2TB";
+    } else if (upper.includes("931") || upper.includes("1000") || upper.includes("1TB")) {
+      cap = "1TB";
+    } else if (upper.includes("512") || upper.includes("500") || upper.includes("480") || upper.includes("447")) {
+      cap = upper.includes("480") || upper.includes("447") ? "480GB" : "512GB";
+    } else if (upper.includes("256") || upper.includes("250") || upper.includes("240") || upper.includes("238")) {
+      cap = upper.includes("240") ? "240GB" : "256GB";
+    } else if (upper.includes("128") || upper.includes("120") || upper.includes("111")) {
+      cap = upper.includes("120") ? "120GB" : "128GB";
+    } else if (upper.includes("100")) {
+      cap = "100GB";
+    } else {
+      const gbMatch = upper.match(/(\d{2,4})\s*GB/);
+      if (gbMatch) cap = `${gbMatch[1]}GB`;
+    }
+
+    // Determine clean brand
+    let brand = "";
+    if (upper.includes("V-GEN") || upper.includes("V GEN")) brand = "V-Gen";
+    else if (upper.includes("KINGSTON")) brand = "Kingston";
+    else if (upper.includes("ADATA") || upper.includes("SU650")) brand = "Adata";
+    else if (upper.includes("LEXAR") || upper.includes("NS100")) brand = "Lexar";
+    else if (upper.includes("SEAGATE") || upper.includes("ST2000")) brand = "Seagate";
+    else if (upper.includes("WD") || upper.includes("WESTERN")) brand = "WD";
+    else if (upper.includes("SAMSUNG")) brand = "Samsung";
+    else if (upper.includes("HITACHI")) brand = "Hitachi";
+
+    if (cap && brand) return `${type} ${cap} ${brand}`;
+    if (cap) return `${type} ${cap}`;
+
+    const cleaned = raw.replace(/ST\d+[A-Z0-9-]+/gi, "").replace(/[\(\[\{].*?[\)\]\}]/g, "").trim();
+    return `${type} ${cleaned.slice(0, 15)}`;
+  };
+
   const parseStorage = (hardDrive?: string): { ssd: string | null; hdd: string | null } => {
     if (!hardDrive || hardDrive === "-") return { ssd: null, hdd: null };
 
@@ -1325,14 +1366,20 @@ function OfficeContent() {
                                 </td>
 
                                 {/* 8. RAM */}
-                                <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100">
+                                <td className="px-1 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100">
                                   {item.ram && item.ram !== "-" ? (
                                     <span
-                                      className="cursor-pointer hover:opacity-80 transition-opacity inline-block"
+                                      className="font-mono font-bold text-slate-800 text-[9.5px] cursor-pointer hover:text-indigo-600 transition-colors inline-block"
+                                      title={item.ram}
                                       onMouseEnter={(e) => handleShowDetail(e, "RAM Internal", item.ram, item)}
                                       onMouseLeave={handleHideDetail}
                                     >
-                                      {formatRamDisplay(item.ram)}
+                                      {(() => {
+                                        const match = item.ram.match(/(\d+(\.\d+)?)\s*GB/i);
+                                        const size = match ? `${parseFloat(match[1])} GB` : item.ram;
+                                        const isDual = /dual/i.test(item.ram);
+                                        return isDual ? `${size} (Dual)` : size;
+                                      })()}
                                     </span>
                                   ) : (
                                     <span className="text-slate-300 font-mono text-[10px]">—</span>
@@ -1346,28 +1393,28 @@ function OfficeContent() {
                                     const ssdStr = storage.ssd;
                                     const hddStr = storage.hdd;
                                     if (!ssdStr && !hddStr) return <span className="text-slate-300 font-mono text-[10px]">—</span>;
+                                    const ssdShort = typeof ssdStr === "string" ? formatStorageShort(ssdStr, "SSD") : null;
+                                    const hddShort = typeof hddStr === "string" ? formatStorageShort(hddStr, "HDD") : null;
                                     return (
-                                      <div className="flex flex-col gap-0.5 items-center justify-center py-0.5">
-                                        {typeof ssdStr === "string" && (
+                                      <div className="flex flex-col items-center justify-center text-[9px] font-mono leading-tight py-0.5 space-y-0.5">
+                                        {ssdShort && (
                                           <span
-                                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200/90 text-[8.5px] font-black uppercase cursor-pointer hover:bg-blue-100 hover:ring-1 hover:ring-blue-400 transition-all shadow-2xs whitespace-nowrap"
+                                            className="text-blue-700 font-bold cursor-pointer hover:underline whitespace-nowrap"
                                             title={`SSD: ${ssdStr}`}
                                             onMouseEnter={(e) => handleShowDetail(e, "SSD Internal", ssdStr, item)}
                                             onMouseLeave={handleHideDetail}
                                           >
-                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0"></span>
-                                            <span>SSD {ssdStr.replace(/v-gen|adata|wd green|lexar|seagate|kingston/gi, "").trim() || ssdStr}</span>
+                                            {ssdShort}
                                           </span>
                                         )}
-                                        {typeof hddStr === "string" && (
+                                        {hddShort && (
                                           <span
-                                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200/90 text-[8.5px] font-black uppercase cursor-pointer hover:bg-amber-100 hover:ring-1 hover:ring-amber-400 transition-all shadow-2xs whitespace-nowrap"
+                                            className="text-amber-700 font-bold cursor-pointer hover:underline whitespace-nowrap"
                                             title={`HDD: ${hddStr}`}
                                             onMouseEnter={(e) => handleShowDetail(e, "HDD Internal", hddStr, item)}
                                             onMouseLeave={handleHideDetail}
                                           >
-                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
-                                            <span>HDD {hddStr.replace(/seagate|wd|toshiba|hitachi/gi, "").trim() || hddStr}</span>
+                                            {hddShort}
                                           </span>
                                         )}
                                       </div>
