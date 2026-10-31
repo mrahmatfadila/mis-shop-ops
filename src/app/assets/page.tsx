@@ -59,10 +59,7 @@ function AssetsContent() {
   const initialSearch = searchParams.get("search") || "";
   const initialTab = searchParams.get("tab") || "pos";
 
-  // Tab State
-  const [activeTab, setActiveTab] = useState<"pos" | "hardware">(
-    initialTab === "hardware" ? "hardware" : "pos"
-  );
+
 
   // --- TAB 1: DATA PERANGKAT KASIR POS PLAZA BALI & SAM ---
   const [posList, setPosList] = useState<PosHardwareAsset[]>([]);
@@ -906,11 +903,7 @@ function AssetsContent() {
     fetchPosHardware();
   }, [posSearch, selectedPosShop, selectedTerminal, selectedZone, selectedBrand, selectedPassport]);
 
-  useEffect(() => {
-    if (activeTab === "hardware") {
-      fetchAssets();
-    }
-  }, [activeTab, assetSearch, selectedCategory, selectedShop, selectedStatus]);
+
 
   const copyToClipboard = (text: string, key: string) => {
     if (!text || text === "-") return;
@@ -1303,64 +1296,42 @@ function AssetsContent() {
   return (
     <SidebarLayout onOpenScanner={() => setIsScannerOpen(true)}>
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-2.5 sm:px-4 py-5 space-y-4">
-        {/* Tab Navigation Switcher & Clean Top Actions */}
+        {/* Top Header & Clean Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setActiveTab("pos")}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all ${
-                activeTab === "pos"
-                  ? "bg-[#006622] text-white shadow-2xs"
-                  : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80"
-              }`}
-            >
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-[#006622] text-white shadow-2xs">
               <Cpu className="w-4 h-4" />
               <span>Perangkat Kasir POS ({posList.length} Unit)</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("hardware")}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all ${
-                activeTab === "hardware"
-                  ? "bg-[#006622] text-white shadow-2xs"
-                  : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80"
-              }`}
-            >
-              <Laptop className="w-4 h-4" />
-              <span>Master Inventory Hardware & Network</span>
-            </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {activeTab === "pos" && (
+            <button
+              onClick={handleExportPosCsv}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-700 rounded-lg text-xs font-semibold shadow-2xs transition-colors"
+            >
+              <Download className="w-3.5 h-3.5 text-slate-500" />
+              <span>Export CSV</span>
+            </button>
+            {isMIS && (
               <>
                 <button
-                  onClick={handleExportPosCsv}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-700 rounded-lg text-xs font-semibold shadow-2xs transition-colors"
+                  type="button"
+                  onClick={() => setIsAnydeskConfigOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-lg text-xs font-semibold shadow-2xs transition-colors"
+                  title="Pengaturan Password Otomatis AnyDesk Kasir"
                 >
-                  <Download className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Export CSV</span>
+                  <ScreenShare className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Setting AnyDesk</span>
                 </button>
-                {isMIS && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setIsAnydeskConfigOpen(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-lg text-xs font-semibold shadow-2xs transition-colors"
-                      title="Pengaturan Password Otomatis AnyDesk Kasir"
-                    >
-                      <ScreenShare className="w-3.5 h-3.5 text-rose-600" />
-                      <span>Setting AnyDesk</span>
-                    </button>
 
-                    <button
-                      onClick={handleOpenAddPos}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#006622] hover:bg-[#00551c] text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors active:scale-95"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Tambah POS</span>
-                    </button>
-                  </>
-                )}
+                <button
+                  onClick={handleOpenAddPos}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#006622] hover:bg-[#00551c] text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Tambah POS</span>
+                </button>
               </>
             )}
             <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-500 font-medium pl-2 border-l border-slate-200">
@@ -1371,11 +1342,8 @@ function AssetsContent() {
           </div>
         </div>
 
-        {/* ======================================================== */}
-        {/* TAB 1: PERANGKAT KASIR POS PLAZA BALI & SAM              */}
-        {/* ======================================================== */}
-        {activeTab === "pos" && (
-          <div className="space-y-4 animate-in fade-in duration-200">
+        {/* PERANGKAT KASIR POS PLAZA BALI & SAM */}
+        <div className="space-y-4 animate-in fade-in duration-200">
             {/* Clean Terminal Grouping KPI Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
               <div
@@ -2116,193 +2084,6 @@ function AssetsContent() {
               )}
             </div>
           </div>
-        )}
-
-        {/* ======================================================== */}
-        {/* TAB 2: MASTER INVENTORY HARDWARE STANDAR                 */}
-        {/* ======================================================== */}
-        {activeTab === "hardware" && (
-          <div className="space-y-6 animate-in fade-in">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-                  <Laptop className="w-6 h-6 text-blue-600" />
-                  Master Inventaris Hardware Standar
-                </h1>
-                <p className="text-xs sm:text-sm text-slate-500">
-                  Kelola seluruh unit hardware cadangan, printer thermal, barcode scanner, dan perangkat jaringan toko.
-                </p>
-              </div>
-
-              <button
-                onClick={() => {
-                  const randomNum = Math.floor(100 + Math.random() * 900);
-                  setEditingAsset(null);
-                  setAssetFormData({
-                    asset_code: `AST-POS-${randomNum}`,
-                    name: "",
-                    category: "POS Terminal",
-                    shop_location: "Plaza Bali",
-                    brand_model: "",
-                    serial_number: "",
-                    ip_address: "",
-                    purchase_date: new Date().toISOString().split("T")[0],
-                    status: "OPERASIONAL",
-                    notes: "",
-                  });
-                  setAssetFormError(null);
-                  setIsAssetFormOpen(true);
-                }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-500/20 active:scale-95 transition-all self-start sm:self-auto"
-              >
-                <Plus className="w-4 h-4" />
-                Tambah Hardware Baru
-              </button>
-            </div>
-
-            {/* Filters */}
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={assetSearch}
-                    onChange={(e) => setAssetSearch(e.target.value)}
-                    placeholder="Cari kode, nama, SN, brand..."
-                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                </div>
-
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  <option value="">Semua Kategori</option>
-                  <option value="POS Terminal">POS Terminal</option>
-                  <option value="Printer Thermal">Printer Thermal</option>
-                  <option value="Barcode Scanner">Barcode Scanner</option>
-                  <option value="Network / Router">Network / Router</option>
-                  <option value="UPS / Kelistrikan">UPS / Kelistrikan</option>
-                </select>
-
-                <select
-                  value={selectedShop}
-                  onChange={(e) => setSelectedShop(e.target.value)}
-                  disabled={!isMIS}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-slate-100 disabled:text-slate-400"
-                >
-                  {isMIS && <option value="">Semua Lokasi Toko</option>}
-                  <option value="Plaza Bali">Plaza Bali</option>
-                  <option value="SAM">SAM</option>
-                </select>
-
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  <option value="">Semua Status</option>
-                  <option value="OPERASIONAL">Operasional</option>
-                  <option value="PERBAIKAN">Perbaikan</option>
-                  <option value="RUSAK">Rusak</option>
-                  <option value="CADANGAN">Cadangan</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Standard Assets Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              {isAssetsLoading ? (
-                <div className="py-12 text-center text-xs text-slate-400">
-                  Memuat data inventaris hardware...
-                </div>
-              ) : assets.length === 0 ? (
-                <div className="py-16 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
-                  <Laptop className="w-8 h-8 text-slate-300" />
-                  <span>Tidak ada aset yang cocok dengan filter pencarian.</span>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase">
-                      <tr>
-                        <th className="px-4 py-3">Kode Aset</th>
-                        <th className="px-4 py-3">Nama Perangkat</th>
-                        <th className="px-4 py-3">Kategori</th>
-                        <th className="px-4 py-3">Lokasi Toko</th>
-                        <th className="px-4 py-3">Brand & Model</th>
-                        <th className="px-4 py-3">Serial Number</th>
-                        <th className="px-4 py-3 text-center">Status</th>
-                        <th className="px-4 py-3 text-right">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {assets.map((asset) => (
-                        <tr key={asset.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="px-4 py-3 font-mono font-bold text-blue-600 whitespace-nowrap">
-                            {asset.asset_code}
-                          </td>
-                          <td className="px-4 py-3 font-medium text-slate-800">
-                            {asset.name}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-slate-600">
-                            {asset.category}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-slate-600">
-                            {asset.shop_location}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-slate-600">
-                            {asset.brand_model}
-                          </td>
-                          <td className="px-4 py-3 font-mono text-slate-500 whitespace-nowrap">
-                            {asset.serial_number}
-                          </td>
-                          <td className="px-4 py-3 text-center whitespace-nowrap">
-                            <span
-                              className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                asset.status === "OPERASIONAL"
-                                  ? "bg-emerald-100 text-emerald-800"
-                                  : asset.status === "PERBAIKAN"
-                                    ? "bg-amber-100 text-amber-800"
-                                    : asset.status === "CADANGAN"
-                                      ? "bg-blue-100 text-blue-800"
-                                      : "bg-rose-100 text-rose-800"
-                              }`}
-                            >
-                              {asset.status}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => setSelectedAssetForSticker(asset)}
-                                title="Cetak Stiker Barcode"
-                                className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
-                              >
-                                <Printer className="w-4 h-4" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setSelectedAssetForTicket(asset)}
-                                title="Buat Tiket Perbaikan"
-                                className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors"
-                              >
-                                <LifeBuoy className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </main>
 
       {/* Form Modal: Add / Edit POS Hardware */}
