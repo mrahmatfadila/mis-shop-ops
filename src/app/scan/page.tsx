@@ -101,6 +101,7 @@ const SAMPLE_CODES = [
   { label: "RAM-001 (RAM Internal)", code: "RAM-001" },
   { label: "CGKT2DFD05-P04 (Kasir POS)", code: "CGKT2DFD05-P04" },
   { label: "CGKT3DFA01-P01 (Kasir T3)", code: "CGKT3DFA01-P01" },
+  { label: "PC-HRD-26-002-0 (PC HRD)", code: "PC-HRD-26-002-0" },
   { label: "PC-MIS-26-002-0 (PC Office)", code: "PC-MIS-26-002-0" },
   { label: "SSD-002 (Storage)", code: "SSD-002" },
   { label: "CPU-001 (Processor)", code: "CPU-001" },
@@ -144,7 +145,7 @@ function ScanDetailContent() {
     setPingResult(null);
 
     try {
-      const res = await fetch(`/api/assets/${encodeURIComponent(codeToFetch.trim())}`);
+      const res = await fetch(`/api/assets/${encodeURIComponent(codeToFetch.trim())}`, { cache: "no-store" });
       const json = await res.json();
       if (json.success && json.data) {
         setAssetData(json.data);

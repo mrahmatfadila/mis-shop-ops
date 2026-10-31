@@ -212,7 +212,7 @@ export default function ScannerModal({
     setResultTab("spec");
 
     try {
-      const res = await fetch(`/api/assets/${encodeURIComponent(code)}`);
+      const res = await fetch(`/api/assets/${encodeURIComponent(code)}`, { cache: "no-store" });
       const json = await res.json();
 
       if (json.success && json.data) {
@@ -864,7 +864,7 @@ export default function ScannerModal({
                     {/* Quick Suggestion Chips */}
                     <div className="flex items-center gap-1.5 flex-wrap pt-2">
                       <span className="text-slate-400 font-bold text-[10.5px]">Contoh Cepat:</span>
-                      {["RAM-001", "RAM-002", "CPU-001", "SSD-001", "CGKT2DFD05-P04", "PC-MIS-26-002-0"].map((sample) => (
+                      {["RAM-001", "RAM-002", "CPU-001", "SSD-001", "CGKT2DFD05-P04", "PC-MIS-26-002-0", "PC-HRD-26-002-0"].map((sample) => (
                         <button
                           key={sample}
                           type="button"

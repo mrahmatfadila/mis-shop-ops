@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
 import { fail, jsonError } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(
   request: Request,
   { params }: { params: { code: string } }
@@ -421,9 +424,10 @@ export async function GET(
     // 3. CARI DI TABEL ASSETS (Master Standard Assets)
     // ─────────────────────────────────────────────────────────────────────────────
     if (!data) {
+      const altCode = cleanCode.endsWith("-0") ? cleanCode.slice(0, -2) + "-O" : cleanCode.endsWith("-O") ? cleanCode.slice(0, -2) + "-0" : cleanCode;
       const assetRes = await db.execute({
-        sql: `SELECT * FROM assets WHERE asset_code = ? OR serial_number = ? LIMIT 1`,
-        args: [cleanCode, cleanCode],
+        sql: `SELECT * FROM assets WHERE asset_code = ? OR asset_code = ? OR serial_number = ? OR asset_code LIKE ? LIMIT 1`,
+        args: [cleanCode, altCode, cleanCode, `%${cleanCode}%`],
       });
 
       if (assetRes.rows.length > 0) {
