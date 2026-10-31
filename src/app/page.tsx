@@ -9,14 +9,12 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  ShieldCheck,
   AlertCircle,
   Sparkles,
   Server,
   Layers,
   KeyRound,
-  Store,
-  Users
+  Store
 } from "lucide-react";
 import Link from "next/link";
 
@@ -56,13 +54,6 @@ export default function RootLoginPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Quick helper to fill admin credentials for testing
-  const handleQuickFillAdmin = () => {
-    setUsername("admin");
-    setPassword("admin");
-    setErrorMsg("");
   };
 
   return (
@@ -236,41 +227,6 @@ export default function RootLoginPage() {
               )}
             </button>
           </form>
-
-          {/* Quick Dev Admin Helper Box */}
-          <div className="pt-3 border-t border-slate-100 space-y-2">
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-purple-600" />
-                  <span>Akun Pengujian Dev (Superadmin):</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={handleQuickFillAdmin}
-                  className="px-2 py-0.5 rounded bg-purple-100 hover:bg-purple-200 text-purple-800 text-[10px] font-bold transition-colors"
-                >
-                  Isi Otomatis
-                </button>
-              </div>
-              <p className="text-[11px] text-slate-500 font-mono">
-                User: <strong className="text-purple-700 font-bold">admin</strong> • Sandi: <strong className="text-purple-700 font-bold">admin</strong>
-              </p>
-              <p className="text-[10px] text-slate-400">
-                Masuk sebagai Admin untuk melihat seluruh menu dan mengaktifkan fitur ganti role di sidebar.
-              </p>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 text-[11px] text-slate-600 space-y-1">
-              <p className="font-bold text-emerald-900 flex items-center gap-1">
-                <Users className="w-3.5 h-3.5 text-[#006622]" />
-                <span>Akun SPV Toko & Tim IT Support Ops:</span>
-              </p>
-              <p className="text-[10px] text-slate-500">
-                Gunakan NIK Karyawan terdaftar sebagai username (contoh NIK SPV: <code className="font-mono font-bold text-slate-700">1112040001</code>, NIK IT: <code className="font-mono font-bold text-slate-700">8117110002</code>, sandi default: <code className="font-mono font-bold text-slate-700">123</code> atau NIK).
-              </p>
-            </div>
-          </div>
         </div>
       </main>
 
