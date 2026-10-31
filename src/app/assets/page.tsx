@@ -188,13 +188,13 @@ function AssetsContent() {
 
     if (compUpper.includes("KEYBOARD")) {
       return {
-        itemId: `ACC-${String(posNum * 2 - 1).padStart(3, "0")}`,
+        itemId: `KBD-${seq}`,
         position: `Dipakai di Set ${parentCode}`
       };
     }
     if (compUpper.includes("MOUSE")) {
       return {
-        itemId: `ACC-${String(posNum * 2).padStart(3, "0")}`,
+        itemId: `MSE-${seq}`,
         position: `Dipakai di Set ${parentCode}`
       };
     }
