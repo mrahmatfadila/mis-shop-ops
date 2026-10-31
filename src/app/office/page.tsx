@@ -173,6 +173,13 @@ function OfficeContent() {
         position: `Lisensi Resmi di ${parentCode}`,
       };
     }
+    if (compUpper.includes("UNIT") || compUpper.includes("PC") || compUpper.includes("ROUTER") || compUpper.includes("PABX")) {
+      return {
+        itemId: item.asset_code,
+        position: `Unit Utama ${item.user_name} (${item.office_location || "Head Office"})`,
+      };
+    }
+
     return {
       itemId: `DEV-${seq}`,
       position: `Unit Utama ${parentCode}`,
@@ -1071,33 +1078,30 @@ function OfficeContent() {
             <div className="w-full rounded-2xl overflow-hidden border border-slate-200/90 shadow-xs bg-white">
               <table className="w-full table-fixed text-left border-separate border-spacing-0 text-[10px]">
                 <colgroup>
-                  {/* 1-4: Identitas & Pengguna (29.4%) */}
-                  <col className="w-[2.2%]" />
-                  <col className="w-[10.2%]" />
-                  <col className="w-[9.2%]" />
-                  <col className="w-[7.8%]" />
-                  {/* 5-10: Spesifikasi PC & Hardware (38.6%) */}
-                  <col className="w-[4.4%]" />
-                  <col className="w-[5.8%]" />
-                  <col className="w-[8.2%]" />
-                  <col className="w-[6.8%]" />
-                  <col className="w-[5.2%]" />
-                  <col className="w-[8.2%]" />
-                  {/* 11-14: Periferal & Aksesori (22.0%) */}
-                  <col className="w-[6.2%]" />
-                  <col className="w-[5.8%]" />
+                  {/* 1-3: Identitas & Pengguna (21.0%) */}
+                  <col className="w-[2.5%]" />
+                  <col className="w-[10.5%]" />
+                  <col className="w-[8.0%]" />
+                  {/* 4-9: Spesifikasi PC & Hardware (49.0%) */}
+                  <col className="w-[4.5%]" />
+                  <col className="w-[7.0%]" />
+                  <col className="w-[13.0%]" />
+                  <col className="w-[11.0%]" />
                   <col className="w-[5.0%]" />
+                  <col className="w-[8.5%]" />
+                  {/* 10-13: Periferal & Aksesori (25.5%) */}
+                  <col className="w-[8.5%]" />
+                  <col className="w-[7.5%]" />
                   <col className="w-[5.0%]" />
-                  {/* 15: Status (5.5%) */}
-                  <col className="w-[5.5%]" />
-                  {/* 16: Aksi (4.5%) */}
+                  <col className="w-[4.5%]" />
+                  {/* 14: Aksi (4.5%) */}
                   <col className="w-[4.5%]" />
                 </colgroup>
                 <thead>
                   {/* Tier 1: Kategori Kelompok Kolom */}
                   <tr className="text-[10px] font-extrabold tracking-wide whitespace-nowrap h-[28px]">
                     <th
-                      colSpan={4}
+                      colSpan={3}
                       className="sticky top-14 z-20 px-1 py-1 text-center bg-slate-100 text-slate-800 border-b border-r border-slate-200 select-none shadow-2xs rounded-tl-2xl"
                     >
                       Identitas, Pengguna & IP Jaringan
@@ -1115,12 +1119,6 @@ function OfficeContent() {
                       Periferal & Aksesori
                     </th>
                     <th
-                      colSpan={1}
-                      className="sticky top-14 z-20 px-1 py-1 text-center bg-amber-100 text-amber-900 border-b border-r border-slate-200 select-none shadow-2xs"
-                    >
-                      Status
-                    </th>
-                    <th
                       rowSpan={2}
                       className="sticky top-14 z-20 px-1 py-1 text-center bg-slate-100 text-slate-800 font-bold align-middle border-b border-slate-200 select-none shadow-2xs rounded-tr-2xl"
                     >
@@ -1131,22 +1129,19 @@ function OfficeContent() {
                   <tr className="text-slate-700 font-bold text-[9.5px] tracking-tight whitespace-nowrap h-[28px]">
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center font-bold text-slate-400 bg-slate-50 border-b border-r border-slate-200/80 select-none">No</th>
                     <th className="sticky top-[84px] z-20 px-1.5 py-1 bg-slate-50 border-b border-r border-slate-200/80 select-none">Nama Pengguna</th>
-                    <th className="sticky top-[84px] z-20 px-1 py-1 text-center bg-slate-50 border-b border-r border-slate-200/80 select-none">Kode Aset</th>
                     <th className="sticky top-[84px] z-20 px-1 py-1 text-center bg-slate-50 border-b border-r border-slate-200 select-none">IP Address</th>
 
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none">Unit</th>
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none" title="Arahkan kursor (hover) untuk melihat Kode Aset & detail PC">Unit</th>
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none">OS</th>
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-slate-200/80 select-none">Proc</th>
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none">Proc</th>
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-slate-200/80 select-none">Mobo</th>
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-slate-200/80 select-none">RAM</th>
+                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none">RAM</th>
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-slate-200 select-none">Storage</th>
 
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-emerald-50 text-emerald-950 border-b border-r border-slate-200/80 select-none">Monitor</th>
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-emerald-50 text-emerald-950 border-b border-r border-slate-200/80 select-none">Printer</th>
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-emerald-50 text-emerald-950 border-b border-r border-slate-200/80 select-none">Keyboard</th>
                     <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-emerald-50 text-emerald-950 border-b border-slate-200 select-none">Mouse</th>
-
-                    <th className="sticky top-[84px] z-20 px-1 py-1 text-center bg-amber-50 text-amber-950 border-b border-r border-slate-200 select-none">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -1154,7 +1149,7 @@ function OfficeContent() {
                     <Fragment key={gIdx}>
                       {/* 1. Location Section Header */}
                       <tr className="bg-slate-100/90 border-t border-b border-slate-300">
-                        <td colSpan={16} className="px-3 py-2">
+                        <td colSpan={14} className="px-3 py-2">
                           <div className="flex flex-col md:flex-row md:items-center justify-between gap-1">
                             <div className="flex items-center gap-2">
                               <span className="relative flex h-2 w-2 flex-shrink-0">
@@ -1191,7 +1186,7 @@ function OfficeContent() {
                         <Fragment key={`${div.name}-${dIdx}`}>
                           {/* Division Sub-header Row */}
                           <tr className="bg-slate-50/90 border-t border-b border-slate-200/70">
-                            <td colSpan={16} className="px-3 py-1.5 bg-slate-50/70">
+                            <td colSpan={14} className="px-3 py-1.5 bg-slate-50/70">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <span className={`w-1.5 h-1.5 rounded-full ${group.color}`} />
@@ -1220,7 +1215,7 @@ function OfficeContent() {
                                 </td>
 
                                 {/* 2. Pengguna */}
-                                <td className="px-1.5 py-1 whitespace-nowrap border-r border-slate-100 overflow-hidden">
+                                <td className="px-1.5 py-1 whitespace-nowrap border-r border-slate-100">
                                   <div className="flex items-center gap-1.5">
                                     <span
                                       className={`w-1.5 h-1.5 rounded-full shrink-0 ${
@@ -1232,34 +1227,13 @@ function OfficeContent() {
                                       }`}
                                       title={`Status: ${item.status}`}
                                     />
-                                    <span className="font-bold text-slate-900 text-[10.5px] truncate" title={item.user_name}>
+                                    <span className="font-bold text-slate-900 text-[10.5px] leading-tight" title={item.user_name}>
                                       {item.user_name}
                                     </span>
                                   </div>
                                 </td>
 
-                                {/* 3. Kode Aset */}
-                                <td className="px-1 py-1 text-center whitespace-nowrap border-r border-slate-100 overflow-hidden">
-                                  <div className="inline-flex items-center justify-center gap-1">
-                                    <span className="font-mono font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[9.5px] border border-slate-200/90 shadow-2xs tracking-tight">
-                                      {item.asset_code}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => copyToClipboard(item.asset_code, `code-${item.id}`)}
-                                      title="Salin Kode Aset"
-                                      className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-blue-700 p-0.5 shrink-0 transition-opacity"
-                                    >
-                                      {copiedKey === `code-${item.id}` ? (
-                                        <Check className="w-2.5 h-2.5 text-emerald-600" />
-                                      ) : (
-                                        <Copy className="w-2.5 h-2.5" />
-                                      )}
-                                    </button>
-                                  </div>
-                                </td>
-
-                                {/* 4. IP Address */}
+                                {/* 3. IP Address */}
                                 <td className="px-1 py-1 text-center whitespace-nowrap border-r border-slate-200">
                                   {item.ip_address && item.ip_address !== "-" ? (
                                     <div className="inline-flex items-center gap-0.5">
@@ -1284,10 +1258,10 @@ function OfficeContent() {
                                   )}
                                 </td>
 
-                                {/* 5. Unit */}
+                                {/* 4. Unit (Hover for Asset Code & Specs) */}
                                 <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100">
                                   <span
-                                    className={`inline-block px-1.5 py-0.2 rounded text-[9px] font-black uppercase cursor-pointer hover:ring-1 hover:ring-blue-400 transition-all ${
+                                    className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-black uppercase cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all shadow-2xs ${
                                       item.device_type === "ROUTER"
                                         ? "bg-orange-100 text-orange-800 border border-orange-200"
                                         : item.device_type === "PABX"
@@ -1296,32 +1270,33 @@ function OfficeContent() {
                                     }`}
                                     onMouseEnter={(e) => handleShowDetail(e, "Unit Perangkat Office", item.device_type || "PC", item)}
                                     onMouseLeave={handleHideDetail}
+                                    title={`Kode Aset: ${item.asset_code} (Hover untuk detail lengkap)`}
                                   >
                                     {item.device_type || "PC"}
                                   </span>
                                 </td>
 
-                                {/* 6. OS */}
-                                <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100 overflow-hidden">
+                                {/* 5. OS */}
+                                <td className="px-0.5 py-1 text-center bg-blue-50/10 border-r border-slate-100">
                                   {item.os && item.os !== "-" ? (
                                     <span
-                                      className="text-[9.5px] text-slate-700 font-mono font-semibold inline-block max-w-full truncate cursor-pointer hover:text-blue-600 transition-colors"
+                                      className="text-[9.5px] text-slate-700 font-mono font-semibold inline-block leading-tight cursor-pointer hover:text-blue-600 transition-colors"
                                       title={item.os}
                                       onMouseEnter={(e) => handleShowDetail(e, "Sistem Operasi (OS)", item.os, item)}
                                       onMouseLeave={handleHideDetail}
                                     >
-                                      {item.os.replace("WINDOWS 10 PRO", "Win 10 Pro").replace("WINDOWS 10", "Win 10").replace("WINDOWS 7 ULTIMATE", "Win 7 Ult").replace("WINDOWS 7", "Win 7").replace("WINDOWS 11", "Win 11")}
+                                      {item.os}
                                     </span>
                                   ) : (
                                     <span className="text-slate-300 font-mono text-[10px]">—</span>
                                   )}
                                 </td>
 
-                                {/* 7. Proc */}
-                                <td className="px-1 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100 overflow-hidden">
+                                {/* 6. Proc */}
+                                <td className="px-1 py-1 text-center bg-blue-50/10 border-r border-slate-100">
                                   {item.processor && item.processor !== "-" ? (
                                     <span
-                                      className="px-1.5 py-0.2 bg-slate-100 border border-slate-200/80 rounded text-[9.5px] font-mono font-semibold text-slate-800 inline-block max-w-full truncate cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all"
+                                      className="px-1.5 py-0.5 bg-slate-50 border border-slate-200/80 rounded text-[9.5px] font-mono font-semibold text-slate-800 inline-block leading-tight cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all"
                                       title={item.processor}
                                       onMouseEnter={(e) => handleShowDetail(e, "Processor / CPU", item.processor, item)}
                                       onMouseLeave={handleHideDetail}
@@ -1333,11 +1308,11 @@ function OfficeContent() {
                                   )}
                                 </td>
 
-                                {/* 8. Mobo */}
-                                <td className="px-1 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100 overflow-hidden">
+                                {/* 7. Mobo */}
+                                <td className="px-1 py-1 text-center bg-blue-50/10 border-r border-slate-100">
                                   {item.motherboard && item.motherboard !== "-" ? (
                                     <span
-                                      className="text-[9.5px] text-slate-600 font-mono font-medium inline-block max-w-full truncate cursor-pointer hover:text-blue-600 transition-colors"
+                                      className="text-[9.5px] text-slate-700 font-mono font-medium inline-block leading-tight cursor-pointer hover:text-blue-600 transition-colors"
                                       title={item.motherboard}
                                       onMouseEnter={(e) => handleShowDetail(e, "Motherboard PC", item.motherboard, item)}
                                       onMouseLeave={handleHideDetail}
@@ -1349,7 +1324,7 @@ function OfficeContent() {
                                   )}
                                 </td>
 
-                                {/* 9. RAM */}
+                                {/* 8. RAM */}
                                 <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-100">
                                   {item.ram && item.ram !== "-" ? (
                                     <span
@@ -1364,33 +1339,35 @@ function OfficeContent() {
                                   )}
                                 </td>
 
-                                {/* 10. Storage */}
-                                <td className="px-1 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-200 overflow-hidden">
+                                {/* 9. Storage (Stacked Atas Bawah: SSD & HDD) */}
+                                <td className="px-1 py-1 text-center bg-blue-50/10 border-r border-slate-200">
                                   {(() => {
                                     const storage = parseStorage(item.hard_drive);
                                     const ssdStr = storage.ssd;
                                     const hddStr = storage.hdd;
                                     if (!ssdStr && !hddStr) return <span className="text-slate-300 font-mono text-[10px]">—</span>;
                                     return (
-                                      <div className="inline-flex items-center justify-center gap-1 max-w-full truncate">
+                                      <div className="flex flex-col gap-0.5 items-center justify-center py-0.5">
                                         {typeof ssdStr === "string" && (
                                           <span
-                                            className="px-1 py-0.2 rounded bg-blue-100 text-blue-800 border border-blue-200 text-[8.5px] font-black uppercase truncate cursor-pointer hover:ring-1 hover:ring-blue-400 transition-all"
+                                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200/90 text-[8.5px] font-black uppercase cursor-pointer hover:bg-blue-100 hover:ring-1 hover:ring-blue-400 transition-all shadow-2xs whitespace-nowrap"
                                             title={`SSD: ${ssdStr}`}
                                             onMouseEnter={(e) => handleShowDetail(e, "SSD Internal", ssdStr, item)}
                                             onMouseLeave={handleHideDetail}
                                           >
-                                            SSD {ssdStr.replace(/v-gen|adata|wd green|lexar|seagate|kingston/gi, "").trim()}
+                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0"></span>
+                                            <span>SSD {ssdStr.replace(/v-gen|adata|wd green|lexar|seagate|kingston/gi, "").trim() || ssdStr}</span>
                                           </span>
                                         )}
                                         {typeof hddStr === "string" && (
                                           <span
-                                            className="px-1 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200 text-[8.5px] font-black uppercase truncate cursor-pointer hover:ring-1 hover:ring-amber-400 transition-all"
+                                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200/90 text-[8.5px] font-black uppercase cursor-pointer hover:bg-amber-100 hover:ring-1 hover:ring-amber-400 transition-all shadow-2xs whitespace-nowrap"
                                             title={`HDD: ${hddStr}`}
                                             onMouseEnter={(e) => handleShowDetail(e, "HDD Internal", hddStr, item)}
                                             onMouseLeave={handleHideDetail}
                                           >
-                                            HDD {hddStr.replace(/seagate|wd|toshiba|hitachi/gi, "").trim()}
+                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
+                                            <span>HDD {hddStr.replace(/seagate|wd|toshiba|hitachi/gi, "").trim() || hddStr}</span>
                                           </span>
                                         )}
                                       </div>
@@ -1398,11 +1375,11 @@ function OfficeContent() {
                                   })()}
                                 </td>
 
-                                {/* 11. Monitor */}
-                                <td className="px-1 py-1 text-center whitespace-nowrap bg-emerald-50/10 border-r border-slate-100 overflow-hidden">
+                                {/* 10. Monitor */}
+                                <td className="px-1 py-1 text-center bg-emerald-50/10 border-r border-slate-100">
                                   {item.monitor && item.monitor !== "-" ? (
                                     <span
-                                      className="text-[9.5px] text-slate-800 font-bold inline-block max-w-full truncate cursor-pointer hover:text-emerald-700 hover:underline transition-colors"
+                                      className="text-[9.5px] text-slate-800 font-bold inline-block leading-tight cursor-pointer hover:text-emerald-700 hover:underline transition-colors"
                                       title={item.monitor}
                                       onMouseEnter={(e) => handleShowDetail(e, "Monitor Display", item.monitor, item)}
                                       onMouseLeave={handleHideDetail}
@@ -1414,11 +1391,11 @@ function OfficeContent() {
                                   )}
                                 </td>
 
-                                {/* 12. Printer */}
-                                <td className="px-1 py-1 text-center whitespace-nowrap bg-emerald-50/10 border-r border-slate-100 overflow-hidden">
+                                {/* 11. Printer */}
+                                <td className="px-1 py-1 text-center bg-emerald-50/10 border-r border-slate-100">
                                   {item.printer && item.printer !== "-" ? (
                                     <span
-                                      className="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/90 inline-block max-w-full truncate shadow-2xs cursor-pointer hover:ring-1 hover:ring-emerald-400 transition-all"
+                                      className="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/90 inline-block shadow-2xs leading-tight cursor-pointer hover:ring-1 hover:ring-emerald-400 transition-all"
                                       title={item.printer}
                                       onMouseEnter={(e) => handleShowDetail(e, "Printer Terhubung", item.printer, item)}
                                       onMouseLeave={handleHideDetail}
@@ -1430,11 +1407,11 @@ function OfficeContent() {
                                   )}
                                 </td>
 
-                                {/* 13. Keyboard */}
-                                <td className="px-0.5 py-1 text-center whitespace-nowrap bg-emerald-50/10 border-r border-slate-100 overflow-hidden">
+                                {/* 12. Keyboard */}
+                                <td className="px-0.5 py-1 text-center bg-emerald-50/10 border-r border-slate-100">
                                   {item.keyboard && item.keyboard !== "-" ? (
                                     <span
-                                      className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-white border border-slate-200 text-slate-700 inline-block max-w-full truncate shadow-2xs cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition-all"
+                                      className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-white border border-slate-200 text-slate-700 inline-block shadow-2xs leading-tight cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition-all"
                                       title={item.keyboard}
                                       onMouseEnter={(e) => handleShowDetail(e, "Keyboard Office", item.keyboard, item)}
                                       onMouseLeave={handleHideDetail}
@@ -1446,11 +1423,11 @@ function OfficeContent() {
                                   )}
                                 </td>
 
-                                {/* 14. Mouse */}
-                                <td className="px-0.5 py-1 text-center whitespace-nowrap bg-emerald-50/10 border-r border-slate-200 overflow-hidden">
+                                {/* 13. Mouse */}
+                                <td className="px-0.5 py-1 text-center bg-emerald-50/10 border-r border-slate-200">
                                   {item.mouse && item.mouse !== "-" ? (
                                     <span
-                                      className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-white border border-slate-200 text-slate-700 inline-block max-w-full truncate shadow-2xs cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition-all"
+                                      className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-white border border-slate-200 text-slate-700 inline-block shadow-2xs leading-tight cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition-all"
                                       title={item.mouse}
                                       onMouseEnter={(e) => handleShowDetail(e, "Mouse Office", item.mouse, item)}
                                       onMouseLeave={handleHideDetail}
@@ -1462,22 +1439,7 @@ function OfficeContent() {
                                   )}
                                 </td>
 
-                                {/* 15. Status */}
-                                <td className="px-1 py-1 text-center whitespace-nowrap bg-amber-50/10 border-r border-slate-200">
-                                  <StatusBadge
-                                    status={item.status}
-                                    label={<span className="text-[8.5px] font-extrabold">{item.status}</span>}
-                                    className={
-                                      item.status === "CADANGAN"
-                                        ? "bg-amber-50 text-amber-800 border-amber-200 font-bold px-1.5 py-0.2 shadow-2xs text-[8.5px]"
-                                        : item.status === "OPERASIONAL"
-                                        ? "bg-emerald-50 text-[#006622] border-emerald-200/90 font-bold px-1.5 py-0.2 shadow-2xs text-[8.5px]"
-                                        : "px-1.5 py-0.2 shadow-2xs text-[8.5px]"
-                                    }
-                                  />
-                                </td>
-
-                                {/* 16. Aksi */}
+                                {/* 14. Aksi */}
                                 <td className="px-1 py-1 text-center whitespace-nowrap">
                                   <div className="flex items-center justify-center gap-0.5">
                                     <button
