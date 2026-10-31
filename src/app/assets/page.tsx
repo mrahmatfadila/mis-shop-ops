@@ -41,7 +41,8 @@ import {
   RefreshCw,
   ShoppingCart,
   ScreenShare,
-  Zap
+  Zap,
+  AlertTriangle
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -434,6 +435,7 @@ function AssetsContent() {
     autoLogin?: boolean;
   } | null>(null);
 
+  const [confirmRemotePos, setConfirmRemotePos] = useState<PosHardwareAsset | null>(null);
   const [isAnydeskConfigOpen, setIsAnydeskConfigOpen] = useState(false);
   const [defaultAnydeskPassword, setDefaultAnydeskPassword] = useState("cupcake2020");
 
@@ -462,11 +464,18 @@ function AssetsContent() {
     URL.revokeObjectURL(url);
   };
 
-  const handleRemoteAnydesk = async (pos: PosHardwareAsset) => {
+  const handleRemoteAnydesk = (pos: PosHardwareAsset) => {
     if (!pos.ip_address || pos.ip_address === "-" || pos.ip_address.trim() === "") {
       alert(`Unit kasir ${pos.pos_code} belum memiliki IP Address terdaftar.`);
       return;
     }
+
+    // Tampilkan modal konfirmasi "Apakah Anda yakin ingin remote?"
+    setConfirmRemotePos(pos);
+  };
+
+  const executeRemoteAnydesk = async (pos: PosHardwareAsset) => {
+    setConfirmRemotePos(null);
 
     const cleanIp = pos.ip_address.trim();
     const target = pos.anydesk_id && pos.anydesk_id.trim() !== "" ? pos.anydesk_id.trim() : cleanIp;
@@ -2926,6 +2935,99 @@ function AssetsContent() {
                   className="text-[10px] text-slate-400 hover:text-white underline"
                 >
                   Ubah Password
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Konfirmasi Remote AnyDesk */}
+      {confirmRemotePos && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200">
+            {/* Header */}
+            <div className="p-4 bg-gradient-to-r from-rose-50 to-orange-50 border-b border-rose-100 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 bg-rose-600 text-white rounded-xl shadow-xs">
+                  <ScreenShare className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-sm">
+                    Konfirmasi Remote AnyDesk
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Verifikasi sebelum membuka sesi remote control
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setConfirmRemotePos(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200/60 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-4 text-xs">
+              <div className="text-center py-1">
+                <p className="text-sm font-black text-slate-800">
+                  Apakah Anda yakin ingin me-remote kasir ini?
+                </p>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Sistem akan meluncurkan AnyDesk dan otomatis mengisikan password akses kasir.
+                </p>
+              </div>
+
+              {/* Detail Perangkat */}
+              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-semibold">Kode Kasir:</span>
+                  <span className="font-bold text-slate-900 px-2 py-0.5 bg-white border border-slate-200 rounded font-mono">
+                    {confirmRemotePos.pos_code}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-semibold">Lokasi / Toko:</span>
+                  <span className="font-bold text-slate-800">
+                    {confirmRemotePos.store_alias || confirmRemotePos.counter_zone || "-"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-semibold">Target IP / ID:</span>
+                  <span className="font-black text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded font-mono">
+                    {confirmRemotePos.anydesk_id && confirmRemotePos.anydesk_id.trim() !== ""
+                      ? confirmRemotePos.anydesk_id.trim()
+                      : confirmRemotePos.ip_address}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2 text-amber-800 text-[11px]">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  Pastikan komputer kasir tujuan dalam kondisi menyala (online) dan jaringan VPN terhubung.
+                </span>
+              </div>
+
+              {/* Action Buttons: Tidak (Batal) vs Ya (Remote Sekarang) */}
+              <div className="grid grid-cols-2 gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setConfirmRemotePos(null)}
+                  className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                >
+                  Tidak / Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => executeRemoteAnydesk(confirmRemotePos)}
+                  className="w-full py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <ScreenShare className="w-4 h-4" />
+                  <span>Ya, Remote Sekarang</span>
                 </button>
               </div>
             </div>
