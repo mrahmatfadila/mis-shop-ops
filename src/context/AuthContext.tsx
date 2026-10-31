@@ -6,6 +6,7 @@ import { User, UserRole } from "@/types";
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  isMounted: boolean;
   login: (username: string, password?: string) => Promise<boolean>;
   logout: () => void;
   switchRole: (role: UserRole) => Promise<void>;
@@ -91,20 +92,13 @@ const PRESET_USERS: Record<UserRole, User> = {
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Inisialisasi sinkron dari localStorage atau default ke MIS agar tidak ada jeda/flash loading
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const savedUser = localStorage.getItem("mis_shop_ops_user");
-        if (savedUser) return JSON.parse(savedUser);
-      } catch (e) {}
-    }
-    return PRESET_USERS.MIS;
-  });
+  // Inisialisasi awal konsisten dengan SSR (PRESET_USERS.MIS) untuk mencegah React Hydration Mismatch
+  const [user, setUser] = useState<User | null>(PRESET_USERS.MIS);
+  const [isMounted, setIsMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Sinkronkan kembali dengan localStorage jika tersedia
+    // Sinkronkan dengan user tersimpan di localStorage setelah client terhidrasi sempurna
     try {
       const savedUser = localStorage.getItem("mis_shop_ops_user");
       if (savedUser) {
@@ -116,6 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       setUser(PRESET_USERS.MIS);
     }
+    setIsMounted(true);
   }, []);
 
   const login = async (username: string, password = "123"): Promise<boolean> => {
@@ -172,6 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         isLoading,
+        isMounted,
         login,
         logout,
         switchRole,

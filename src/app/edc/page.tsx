@@ -134,7 +134,7 @@ function EdcContent() {
 
   // Filters
   const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [selectedShop, setSelectedShop] = useState(isMIS || isAdmin || isManager ? "" : userShopLocation);
+  const [selectedShop, setSelectedShop] = useState("");
   const [selectedTerminal, setSelectedTerminal] = useState("");
   const [selectedZone, setSelectedZone] = useState("");
   const [selectedActive, setSelectedActive] = useState("");

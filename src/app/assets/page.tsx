@@ -68,7 +68,7 @@ function AssetsContent() {
   const [posList, setPosList] = useState<PosHardwareAsset[]>([]);
   const [isPosLoading, setIsPosLoading] = useState(true);
   const [posSearch, setPosSearch] = useState(initialSearch);
-  const [selectedPosShop, setSelectedPosShop] = useState(isMIS || isAdmin || isManager ? "" : userShopLocation);
+  const [selectedPosShop, setSelectedPosShop] = useState("");
   const [selectedTerminal, setSelectedTerminal] = useState("");
   const [selectedZone, setSelectedZone] = useState("");
   const [selectedBrand, setSelectedBrand] = useState("");
@@ -136,7 +136,7 @@ function AssetsContent() {
   const [isAssetsLoading, setIsAssetsLoading] = useState(false);
   const [assetSearch, setAssetSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedShop, setSelectedShop] = useState(isMIS ? "" : userShopLocation);
+  const [selectedShop, setSelectedShop] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
 
   // Asset Form Modal

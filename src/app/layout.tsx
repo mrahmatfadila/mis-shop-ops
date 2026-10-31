@@ -24,14 +24,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id">
+    <html lang="id" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Shop Ops" />
       </head>
-      <body className={`${inter.className} min-h-screen bg-slate-50 antialiased`}>
+      <body className={`${inter.className} min-h-screen bg-slate-50 antialiased`} suppressHydrationWarning>
         <AuthProvider>
           {children}
         </AuthProvider>

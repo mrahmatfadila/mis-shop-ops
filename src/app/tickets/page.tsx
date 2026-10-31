@@ -25,7 +25,7 @@ function TicketsContent() {
   // Filters
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedUrgency, setSelectedUrgency] = useState("");
-  const [selectedShop, setSelectedShop] = useState(isGlobalRole ? "" : userShopLocation);
+  const [selectedShop, setSelectedShop] = useState("");
 
   useEffect(() => {
     if (!isGlobalRole && userShopLocation !== "Semua Toko") {
