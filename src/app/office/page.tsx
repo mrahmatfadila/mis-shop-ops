@@ -771,69 +771,49 @@ function OfficeContent() {
               description="Coba sesuaikan kata kunci pencarian atau filter lokasi/divisi."
             />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse table-fixed text-[11px] min-w-[1930px]">
+            <div className="overflow-hidden rounded-2xl border border-slate-200/90 shadow-xs bg-white">
+              <table className="w-full text-left border-collapse table-fixed text-[11px]">
                 <colgroup>
-                  {/* 1. No: 40px */}
-                  <col className="w-[40px]" />
-                  {/* 2. Divisi: 105px */}
-                  <col className="w-[105px]" />
-                  {/* 3. Kode Aset: 135px */}
-                  <col className="w-[135px]" />
-                  {/* 4. Nama Pengguna: 140px */}
-                  <col className="w-[140px]" />
-                  {/* 5. IP Address: 140px */}
-                  <col className="w-[140px]" />
-                  {/* 6. Lokasi Kantor: 120px */}
-                  <col className="w-[120px]" />
-                  {/* 7. OS: 110px */}
-                  <col className="w-[110px]" />
-                  {/* 8. Processor: 185px */}
-                  <col className="w-[185px]" />
-                  {/* 9. Motherboard: 155px */}
-                  <col className="w-[155px]" />
-                  {/* 10. RAM: 95px */}
-                  <col className="w-[95px]" />
-                  {/* 11. Storage (SSD): 135px */}
-                  <col className="w-[135px]" />
-                  {/* 12. Storage (HDD): 135px */}
-                  <col className="w-[135px]" />
-                  {/* 13. Monitor: 125px */}
-                  <col className="w-[125px]" />
-                  {/* 14. Printer: 135px */}
-                  <col className="w-[135px]" />
-                  {/* 15. Keyboard: 110px */}
-                  <col className="w-[110px]" />
-                  {/* 16. Mouse: 110px */}
-                  <col className="w-[110px]" />
-                  {/* 17. Status: 95px */}
-                  <col className="w-[95px]" />
-                  {/* 18. Aksi: 85px */}
-                  <col className="w-[85px]" />
+                  {/* 1. No: 35px */}
+                  <col className="w-[35px]" />
+                  {/* 2. Pengguna & Aset: 19% */}
+                  <col className="w-[19%]" />
+                  {/* 3. IP & OS: 13% */}
+                  <col className="w-[13%]" />
+                  {/* 4. Processor, Mobo & RAM: 22% */}
+                  <col className="w-[22%]" />
+                  {/* 5. Storage (SSD & HDD): 17% */}
+                  <col className="w-[17%]" />
+                  {/* 6. Monitor & Printer: 12% */}
+                  <col className="w-[12%]" />
+                  {/* 7. Keyboard & Mouse: 9% */}
+                  <col className="w-[9%]" />
+                  {/* 8. Status & Aksi: 8% */}
+                  <col className="w-[8%]" />
                 </colgroup>
                 <thead>
                   {/* Tier 1: Category Header Groups */}
                   <tr className="uppercase font-black text-[10px] tracking-wider select-none">
                     <th
-                      colSpan={7}
+                      colSpan={3}
                       className="py-2.5 px-3 bg-blue-50/90 text-blue-900 border-b border-r border-blue-200/80 text-left"
                     >
                       <div className="flex items-center gap-1.5">
                         <UserCheck className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Identitas, Pengguna & IP Jaringan</span>
+                        <span>Identitas & Jaringan</span>
                       </div>
                     </th>
                     <th
-                      colSpan={5}
+                      colSpan={2}
                       className="py-2.5 px-3 bg-indigo-50/90 text-indigo-900 border-b border-r border-indigo-200/80 text-left"
                     >
                       <div className="flex items-center gap-1.5">
                         <Cpu className="w-3.5 h-3.5 text-indigo-600" />
-                        <span>Hardware & Spesifikasi PC</span>
+                        <span>Hardware & Penyimpanan</span>
                       </div>
                     </th>
                     <th
-                      colSpan={4}
+                      colSpan={2}
                       className="py-2.5 px-3 bg-emerald-50/90 text-emerald-900 border-b border-r border-emerald-200/80 text-left"
                     >
                       <div className="flex items-center gap-1.5">
@@ -842,7 +822,7 @@ function OfficeContent() {
                       </div>
                     </th>
                     <th
-                      colSpan={2}
+                      colSpan={1}
                       className="py-2.5 px-3 bg-slate-100 text-slate-800 border-b border-slate-200 text-center"
                     >
                       <span>Status & Kontrol</span>
@@ -850,24 +830,14 @@ function OfficeContent() {
                   </tr>
                   {/* Tier 2: Column Sub-headers */}
                   <tr className="bg-slate-50/95 border-b border-slate-200 text-slate-600 font-bold text-[10px] tracking-wider uppercase select-none">
-                    <th className="py-2 px-2 text-center border-r border-slate-200/60">No</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Divisi</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Kode Aset</th>
-                    <th className="py-2 px-3 border-r border-slate-200/60">Nama Pengguna</th>
-                    <th className="py-2 px-3 border-r border-slate-200/60">IP Address</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Lokasi Kantor</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Sistem Operasi (OS)</th>
-                    <th className="py-2 px-3 border-r border-slate-200/60">Processor</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Motherboard</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">RAM</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Storage (SSD)</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Storage (HDD)</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Monitor</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Printer</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Keyboard</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Mouse</th>
-                    <th className="py-2 px-2 text-center border-r border-slate-200/60">Status</th>
-                    <th className="py-2 px-2.5 text-right">Aksi</th>
+                    <th className="py-2 px-1 text-center border-r border-slate-200/60">No</th>
+                    <th className="py-2 px-3 border-r border-slate-200/60">Pengguna & Aset</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">IP & OS</th>
+                    <th className="py-2 px-3 border-r border-slate-200/60">Processor, Mobo & RAM</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Storage (SSD / HDD)</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Monitor & Printer</th>
+                    <th className="py-2 px-2 border-r border-slate-200/60">Keyboard & Mouse</th>
+                    <th className="py-2 px-2 text-center">Status & Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -876,259 +846,220 @@ function OfficeContent() {
                     return (
                       <tr key={item.id} className="hover:bg-blue-50/30 transition-colors group">
                         {/* 1. No */}
-                        <td className="py-3 px-2 text-center font-mono font-bold text-slate-400 text-xs align-top border-r border-slate-100">
+                        <td className="py-2.5 px-1 text-center font-mono font-bold text-slate-400 text-xs align-top border-r border-slate-100">
                           {String(item.item_no || idx + 1).padStart(2, "0")}
                         </td>
 
-                        {/* 2. Divisi */}
-                        <td className="py-3 px-2.5 align-top border-r border-slate-100 whitespace-nowrap">
-                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border shadow-2xs inline-block ${getDivisionBadge(item.division)}`}>
-                            {item.division}
-                          </span>
-                        </td>
-
-                        {/* 3. Kode Aset */}
-                        <td className="py-3 px-2.5 align-top border-r border-slate-100 whitespace-nowrap">
-                          <span className="font-mono text-[10px] font-bold text-slate-700 bg-slate-100/90 px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs inline-block tracking-tight">
-                            {item.asset_code}
-                          </span>
-                        </td>
-
-                        {/* 4. Nama Pengguna */}
-                        <td className="py-3 px-3 align-top border-r border-slate-100">
-                          <div className="font-black text-slate-900 text-xs flex items-center gap-1.5 leading-tight tracking-tight">
-                            <span>{item.user_name}</span>
-                            {item.device_type === "ROUTER" && (
-                              <span className="px-1.5 py-0.2 bg-orange-100 text-orange-800 border border-orange-200 text-[8.5px] rounded font-bold">ROUTER</span>
-                            )}
-                            {item.device_type === "PABX" && (
-                              <span className="px-1.5 py-0.2 bg-purple-100 text-purple-800 border border-purple-200 text-[8.5px] rounded font-bold">PABX</span>
-                            )}
+                        {/* 2. Pengguna & Aset */}
+                        <td className="py-2.5 px-3 align-top border-r border-slate-100">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5 flex-wrap leading-tight">
+                              <span className="font-black text-slate-900 text-xs">
+                                {item.user_name}
+                              </span>
+                              <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold border ${getDivisionBadge(item.division)}`}>
+                                {item.division}
+                              </span>
+                              {item.device_type === "ROUTER" && (
+                                <span className="px-1.5 py-0.2 bg-orange-100 text-orange-800 border border-orange-200 text-[8.5px] rounded font-bold">ROUTER</span>
+                              )}
+                              {item.device_type === "PABX" && (
+                                <span className="px-1.5 py-0.2 bg-purple-100 text-purple-800 border border-purple-200 text-[8.5px] rounded font-bold">PABX</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-wrap text-[9.5px]">
+                              <span className="font-mono font-bold text-slate-700 bg-slate-100 px-1 py-0.2 rounded border border-slate-200">
+                                {item.asset_code}
+                              </span>
+                              <span className="text-slate-300">•</span>
+                              <span className="text-slate-500 font-medium truncate max-w-[110px]" title={item.office_location}>
+                                {item.office_location || "Head Office"}
+                              </span>
+                            </div>
                           </div>
                         </td>
 
-                        {/* 5. IP Address */}
-                        <td className="py-3 px-3 align-top border-r border-slate-100 whitespace-nowrap">
-                          {item.ip_address && item.ip_address !== "-" && item.ip_address.startsWith("172.") ? (
-                            <div className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] shrink-0"></span>
-                              <span className="font-mono font-bold text-xs text-blue-700 bg-blue-50/90 px-1.5 py-0.5 rounded border border-blue-200 shadow-2xs">
-                                {item.ip_address}
-                              </span>
+                        {/* 3. IP & OS */}
+                        <td className="py-2.5 px-2.5 align-top border-r border-slate-100">
+                          <div className="space-y-1">
+                            {item.ip_address && item.ip_address !== "-" && item.ip_address.startsWith("172.") ? (
+                              <div className="flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)] shrink-0"></span>
+                                <span className="font-mono font-bold text-[10.5px] text-blue-700 bg-blue-50/90 px-1.5 py-0.2 rounded border border-blue-200">
+                                  {item.ip_address}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => copyToClipboard(item.ip_address!, `ip-${item.id}`)}
+                                  title="Salin IP Address"
+                                  className="p-0.5 text-slate-400 hover:text-blue-600 rounded transition-colors"
+                                >
+                                  {isCopied ? <Check className="w-2.5 h-2.5 text-emerald-600" /> : <Copy className="w-2.5 h-2.5 text-slate-400" />}
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-slate-300 font-mono text-xs select-none">—</span>
+                            )}
+                            {item.os && item.os !== "-" ? (
+                              <div className="flex items-center gap-1 text-[9.5px] text-slate-600 font-medium truncate" title={item.os}>
+                                <Laptop className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                                <span className="truncate">{item.os}</span>
+                              </div>
+                            ) : null}
+                          </div>
+                        </td>
+
+                        {/* 4. Processor, Mobo & RAM */}
+                        <td className="py-2.5 px-3 align-top border-r border-slate-100">
+                          <div className="space-y-1">
+                            {item.processor && item.processor !== "-" ? (
+                              <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-900 truncate" title={item.processor}>
+                                <Cpu className={`w-3.5 h-3.5 shrink-0 ${item.processor.toLowerCase().includes("intel") ? "text-blue-600" : item.processor.toLowerCase().includes("amd") ? "text-rose-600" : "text-indigo-600"}`} />
+                                <span className="truncate">{item.processor}</span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-300 font-mono text-xs select-none">—</span>
+                            )}
+                            <div className="flex items-center justify-between gap-1 text-[9.5px]">
+                              {item.motherboard && item.motherboard !== "-" ? (
+                                <span className="text-slate-500 font-medium truncate max-w-[130px]" title={item.motherboard}>
+                                  Mobo: <span className="text-slate-700 font-semibold">{item.motherboard}</span>
+                                </span>
+                              ) : <span />}
+                              {item.ram && item.ram !== "-" ? formatRamDisplay(item.ram) : null}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 5. Storage (SSD & HDD) */}
+                        <td className="py-2.5 px-2.5 align-top border-r border-slate-100">
+                          {(() => {
+                            const { ssd, hdd } = parseStorage(item.hard_drive);
+                            if (!ssd && !hdd) return <span className="text-slate-300 font-mono text-xs select-none">—</span>;
+                            return (
+                              <div className="space-y-1 text-[10px]">
+                                {ssd && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="px-1 py-0.2 rounded bg-blue-100 text-blue-800 text-[8px] font-black uppercase shrink-0">SSD</span>
+                                    <span className="font-semibold text-slate-800 truncate" title={ssd}>{ssd}</span>
+                                    {item.used_disk1 && item.used_disk1 !== "-" && (
+                                      <span className="text-[8.5px] text-slate-400 font-mono shrink-0 ml-auto">({item.used_disk1})</span>
+                                    )}
+                                  </div>
+                                )}
+                                {hdd && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="px-1 py-0.2 rounded bg-amber-100 text-amber-800 text-[8px] font-black uppercase shrink-0">HDD</span>
+                                    <span className="font-semibold text-slate-800 truncate" title={hdd}>{hdd}</span>
+                                    {item.used_disk2 && item.used_disk2 !== "-" && (
+                                      <span className="text-[8.5px] text-slate-400 font-mono shrink-0 ml-auto">({item.used_disk2})</span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </td>
+
+                        {/* 6. Monitor & Printer */}
+                        <td className="py-2.5 px-2.5 align-top border-r border-slate-100">
+                          <div className="space-y-1">
+                            {item.monitor && item.monitor !== "-" ? (
+                              <div className="flex items-center gap-1.5 text-[10.5px] text-slate-800 font-bold truncate" title={item.monitor}>
+                                <Monitor className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                                <span className="truncate">{item.monitor}</span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-300 font-mono text-xs select-none">—</span>
+                            )}
+                            {item.printer && item.printer !== "-" ? (
+                              <div className="flex items-center gap-1 text-[9.5px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/90 truncate max-w-fit" title={item.printer}>
+                                <Printer className="w-2.5 h-2.5 text-emerald-600 shrink-0" />
+                                <span className="truncate max-w-[110px]">{item.printer}</span>
+                              </div>
+                            ) : null}
+                          </div>
+                        </td>
+
+                        {/* 7. Keyboard & Mouse */}
+                        <td className="py-2.5 px-2.5 align-top border-r border-slate-100 text-[9.5px]">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1 truncate" title={`KB: ${item.keyboard || "-"}`}>
+                              <span className="text-[8px] font-bold text-slate-400 uppercase w-3.5 shrink-0">KB:</span>
+                              <span className="font-semibold text-slate-700 truncate">{item.keyboard && item.keyboard !== "-" ? item.keyboard : "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-1 truncate" title={`M: ${item.mouse || "-"}`}>
+                              <span className="text-[8px] font-bold text-slate-400 uppercase w-3.5 shrink-0">M:</span>
+                              <span className="font-semibold text-slate-700 truncate">{item.mouse && item.mouse !== "-" ? item.mouse : "—"}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 8. Status & Aksi */}
+                        <td className="py-2.5 px-1.5 text-center align-top whitespace-nowrap">
+                          <div className="flex flex-col items-center gap-1.5">
+                            <StatusBadge
+                              status={item.status}
+                              label={
+                                <div className="flex items-center gap-1">
+                                  <span
+                                    className={`w-1.5 h-1.5 rounded-full ${
+                                      item.status === "OPERASIONAL"
+                                        ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)]"
+                                        : item.status === "CADANGAN"
+                                        ? "bg-amber-500"
+                                        : "bg-rose-500"
+                                    }`}
+                                  />
+                                  <span className="text-[8.5px] font-bold">{item.status}</span>
+                                </div>
+                              }
+                              className={
+                                item.status === "CADANGAN"
+                                  ? "bg-amber-50 text-amber-800 border-amber-200 font-bold px-1.5 py-0.2 shadow-2xs text-[8.5px]"
+                                  : item.status === "OPERASIONAL"
+                                  ? "bg-emerald-50 text-[#006622] border-emerald-200/90 font-bold px-1.5 py-0.2 shadow-2xs text-[8.5px]"
+                                  : "px-1.5 py-0.2 shadow-2xs text-[8.5px]"
+                              }
+                            />
+                            <div className="flex items-center justify-center gap-0.5">
                               <button
                                 type="button"
-                                onClick={() => copyToClipboard(item.ip_address!, `ip-${item.id}`)}
-                                title="Salin IP Address"
-                                className="p-1 text-slate-400 hover:text-blue-600 rounded hover:bg-blue-50 transition-colors"
+                                onClick={() => handleOpenSticker(item)}
+                                title="Cetak Barcode Label Stiker"
+                                className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
                               >
-                                {isCopied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                                <QrCode className="w-3 h-3" />
                               </button>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenTicket(item)}
+                                title="Buka Tiket Trouble IT"
+                                className="p-1 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                              >
+                                <LifeBuoy className="w-3 h-3" />
+                              </button>
+                              {isMIS && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEdit(item)}
+                                    title="Edit Spesifikasi"
+                                    className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                  >
+                                    <Edit2 className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDelete(item.id!, item.asset_code, item.user_name)}
+                                    title="Hapus Perangkat"
+                                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </>
+                              )}
                             </div>
-                          ) : (
-                            <span className="text-slate-300 font-mono select-none text-xs">—</span>
-                          )}
-                        </td>
-
-                        {/* 6. Lokasi Kantor */}
-                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
-                          <span className="text-[10px] text-slate-600 font-medium">
-                            {item.office_location || "Head Office"}
-                          </span>
-                        </td>
-
-                        {/* 6. OS */}
-                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
-                          {item.os && item.os !== "-" ? (
-                            <span className="text-[9.5px] text-slate-600 font-semibold flex items-center gap-1 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 max-w-fit">
-                              <Laptop className="w-2.5 h-2.5 text-slate-400 shrink-0" />
-                              <span className="truncate">{item.os}</span>
-                            </span>
-                          ) : (
-                            <span className="text-slate-300 font-mono select-none">—</span>
-                          )}
-                        </td>
-
-                        {/* 7. Processor */}
-                        <td className="py-3 px-3 align-top border-r border-slate-100">
-                          {item.processor && item.processor !== "-" ? (
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900" title={item.processor}>
-                              <Cpu className={`w-3.5 h-3.5 shrink-0 ${item.processor.toLowerCase().includes("intel") ? "text-blue-600" : item.processor.toLowerCase().includes("amd") ? "text-rose-600" : "text-indigo-600"}`} />
-                              <span className="truncate">{item.processor}</span>
-                            </div>
-                          ) : (
-                            <span className="text-slate-300 font-mono select-none">—</span>
-                          )}
-                        </td>
-
-                        {/* 8. Motherboard */}
-                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
-                          {item.motherboard && item.motherboard !== "-" ? (
-                            <span className="text-[10.5px] text-slate-700 font-semibold block truncate" title={item.motherboard}>
-                              {item.motherboard}
-                            </span>
-                          ) : (
-                            <span className="text-slate-300 font-mono select-none">—</span>
-                          )}
-                        </td>
-
-                        {/* 9. RAM */}
-                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
-                          {formatRamDisplay(item.ram)}
-                        </td>
-
-                        {/* 10. Storage (SSD) */}
-                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
-                          {(() => {
-                            const { ssd } = parseStorage(item.hard_drive);
-                            if (!ssd) return <span className="text-slate-300 font-mono select-none">—</span>;
-                            return (
-                              <div className="space-y-0.5">
-                                <span className="text-[10.5px] text-slate-800 font-semibold block truncate" title={ssd}>
-                                  {ssd}
-                                </span>
-                                {item.used_disk1 && item.used_disk1 !== "-" && (
-                                  <div className="text-[9px] text-slate-500 font-mono tracking-tight">
-                                    C: <strong className="text-slate-700">{item.used_disk1}</strong>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </td>
-
-                        {/* 11. Storage (HDD) */}
-                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
-                          {(() => {
-                            const { hdd } = parseStorage(item.hard_drive);
-                            if (!hdd) return <span className="text-slate-300 font-mono select-none">—</span>;
-                            return (
-                              <div className="space-y-0.5">
-                                <span className="text-[10.5px] text-slate-800 font-semibold block truncate" title={hdd}>
-                                  {hdd}
-                                </span>
-                                {item.used_disk2 && item.used_disk2 !== "-" && (
-                                  <div className="text-[9px] text-slate-500 font-mono tracking-tight">
-                                    D: <strong className="text-slate-700">{item.used_disk2}</strong>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </td>
-
-                        {/* 11. Monitor */}
-                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
-                          {item.monitor && item.monitor !== "-" ? (
-                            <div className="flex items-center gap-1.5 text-[10.5px] text-slate-800 font-bold" title={item.monitor}>
-                              <Monitor className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                              <span className="truncate">{item.monitor}</span>
-                            </div>
-                          ) : (
-                            <span className="text-slate-300 font-mono select-none">—</span>
-                          )}
-                        </td>
-
-                        {/* 12. Printer */}
-                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
-                          {item.printer && item.printer !== "-" ? (
-                            <div className="flex items-center gap-1.5 text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/90 max-w-fit shadow-2xs" title={item.printer}>
-                              <Printer className="w-3 h-3 text-emerald-600 shrink-0" />
-                              <span className="truncate max-w-[110px]">{item.printer}</span>
-                            </div>
-                          ) : (
-                            <span className="text-slate-300 font-mono select-none">—</span>
-                          )}
-                        </td>
-
-                        {/* 13. Keyboard */}
-                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
-                          {item.keyboard && item.keyboard !== "-" ? (
-                            <span className="text-[10px] text-slate-700 font-semibold block truncate" title={item.keyboard}>
-                              {item.keyboard}
-                            </span>
-                          ) : (
-                            <span className="text-slate-300 font-mono select-none">—</span>
-                          )}
-                        </td>
-
-                        {/* 16. Mouse */}
-                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
-                          {item.mouse && item.mouse !== "-" ? (
-                            <span className="text-[10px] text-slate-700 font-semibold block truncate" title={item.mouse}>
-                              {item.mouse}
-                            </span>
-                          ) : (
-                            <span className="text-slate-300 font-mono select-none">—</span>
-                          )}
-                        </td>
-
-                        {/* 17. Status */}
-                        <td className="py-3 px-2 text-center align-top whitespace-nowrap border-r border-slate-100">
-                          <StatusBadge
-                            status={item.status}
-                            label={
-                              <div className="flex items-center gap-1.5">
-                                <span
-                                  className={`w-1.5 h-1.5 rounded-full ${
-                                    item.status === "OPERASIONAL"
-                                      ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)]"
-                                      : item.status === "CADANGAN"
-                                      ? "bg-amber-500"
-                                      : "bg-rose-500"
-                                  }`}
-                                />
-                                <span>{item.status}</span>
-                              </div>
-                            }
-                            className={
-                              item.status === "CADANGAN"
-                                ? "bg-amber-50 text-amber-800 border-amber-200 font-bold px-2 py-0.5 shadow-2xs text-[9.5px]"
-                                : item.status === "OPERASIONAL"
-                                ? "bg-emerald-50 text-[#006622] border-emerald-200/90 font-bold px-2 py-0.5 shadow-2xs text-[9.5px]"
-                                : "px-2 py-0.5 shadow-2xs text-[9.5px]"
-                            }
-                          />
-                        </td>
-
-                        {/* 16. Actions */}
-                        <td className="py-3 px-2.5 text-right align-top whitespace-nowrap">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenSticker(item)}
-                              title="Cetak Barcode Label Stiker"
-                              className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                            >
-                              <QrCode className="w-4 h-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleOpenTicket(item)}
-                              title="Buka Tiket Trouble IT"
-                              className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                            >
-                              <LifeBuoy className="w-4 h-4" />
-                            </button>
-                            {isMIS && (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenEdit(item)}
-                                  title="Edit Spesifikasi"
-                                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                >
-                                  <Edit2 className="w-4 h-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDelete(item.id!, item.asset_code, item.user_name)}
-                                  title="Hapus Perangkat"
-                                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
                           </div>
                         </td>
                       </tr>
