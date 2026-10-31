@@ -460,44 +460,113 @@ export async function GET(
     // 4. CARI DI TABEL EDC_ASSETS (Mesin EDC Bank)
     // ─────────────────────────────────────────────────────────────────────────────
     if (!data) {
-      const edcRes = await db.execute({
-        sql: `SELECT * FROM edc_assets 
-              WHERE tid = ? 
-                 OR mid = ? 
-                 OR serial_number = ? 
-                 OR pos_code = ? 
-                 OR ('EDC-' || bank_name || '-' || pos_code) = ?
-              LIMIT 1`,
-        args: [cleanCode, cleanCode, cleanCode, cleanCode, cleanCode],
-      });
+      try {
+        const edcRes = await db.execute({
+          sql: `SELECT * FROM edc_assets 
+                WHERE pos_location = ? 
+                   OR bca_tid = ? 
+                   OR bni_tid = ? 
+                   OR mandiri_tid = ? 
+                   OR bri_tid = ? 
+                   OR bca_mid = ? 
+                   OR bni_mid = ? 
+                   OR mandiri_mid = ? 
+                   OR bri_mid = ?
+                   OR pos_location LIKE ?
+                LIMIT 1`,
+          args: [cleanCode, cleanCode, cleanCode, cleanCode, cleanCode, cleanCode, cleanCode, cleanCode, cleanCode, `%${cleanCode}%`],
+        });
 
-      if (edcRes.rows.length > 0) {
-        const edc: any = edcRes.rows[0];
-        data = {
-          code: `EDC-${edc.bank_name}-${edc.pos_code || edc.tid}`,
-          itemType: "EDC",
-          name: `Mesin EDC ${edc.bank_name} (TID: ${edc.tid})`,
-          category: "Mesin EDC Payment",
-          brandModel: `${edc.edc_brand || "INGENICO"} (${edc.bank_name})`,
-          serialNumber: edc.serial_number || `SN-TID-${edc.tid}`,
-          status: edc.status || "OPERASIONAL",
-          location: edc.terminal || "Terminal Bandara",
-          subLocation: edc.shop_name || "Kasir Toko",
-          ipAddress: edc.ip_address || "-",
-          purchaseDate: formatDate(edc.created_at),
-          purchasedFrom: `Bank ${edc.bank_name} Acquiring Partner`,
-          purchasePrice: "Sewa / Fasilitas Bank Partner",
-          poNumber: `TID-${edc.tid}`,
-          warrantyStatus: "Pemeliharaan & SLA Langsung dari Bank",
-          lastChangeDate: formatDate(edc.updated_at || edc.created_at),
-          changeHistory: [],
-          notes: `MID: ${edc.mid} • Terhubung dengan POS ${edc.pos_code || "-"}`,
-          asset_code: `EDC-${edc.bank_name}-${edc.tid}`,
-          shop_location: edc.terminal || "Terminal Bandara",
-          brand_model: `${edc.edc_brand || "INGENICO"} ${edc.bank_name}`,
-          serial_number: edc.serial_number || edc.tid,
-          ip_address: edc.ip_address || null,
-        };
+        if (edcRes.rows.length > 0) {
+          const edc: any = edcRes.rows[0];
+          let bank = "BCA";
+          let tid = edc.bca_tid && edc.bca_tid !== "-" ? edc.bca_tid : "001";
+          let mid = edc.bca_mid && edc.bca_mid !== "-" ? edc.bca_mid : "001";
+
+          if (cleanCode.includes("BNI") || edc.bni_tid === cleanCode || edc.bni_mid === cleanCode) {
+            bank = "BNI";
+            tid = edc.bni_tid;
+            mid = edc.bni_mid;
+          } else if (cleanCode.includes("MANDIRI") || edc.mandiri_tid === cleanCode || edc.mandiri_mid === cleanCode) {
+            bank = "MANDIRI";
+            tid = edc.mandiri_tid;
+            mid = edc.mandiri_mid;
+          } else if (cleanCode.includes("BRI") || edc.bri_tid === cleanCode || edc.bri_mid === cleanCode) {
+            bank = "BRI";
+            tid = edc.bri_tid;
+            mid = edc.bri_mid;
+          }
+
+          data = {
+            code: `EDC-${bank}-${edc.pos_location || tid}`,
+            itemType: "EDC",
+            name: `Mesin EDC ${bank} (TID: ${tid})`,
+            category: "Mesin EDC Payment",
+            brandModel: `INGENICO MOVE/2500 (${bank})`,
+            serialNumber: `SN-TID-${tid}`,
+            status: edc.is_active === "Y" ? "OPERASIONAL" : "RUSAK",
+            location: edc.shop_name || "Kasir Bandara",
+            subLocation: `POS ${edc.pos_location}`,
+            ipAddress: "-",
+            purchaseDate: "2 Maret 2026",
+            purchasedFrom: `Bank ${bank} Acquiring Partner`,
+            purchasePrice: "Sewa / Fasilitas Bank Partner",
+            poNumber: `TID-${tid}`,
+            warrantyStatus: "Pemeliharaan & SLA Langsung dari Bank",
+            lastChangeDate: "2 Maret 2026",
+            changeHistory: [],
+            notes: `MID: ${mid} • Terpasang pada kasir ${edc.pos_location}`,
+            asset_code: `EDC-${bank}-${tid}`,
+            shop_location: edc.shop_name || "Kasir Bandara",
+            brand_model: `INGENICO ${bank}`,
+            serial_number: tid,
+            ip_address: null,
+          };
+        }
+      } catch (e) {
+        console.warn("EDC lookup warning:", e);
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // 5. CARI DI TABEL NETWORK_ASSETS (Switch, Router, AP, UPS)
+    // ─────────────────────────────────────────────────────────────────────────────
+    if (!data) {
+      try {
+        const netRes = await db.execute({
+          sql: `SELECT * FROM network_assets WHERE asset_code = ? OR ip_address = ? OR serial_number = ? LIMIT 1`,
+          args: [cleanCode, cleanCode, cleanCode],
+        });
+        if (netRes.rows.length > 0) {
+          const net: any = netRes.rows[0];
+          data = {
+            code: net.asset_code,
+            itemType: "GENERIC_ASSET",
+            name: net.device_name || net.name || "Perangkat Jaringan",
+            category: net.device_type || net.category || "Infrastruktur Network",
+            brandModel: net.brand_model || net.brand || "-",
+            serialNumber: net.serial_number || `SN-${net.asset_code}`,
+            status: net.status || "OPERASIONAL",
+            location: net.location || "Rak Server IT",
+            subLocation: net.rack_name || "Head Office / Bandara",
+            ipAddress: net.ip_address || "-",
+            purchaseDate: formatDate(net.created_at),
+            purchasedFrom: "Distributor Jaringan Resmi",
+            purchasePrice: "Rp 3.500.000",
+            poNumber: "PO-NET-2026",
+            warrantyStatus: "Garansi Resmi 1 Tahun",
+            lastChangeDate: formatDate(net.updated_at || net.created_at),
+            changeHistory: [],
+            notes: net.notes || "Aset jaringan terdaftar",
+            asset_code: net.asset_code,
+            shop_location: net.location || "Server",
+            brand_model: net.brand_model || "-",
+            serial_number: net.serial_number || net.asset_code,
+            ip_address: net.ip_address || null,
+          };
+        }
+      } catch (e) {
+        console.warn("Network assets lookup warning:", e);
       }
     }
 

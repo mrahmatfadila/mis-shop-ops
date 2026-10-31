@@ -860,6 +860,24 @@ export default function ScannerModal({
                     <p className="text-[11px] text-slate-400 mt-1.5">
                       Mendukung semua format kode POS kasir, komputer office, mesin EDC, dan ID barang suku cadang.
                     </p>
+
+                    {/* Quick Suggestion Chips */}
+                    <div className="flex items-center gap-1.5 flex-wrap pt-2">
+                      <span className="text-slate-400 font-bold text-[10.5px]">Contoh Cepat:</span>
+                      {["RAM-001", "RAM-002", "CPU-001", "SSD-001", "CGKT2DFD05-P04", "PC-MIS-26-002-0"].map((sample) => (
+                        <button
+                          key={sample}
+                          type="button"
+                          onClick={() => {
+                            setManualCode(sample);
+                            lookupAsset(sample);
+                          }}
+                          className="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-[#006622] hover:border-emerald-300 border border-slate-200 font-mono font-bold text-[10.5px] text-slate-600 transition-colors cursor-pointer"
+                        >
+                          {sample}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <button
