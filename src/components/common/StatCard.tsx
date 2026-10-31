@@ -13,6 +13,7 @@ interface StatCardProps {
   labelClassName?: string;
   valueClassName?: string;
   className?: string;
+  onClick?: () => void;
 }
 
 /** Kartu statistik ringkas (label, nilai besar, ikon, hint). */
@@ -27,11 +28,14 @@ export default function StatCard({
   labelClassName,
   valueClassName,
   className,
+  onClick,
 }: StatCardProps) {
   return (
     <div
+      onClick={onClick}
       className={cn(
         "bg-white p-4 rounded-2xl border border-slate-200 shadow-sm",
+        onClick && "cursor-pointer active:scale-[0.99] transition-all",
         className
       )}
     >

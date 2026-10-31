@@ -195,7 +195,7 @@ export interface OfficeHardwareAsset {
   mouse?: string;
   printer?: string;
   ip_address?: string;
-  device_type?: 'PC' | 'PRINTER' | 'ROUTER' | 'PABX' | 'FACILITY';
+  device_type?: 'PC' | 'PRINTER' | 'ROUTER' | 'PABX' | 'FACILITY' | 'UPS' | string;
   status: 'OPERASIONAL' | 'RUSAK' | 'PERBAIKAN' | 'CADANGAN';
   notes?: string;
   anydesk_id?: string;

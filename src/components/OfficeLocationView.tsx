@@ -462,6 +462,43 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
     notes: "",
   });
 
+  // State untuk Data & Monitoring Unit UPS
+  const [fixedUpsList, setFixedUpsList] = useState<any[]>([]);
+  const [isUpsModalOpen, setIsUpsModalOpen] = useState(false);
+
+  useEffect(() => {
+    // Jika di Terminal 3, sinkronkan unit UPS dari aset tetap T3 (DF1-DF7)
+    if (locationKey.includes("Terminal 3") || locationKey.includes("T3")) {
+      fetch("/api/t3-assets")
+        .then((r) => r.json())
+        .then((res) => {
+          if (res.success && Array.isArray(res.data)) {
+            const upsItems = res.data.filter(
+              (a: any) =>
+                (a.kategori && a.kategori.toLowerCase().includes("ups")) ||
+                (a.nama_merk && a.nama_merk.toLowerCase().includes("ups"))
+            );
+            setFixedUpsList(upsItems);
+          }
+        })
+        .catch((err) => console.error("Error loading T3 UPS assets:", err));
+    } else if (locationKey.includes("Head Office")) {
+      // Jika di Head Office, sinkronkan unit UPS dari server rack pusat
+      fetch("/api/server-rack")
+        .then((r) => r.json())
+        .then((res) => {
+          if (res.success && Array.isArray(res.data)) {
+            const upsItems = res.data.filter(
+              (u: any) =>
+                u.device_type === "UPS" || (u.name && u.name.toLowerCase().includes("ups"))
+            );
+            setFixedUpsList(upsItems);
+          }
+        })
+        .catch((err) => console.error("Error loading Head Office UPS:", err));
+    }
+  }, [locationKey]);
+
   // Data seluruh aset office dari API + SWR cache
   const {
     data: allOfficeData,
@@ -896,6 +933,15 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
   const netCount = locationOfficeList.filter((o) => o.device_type === "ROUTER" || o.device_type === "PABX").length;
   const ipCount = locationOfficeList.filter((o) => o.ip_address && o.ip_address.startsWith("172.")).length;
 
+  // Office devices UPS
+  const officeUpsList = locationOfficeList.filter(
+    (o) =>
+      o.device_type === "UPS" ||
+      (o.notes && o.notes.toUpperCase().includes("UPS")) ||
+      (o.user_name && o.user_name.toUpperCase().includes("UPS"))
+  );
+  const totalUpsCount = officeUpsList.length + fixedUpsList.length;
+
   // Helper: Parse Storage (SSD vs HDD)
   const formatStorageShort = (raw: string, type: "SSD" | "HDD"): string => {
     if (!raw) return "";
@@ -1043,7 +1089,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
         )}
 
         {/* Top Metric Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           <StatCard
             label="Total Perangkat"
             labelClassName="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
@@ -1075,7 +1121,30 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
             hintClassName="text-[10.5px] text-slate-500 mt-0.5"
             icon={Laptop}
             iconWrapperClassName="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold"
-            className="border-slate-200/90 shadow-2xs hover:shadow-xs transition-all"
+            className="border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+            onClick={() => setSelectedType(selectedType === "PC" ? "" : "PC")}
+          />
+
+          <StatCard
+            label="Data UPS"
+            labelClassName="text-[11px] font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1"
+            value={
+              <>
+                {totalUpsCount}{" "}
+                <span className="text-xs font-normal text-slate-400">Unit</span>
+              </>
+            }
+            valueClassName="text-2xl text-amber-600 mt-0.5 font-black"
+            hint={
+              totalUpsCount > 0
+                ? `${totalUpsCount} Unit Terdata • Klik Detail`
+                : "Cadangan Daya & Kelistrikan"
+            }
+            hintClassName="text-[10.5px] text-amber-700/80 mt-0.5 font-medium"
+            icon={Zap}
+            iconWrapperClassName="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold"
+            className="border-amber-200/80 bg-gradient-to-b from-amber-50/30 to-white shadow-2xs hover:shadow-xs hover:border-amber-400 transition-all cursor-pointer"
+            onClick={() => setIsUpsModalOpen(true)}
           />
 
           <StatCard
@@ -1087,12 +1156,13 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                 <span className="text-xs font-normal text-slate-400">Unit</span>
               </>
             }
-            valueClassName="text-2xl text-amber-600 mt-0.5 font-black"
+            valueClassName="text-2xl text-indigo-600 mt-0.5 font-black"
             hint="Router PB & PABX Telp"
             hintClassName="text-[10.5px] text-slate-500 mt-0.5"
             icon={Router}
-            iconWrapperClassName="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center font-bold"
-            className="border-slate-200/90 shadow-2xs hover:shadow-xs transition-all"
+            iconWrapperClassName="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center font-bold"
+            className="border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+            onClick={() => setSelectedType(selectedType === "ROUTER" ? "" : "ROUTER")}
           />
 
           <StatCard
@@ -1199,6 +1269,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
               >
                 <option value="">Semua Tipe Perangkat</option>
                 <option value="PC">PC Desktop</option>
+                <option value="UPS">UPS / Power Backup</option>
                 <option value="ROUTER">Router Network</option>
                 <option value="PABX">PABX Telepon</option>
                 <option value="FACILITY">Fasilitas / Ruangan</option>
@@ -1510,6 +1581,8 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                     ? "text-orange-700"
                                     : item.device_type === "PABX"
                                     ? "text-purple-700"
+                                    : item.device_type === "UPS"
+                                    ? "text-amber-600 font-extrabold"
                                     : "text-blue-700"
                                 }`}
                                 onMouseEnter={(e) => handleShowDetail(e, "Kode Set Komputer", item.device_type || "PC", item)}
@@ -1845,6 +1918,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
                   >
                     <option value="PC">PC Desktop</option>
+                    <option value="UPS">UPS / Power Backup</option>
                     <option value="PRINTER">Printer / Scanner</option>
                     <option value="CCTV">IP Camera / CCTV</option>
                     <option value="ROUTER">Router Network</option>
@@ -2073,6 +2147,236 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
         onRequestTicket={(asset) => setSelectedAssetForTicket(asset)}
         onOpenSticker={(asset) => setSelectedAssetForSticker(asset)}
       />
+
+      {/* Modal: Data & Detail Unit UPS (Power Backup) */}
+      {isUpsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-amber-500/10 via-amber-50/50 to-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
+                  <Zap className="w-5 h-5 fill-white" />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-900 text-base flex items-center gap-2">
+                    <span>Data Unit UPS & Cadangan Daya</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                      {totalUpsCount} Unit Terdata
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Monitoring perangkat Uninterruptible Power Supply (UPS) di {locationKey}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsUpsModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto space-y-3.5 flex-1 bg-slate-50/50">
+              {totalUpsCount === 0 ? (
+                <div className="py-12 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
+                  <Zap className="w-10 h-10 text-amber-300" />
+                  <span className="font-semibold text-slate-600">Belum ada unit UPS terdata di {locationKey}.</span>
+                  <span className="text-[11px] text-slate-400">Klik tombol di bawah untuk mendaftarkan unit UPS baru.</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {/* Fixed T3 / Rack UPS Units */}
+                  {fixedUpsList.map((item, idx) => (
+                    <div
+                      key={`fixed-${item.id || idx}`}
+                      className="p-4 bg-white rounded-xl border border-amber-200/90 shadow-2xs hover:shadow-xs transition-all space-y-2.5 relative overflow-hidden"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200 font-bold">
+                            <Zap className="w-4 h-4 fill-amber-500 text-amber-500" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-xs text-slate-900 leading-tight">
+                              {item.nama_merk || item.name || "APC Smart-UPS"}
+                            </div>
+                            <div className="font-mono text-[10.5px] font-semibold text-amber-700">
+                              {item.no_asset || item.serial_number || `UPS-T3-${item.lokasi || "DF"}`}
+                            </div>
+                          </div>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          {item.status || "OPERASIONAL"}
+                        </span>
+                      </div>
+
+                      <div className="text-[11px] text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400 font-medium">Titik Pasang:</span>
+                          <span className="font-bold text-slate-800">{item.lokasi ? `Area ${item.lokasi}` : (item.description || "Rack Server")}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400 font-medium">Kapasitas:</span>
+                          <span className="font-semibold text-slate-700">{item.spesifikasi || "1500VA / 1000W Pure Sine Wave"}</span>
+                        </div>
+                        {item.serial_number && item.serial_number !== "-" && (
+                          <div className="flex justify-between">
+                            <span className="text-slate-400 font-medium">Serial Number:</span>
+                            <span className="font-mono font-medium text-slate-700">{item.serial_number}</span>
+                          </div>
+                        )}
+                        {item.pengguna && (
+                          <div className="flex justify-between">
+                            <span className="text-slate-400 font-medium">Beban Terkoneksi:</span>
+                            <span className="font-medium text-slate-700">{item.pengguna}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedAssetForSticker({
+                              asset_code: item.no_asset || item.serial_number || "UPS-T3",
+                              name: item.nama_merk || item.name || "APC Smart-UPS",
+                              category: "UPS / Kelistrikan",
+                              shop_location: locationKey,
+                              brand_model: item.nama_merk || item.name || "APC Smart-UPS",
+                              serial_number: item.serial_number || "-",
+                              status: item.status || "OPERASIONAL",
+                              notes: item.keterangan || item.description || "Backup Daya Kelistrikan",
+                            });
+                          }}
+                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <QrCode className="w-3.5 h-3.5" />
+                          <span>Cetak Label QR</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedAssetForTicket({
+                              asset_code: item.no_asset || item.serial_number || "UPS-T3",
+                              name: item.nama_merk || item.name || "APC Smart-UPS",
+                              category: "UPS / Kelistrikan",
+                              shop_location: locationKey,
+                              brand_model: item.nama_merk || item.name || "APC Smart-UPS",
+                              serial_number: item.serial_number || "-",
+                              status: item.status || "OPERASIONAL",
+                              notes: item.keterangan || item.description || "Backup Daya Kelistrikan",
+                            });
+                          }}
+                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <LifeBuoy className="w-3.5 h-3.5" />
+                          <span>Buat Tiket</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Office Devices with UPS type */}
+                  {officeUpsList.map((item) => (
+                    <div
+                      key={`office-${item.id}`}
+                      className="p-4 bg-white rounded-xl border border-amber-200/90 shadow-2xs hover:shadow-xs transition-all space-y-2.5 relative overflow-hidden"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200 font-bold">
+                            <Zap className="w-4 h-4 fill-amber-500 text-amber-500" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-xs text-slate-900 leading-tight">
+                              {item.user_name || "Unit UPS"}
+                            </div>
+                            <div className="font-mono text-[10.5px] font-semibold text-amber-700">
+                              {item.asset_code}
+                            </div>
+                          </div>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          {item.status || "OPERASIONAL"}
+                        </span>
+                      </div>
+
+                      <div className="text-[11px] text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400 font-medium">Divisi:</span>
+                          <span className="font-bold text-slate-800">Divisi {item.division}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400 font-medium">Keterangan:</span>
+                          <span className="font-semibold text-slate-700">{item.notes || "-"}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenSticker(item)}
+                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <QrCode className="w-3.5 h-3.5" />
+                          <span>Cetak Label QR</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenTicket(item)}
+                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <LifeBuoy className="w-3.5 h-3.5" />
+                          <span>Buat Tiket</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-white">
+              <span className="text-xs text-slate-500 font-medium">
+                Total {totalUpsCount} unit daya cadangan terdaftar
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsUpsModalOpen(false)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                >
+                  Tutup
+                </button>
+                {isMIS && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsUpsModalOpen(false);
+                      handleOpenAdd();
+                      setFormData((prev) => ({
+                        ...prev,
+                        device_type: "UPS",
+                        user_name: "UPS APC / ICA",
+                        notes: `UPS Power Backup ${locationKey}`,
+                      }));
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-[#006622] hover:bg-[#00551c] text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Tambah Unit UPS</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hover Detail Popover Card (Matching POS Standard & 3-Tier Specification) */}
       {hoverDetail && (
