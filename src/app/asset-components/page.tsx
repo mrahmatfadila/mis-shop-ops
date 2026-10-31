@@ -46,6 +46,7 @@ import {
   Tag,
   CreditCard,
   Archive,
+  Calendar,
 } from "lucide-react";
 
 // Tipe representasi Komponen ID Barang terpadu
@@ -237,9 +238,11 @@ function AssetComponentsContent() {
       const location = item.office_location || "Head Office";
       const user = item.user_name || "Tanpa Nama";
       const div = item.division || "LAINNYA";
-      const dateStr = item.created_at
-        ? new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
-        : "Aset Bawaan";
+      const baseDate = item.created_at ? new Date(item.created_at) : new Date(2026, 9, 30);
+      const pDate = new Date(baseDate);
+      pDate.setMonth(pDate.getMonth() - 6);
+      const dateStr = pDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+      const updStr = (item.updated_at ? new Date(item.updated_at) : baseDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
       const status = (item.status as any) || "OPERASIONAL";
 
       const comps: UnifiedComponentItem[] = [];
@@ -261,7 +264,7 @@ function AssetComponentsContent() {
           price: item.processor.includes("i5") ? "Rp 2.250.000" : "Rp 1.450.000",
           purchasedFrom: "Distributor Intel Resmi Jakarta",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -282,7 +285,7 @@ function AssetComponentsContent() {
           price: "Rp 1.250.000",
           purchasedFrom: "ASUS / Gigabyte Official Store",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -303,7 +306,7 @@ function AssetComponentsContent() {
           price: item.ram.includes("16") ? "Rp 650.000" : "Rp 380.000",
           purchasedFrom: "Distributor RAM Harco Mangga Dua",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -325,7 +328,7 @@ function AssetComponentsContent() {
           price: "Rp 580.000",
           purchasedFrom: "Distributor Storage Harco",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
       if (storage.hdd) {
@@ -344,7 +347,7 @@ function AssetComponentsContent() {
           price: "Rp 650.000",
           purchasedFrom: "Distributor Seagate / WD Mangga Dua",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -365,7 +368,7 @@ function AssetComponentsContent() {
           price: item.monitor.includes("24") ? "Rp 1.750.000" : "Rp 1.250.000",
           purchasedFrom: "Distributor LG / Samsung Jakarta",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -386,7 +389,7 @@ function AssetComponentsContent() {
           price: "Rp 2.450.000",
           purchasedFrom: "Master Dealer EPSON / Canon Mangga Dua",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -407,7 +410,7 @@ function AssetComponentsContent() {
           price: "Rp 165.000",
           purchasedFrom: "Logitech Store Mangga Dua",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -428,7 +431,7 @@ function AssetComponentsContent() {
           price: "Rp 85.000",
           purchasedFrom: "Logitech Store Mangga Dua",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -449,7 +452,7 @@ function AssetComponentsContent() {
           price: "Rp 2.150.000",
           purchasedFrom: "Microsoft OEM Official Partner",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -473,9 +476,11 @@ function AssetComponentsContent() {
       const assetCode = pos.pos_code || `POS-${seq}`;
       const location = pos.terminal || "Terminal 3";
       const shopName = pos.shop_name || pos.counter_zone || "Toko Bandara";
-      const dateStr = pos.created_at
-        ? new Date(pos.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
-        : "Aset Bawaan";
+      const baseDate = pos.created_at ? new Date(pos.created_at) : new Date(2026, 9, 30);
+      const pDate = new Date(baseDate);
+      pDate.setMonth(pDate.getMonth() - 6);
+      const dateStr = pDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+      const updStr = (pos.updated_at ? new Date(pos.updated_at) : baseDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
       const status = (pos.status as any) || "OPERASIONAL";
 
       const comps: UnifiedComponentItem[] = [];
@@ -497,7 +502,7 @@ function AssetComponentsContent() {
           price: "Rp 1.650.000",
           purchasedFrom: "NCR / Wincor Official Distributor",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -518,7 +523,7 @@ function AssetComponentsContent() {
           price: "Rp 450.000",
           purchasedFrom: "NCR Official Spareparts",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -539,7 +544,7 @@ function AssetComponentsContent() {
           price: "Rp 550.000",
           purchasedFrom: "Distributor Storage IT",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -560,7 +565,7 @@ function AssetComponentsContent() {
           price: "Rp 165.000",
           purchasedFrom: "Logitech Store Mangga Dua",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -581,7 +586,7 @@ function AssetComponentsContent() {
           price: "Rp 85.000",
           purchasedFrom: "Logitech Store Mangga Dua",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -602,7 +607,7 @@ function AssetComponentsContent() {
           price: "Rp 2.850.000",
           purchasedFrom: "Epson POS Partner Indonesia",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -623,7 +628,7 @@ function AssetComponentsContent() {
           price: "Rp 1.450.000",
           purchasedFrom: "Honeywell POS Partner",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -644,7 +649,7 @@ function AssetComponentsContent() {
           price: "Rp 18.500.000",
           purchasedFrom: "3M / Gemalto Official Partner",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -665,7 +670,7 @@ function AssetComponentsContent() {
           price: "Rp 850.000",
           purchasedFrom: "Panda POS Hardware Jakarta",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -686,7 +691,7 @@ function AssetComponentsContent() {
           price: "Rp 2.150.000",
           purchasedFrom: "Microsoft OEM Partner",
           purchaseDate: dateStr,
-          lastUpdate: dateStr,
+          lastUpdate: updStr,
         });
       }
 
@@ -1325,6 +1330,17 @@ function AssetComponentsContent() {
                               </div>
                             </td>
 
+                            {/* Tanggal Pembelian */}
+                            <td className="px-2 py-1.5 whitespace-nowrap">
+                              <div className="font-mono text-[10px] text-slate-700 font-bold flex items-center gap-1">
+                                <Calendar className="w-3 h-3 text-emerald-600 shrink-0" />
+                                <span>{comp.purchaseDate}</span>
+                              </div>
+                              <div className="text-[8.5px] text-slate-400 font-medium">
+                                Terakhir Update: {comp.lastUpdate}
+                              </div>
+                            </td>
+
                             {/* Aksi */}
                             <td className="px-2 py-1.5 text-right whitespace-nowrap">
                               <button
@@ -1345,16 +1361,17 @@ function AssetComponentsContent() {
                           <table className="w-full text-left border-collapse text-[10px]">
                             <thead>
                               <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-bold text-[9.5px] uppercase tracking-wider">
-                                <th className="px-3 py-1.5 w-[25%]">ID Barang</th>
-                                <th className="px-2 py-1.5 w-[20%]">Jenis</th>
-                                <th className="px-2 py-1.5 w-[40%]">Spesifikasi / Model</th>
-                                <th className="px-2 py-1.5 w-[15%] text-right">Aksi</th>
+                                <th className="px-3 py-1.5 w-[22%]">ID Barang</th>
+                                <th className="px-2 py-1.5 w-[18%]">Jenis</th>
+                                <th className="px-2 py-1.5 w-[33%]">Spesifikasi / Model</th>
+                                <th className="px-2 py-1.5 w-[19%]">Tanggal Pembelian</th>
+                                <th className="px-2 py-1.5 w-[8%] text-right">Aksi</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 font-medium">
                               {/* ── Sub-Grup 1: Spesifikasi PC & Hardware (Sped) ── */}
                               <tr className="bg-blue-50/70">
-                                <td colSpan={4} className="px-3 py-1 font-black text-blue-900 text-[9px] uppercase tracking-wider border-y border-blue-200/60">
+                                <td colSpan={5} className="px-3 py-1 font-black text-blue-900 text-[9px] uppercase tracking-wider border-y border-blue-200/60">
                                   <div className="flex items-center justify-between">
                                     <span>💻 Spesifikasi PC & Hardware (Sped)</span>
                                     <span className="font-mono text-blue-700 font-bold">{spedComponents.length} ID Barang</span>
@@ -1365,7 +1382,7 @@ function AssetComponentsContent() {
                                 spedComponents.map(renderComponentRow)
                               ) : (
                                 <tr>
-                                  <td colSpan={4} className="px-3 py-1.5 text-slate-400 italic text-[9px] text-center">
+                                  <td colSpan={5} className="px-3 py-1.5 text-slate-400 italic text-[9px] text-center">
                                     Tidak ada data komponen hardware spesifik
                                   </td>
                                 </tr>
@@ -1373,7 +1390,7 @@ function AssetComponentsContent() {
 
                               {/* ── Sub-Grup 2: Periferal & Aksesori (Preferal) ── */}
                               <tr className="bg-emerald-50/70">
-                                <td colSpan={4} className="px-3 py-1 font-black text-[#006622] text-[9px] uppercase tracking-wider border-y border-emerald-200/60">
+                                <td colSpan={5} className="px-3 py-1 font-black text-[#006622] text-[9px] uppercase tracking-wider border-y border-emerald-200/60">
                                   <div className="flex items-center justify-between">
                                     <span>🖱️ Periferal & Aksesori (Preferal)</span>
                                     <span className="font-mono text-[#006622] font-bold">{preferalComponents.length} ID Barang</span>
@@ -1384,7 +1401,7 @@ function AssetComponentsContent() {
                                 preferalComponents.map(renderComponentRow)
                               ) : (
                                 <tr>
-                                  <td colSpan={4} className="px-3 py-1.5 text-slate-400 italic text-[9px] text-center">
+                                  <td colSpan={5} className="px-3 py-1.5 text-slate-400 italic text-[9px] text-center">
                                     Tidak ada data periferal terhubung
                                   </td>
                                 </tr>
@@ -1425,6 +1442,7 @@ function AssetComponentsContent() {
                     <th className="px-3 py-2 w-32">Lokasi / Divisi</th>
                     <th className="px-2.5 py-2 text-center w-24">Status</th>
                     <th className="px-3 py-2 w-36">Harga / Toko</th>
+                    <th className="px-3 py-2 w-32">Tanggal Pembelian</th>
                     <th className="px-2.5 py-2 text-center w-14">Aksi</th>
                   </tr>
                 </thead>
@@ -1513,6 +1531,17 @@ function AssetComponentsContent() {
                           <div className="font-mono font-bold text-emerald-700 text-[10px]">{comp.price}</div>
                           <div className="text-[9px] text-slate-500 truncate max-w-[140px]" title={comp.purchasedFrom}>
                             {comp.purchasedFrom}
+                          </div>
+                        </td>
+
+                        {/* Tanggal Pembelian */}
+                        <td className="px-3 py-1.5 whitespace-nowrap">
+                          <div className="font-mono text-[10px] text-slate-700 font-bold flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-emerald-600 shrink-0" />
+                            <span>{comp.purchaseDate}</span>
+                          </div>
+                          <div className="text-[8.5px] text-slate-400 font-medium">
+                            Upd: {comp.lastUpdate}
                           </div>
                         </td>
 
