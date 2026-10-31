@@ -142,6 +142,40 @@ export default function AssetListPage() {
 
 ---
 
+## 🏷️ BAGIAN IV: STANDAR KODE ASET ENTERPRISE (ISO 55001 COMPLIANT)
+
+Sistem penomoran dan kode aset wajib mengikuti standar Enterprise Asset Management (EAM) berbasis siklus hidup (lifecycle mapping) ISO 55001.
+
+### 1. Pola Alfanumerik Wajib
+Setiap kode aset mengikuti struktur:
+`[CATEGORY]-[LOCATION/DIVISION]-[YEAR OF ACQUISITION]-[SEQUENTIAL ID]-[MUTATION STATUS CODE]`
+
+**Penjelasan Elemen:**
+1. **CATEGORY (3-4 Huruf Kapital):** Jenis perangkat/aset (contoh: `LPT` = Laptop, `PC` = Desktop PC, `SRV` = Server, `PRN` = Printer, `EDC` = Mesin EDC, `NET` = Perangkat Jaringan).
+2. **LOCATION / DIVISION (3-4 Huruf Kapital):** Site fisik atau cost center (contoh: `JKT` = Jakarta Head Office, `T2` = Terminal 2, `T3` = Terminal 3, `SBY` = Surabaya, `WHS` = Warehouse, `FIN` = Finance, `MIS` = MIS).
+3. **YEAR OF ACQUISITION (2 Digit):** 2 digit tahun aset mulai operasional (contoh: `26` untuk 2026).
+4. **SEQUENTIAL ID (3 Digit Tetap):** Nomor urut unik mulai dari `001`, `002`, dst.
+5. **MUTATION & LIFECYCLE STATUS SUFFIX (1 Huruf):**
+   - **`[O]` Original:** Aset pertama/baseline pengadaan baru.
+   - **`[R]` Replacement:** Unit pengganti klaim garansi/asuransi di mana nilai pembukuan melanjutkan unit lama.
+   - **`[M]` Mutated:** Aset berpindah lokasi / cost center lain.
+   - **`[U]` Upgraded:** Aset mengalami upgrade hardware/komponen utama secara signifikan.
+   - **`[A]` Allocated/Assigned:** Dialokasikan khusus untuk penugasan proyek sementara / node user tertentu.
+
+### 2. Aturan Penggantian Aset (The Replacement Rule)
+Ketika suatu unit (contoh: `LPT-JKT-26-001-O`) rusak dan digantikan:
+* Di database, unit lama status fisiknya diubah menjadi **`DISPOSED / DECOMMISSIONED`**.
+* Unit pengganti yang melanjutkan siklus keuangan/garansi unit lama menggunakan kode dengan suffix **`-R`** (`LPT-JKT-26-001-R`).
+* Jika unit merupakan pengadaan modal baru (bukan klaim/tukar unit), generate Sequential ID berikutnya dengan suffix **`-O`** (`LPT-JKT-26-002-O`).
+
+### 3. Validasi & Format Output
+Saat memproses data aset mentah atau skenario mutasi:
+1. Petakan parameter ke nomenklatur standar di atas.
+2. Validasi pencegahan kode duplikat.
+3. Tampilkan tabel ringkasan: `Asset Code`, `Serial Number`, `Physical Status`, `Financial Status`.
+
+---
+
 ## 💡 PERINTAH SINGKAT UNTUK PROMPT AI
 Salin dan gunakan kalimat ini saat memberikan tugas ke AI:
-> *"Terapkan aturan di `AI_RULES.md`: arsitektur Database-First (semua data wajib masuk ke database SQLite, jangan di-hardcode di kode atau landing page), clean code tanpa duplikasi, dan desain UI modern profesional."*
+> *"Terapkan aturan di `AI_RULES.md`: arsitektur Database-First (semua data wajib masuk ke database SQLite, jangan di-hardcode di kode atau landing page), clean code tanpa duplikasi, desain UI modern profesional, dan standar kode aset ISO 55001."*
