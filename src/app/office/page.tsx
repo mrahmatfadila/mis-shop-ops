@@ -420,7 +420,7 @@ function OfficeContent() {
     parts.forEach((p) => {
       const isSsd = p.toUpperCase().includes("SSD");
       const isHdd = p.toUpperCase().includes("HDD");
-      const cleaned = p.replace(/\((SSD|HDD)\)/gi, "").trim();
+      const cleaned = p.replace(/[\(\[](SSD|HDD)[\)\]]/gi, "").trim();
 
       if (isSsd) {
         ssd = cleaned;
@@ -969,14 +969,12 @@ function OfficeContent() {
                             const { ssd } = parseStorage(item.hard_drive);
                             if (!ssd) return <span className="text-slate-300 font-mono select-none">—</span>;
                             return (
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-1.5 text-[10.5px] px-2 py-0.5 rounded border border-blue-200/90 bg-blue-50/90 text-blue-900 font-bold max-w-fit shadow-2xs">
-                                  <HardDrive className="w-3 h-3 text-blue-600 shrink-0" />
-                                  <span className="text-[8.5px] font-black uppercase px-1 rounded bg-blue-600 text-white">SSD</span>
-                                  <span className="truncate max-w-[105px] font-mono text-[10px]" title={ssd}>{ssd}</span>
-                                </div>
+                              <div className="space-y-0.5">
+                                <span className="text-[10.5px] text-slate-800 font-semibold block truncate" title={ssd}>
+                                  {ssd}
+                                </span>
                                 {item.used_disk1 && item.used_disk1 !== "-" && (
-                                  <div className="text-[9px] text-slate-500 font-mono tracking-tight pt-0.5">
+                                  <div className="text-[9px] text-slate-500 font-mono tracking-tight">
                                     C: <strong className="text-slate-700">{item.used_disk1}</strong>
                                   </div>
                                 )}
@@ -991,14 +989,12 @@ function OfficeContent() {
                             const { hdd } = parseStorage(item.hard_drive);
                             if (!hdd) return <span className="text-slate-300 font-mono select-none">—</span>;
                             return (
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-1.5 text-[10.5px] px-2 py-0.5 rounded border border-amber-200/90 bg-amber-50/90 text-amber-900 font-bold max-w-fit shadow-2xs">
-                                  <HardDrive className="w-3 h-3 text-amber-600 shrink-0" />
-                                  <span className="text-[8.5px] font-black uppercase px-1 rounded bg-amber-600 text-white">HDD</span>
-                                  <span className="truncate max-w-[105px] font-mono text-[10px]" title={hdd}>{hdd}</span>
-                                </div>
+                              <div className="space-y-0.5">
+                                <span className="text-[10.5px] text-slate-800 font-semibold block truncate" title={hdd}>
+                                  {hdd}
+                                </span>
                                 {item.used_disk2 && item.used_disk2 !== "-" && (
-                                  <div className="text-[9px] text-slate-500 font-mono tracking-tight pt-0.5">
+                                  <div className="text-[9px] text-slate-500 font-mono tracking-tight">
                                     D: <strong className="text-slate-700">{item.used_disk2}</strong>
                                   </div>
                                 )}
