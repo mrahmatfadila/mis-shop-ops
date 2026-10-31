@@ -270,10 +270,16 @@ function UsersContent() {
   const [isLocDropdownOpen, setIsLocDropdownOpen] = useState(false);
   const locDropdownRef = useRef<HTMLDivElement>(null);
 
+  const [isRoleSelectOpen, setIsRoleSelectOpen] = useState(false);
+  const roleSelectRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (locDropdownRef.current && !locDropdownRef.current.contains(event.target as Node)) {
         setIsLocDropdownOpen(false);
+      }
+      if (roleSelectRef.current && !roleSelectRef.current.contains(event.target as Node)) {
+        setIsRoleSelectOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -1109,59 +1115,105 @@ function UsersContent() {
                 />
               </div>
 
-              <div>
+              <div className="relative" ref={roleSelectRef}>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Wewenang / Role Akses: <span className="text-rose-500">*</span>
                 </label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => {
-                    const newRole = e.target.value as UserRole;
-                    const opt = ROLE_OPTIONS.find((r) => r.role === newRole);
-                    setFormData({
-                      ...formData,
-                      role: newRole,
-                      shop_location: opt ? opt.defaultLocation : formData.shop_location,
-                    });
-                  }}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:bg-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none"
+
+                {/* Custom Role Trigger Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsRoleSelectOpen(!isRoleSelectOpen)}
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-left flex items-center justify-between gap-2.5 transition-all cursor-pointer shadow-2xs ${
+                    isRoleSelectOpen
+                      ? "bg-white border-purple-500 ring-2 ring-purple-500/20"
+                      : "bg-slate-50 hover:bg-slate-100/80 border-slate-300 text-slate-800"
+                  }`}
                 >
-                  <optgroup label="1. KELOMPOK MIS (IT OPS, MANAGER, PROCUREMENT, ADMIN)">
-                    {ROLE_OPTIONS.filter((r) => r.groupKey === "MIS").map((r) => (
-                      <option key={r.role} value={r.role}>
-                        {r.label} — ({r.desc})
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="2. KELOMPOK SPV PB T2 (PLAZA BALI TERMINAL 2)">
-                    {ROLE_OPTIONS.filter((r) => r.groupKey === "SPV_PB_T2").map((r) => (
-                      <option key={r.role} value={r.role}>
-                        {r.label} — ({r.desc})
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="3. KELOMPOK SPV PB T3 (PLAZA BALI TERMINAL 3)">
-                    {ROLE_OPTIONS.filter((r) => r.groupKey === "SPV_PB_T3").map((r) => (
-                      <option key={r.role} value={r.role}>
-                        {r.label} — ({r.desc})
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="4. KELOMPOK SPV SAM T2 (TOKO SAM TERMINAL 2)">
-                    {ROLE_OPTIONS.filter((r) => r.groupKey === "SPV_SAM_T2").map((r) => (
-                      <option key={r.role} value={r.role}>
-                        {r.label} — ({r.desc})
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="5. KELOMPOK SPV SAM T3 (TOKO SAM TERMINAL 3)">
-                    {ROLE_OPTIONS.filter((r) => r.groupKey === "SPV_SAM_T3").map((r) => (
-                      <option key={r.role} value={r.role}>
-                        {r.label} — ({r.desc})
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-black border ${getRoleBadgeStyle(
+                        formData.role as UserRole
+                      )}`}
+                    >
+                      {formData.role}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-900 truncate">
+                        {ROLE_OPTIONS.find((r) => r.role === formData.role)?.label || formData.role}
+                      </p>
+                      <p className="text-[10px] text-slate-500 truncate">
+                        {ROLE_OPTIONS.find((r) => r.role === formData.role)?.desc || ""}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronDown
+                    className={`w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ${
+                      isRoleSelectOpen ? "rotate-180 text-purple-600" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Custom Role Popover Dropdown */}
+                {isRoleSelectOpen && (
+                  <div className="absolute left-0 right-0 top-full mt-1.5 max-h-72 overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200/95 p-2 z-50 divide-y divide-slate-100 animate-in fade-in zoom-in-95 duration-150">
+                    {[
+                      { key: "MIS", title: "1. KELOMPOK MIS (IT OPS, MANAGER, PROCUREMENT, ADMIN)" },
+                      { key: "SPV_PB_T2", title: "2. KELOMPOK SPV PB T2 (PLAZA BALI TERMINAL 2)" },
+                      { key: "SPV_PB_T3", title: "3. KELOMPOK SPV PB T3 (PLAZA BALI TERMINAL 3)" },
+                      { key: "SPV_SAM_T2", title: "4. KELOMPOK SPV SAM T2 (TOKO SAM TERMINAL 2)" },
+                      { key: "SPV_SAM_T3", title: "5. KELOMPOK SPV SAM T3 (TOKO SAM TERMINAL 3)" },
+                    ].map((group) => {
+                      const rolesInGroup = ROLE_OPTIONS.filter((r) => r.groupKey === group.key);
+                      return (
+                        <div key={group.key} className="py-1.5 first:pt-0 last:pb-0 space-y-1">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider px-2 pt-1">
+                            {group.title}
+                          </p>
+                          {rolesInGroup.map((r) => {
+                            const isSelected = formData.role === r.role;
+                            return (
+                              <button
+                                key={r.role}
+                                type="button"
+                                onClick={() => {
+                                  setFormData({
+                                    ...formData,
+                                    role: r.role,
+                                    shop_location: r.defaultLocation,
+                                  });
+                                  setIsRoleSelectOpen(false);
+                                }}
+                                className={`w-full px-2.5 py-2 rounded-xl text-left transition-all flex items-center justify-between gap-2 cursor-pointer ${
+                                  isSelected
+                                    ? "bg-purple-100/80 text-purple-950 font-bold"
+                                    : "hover:bg-slate-100 text-slate-700"
+                                }`}
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className={`px-1.5 py-0.2 rounded text-[9.5px] font-bold border ${r.badge}`}>
+                                      {r.role}
+                                    </span>
+                                    <span className="text-xs font-black text-slate-900 truncate">
+                                      {r.label}
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] text-slate-500 mt-0.5 truncate pl-0.5">
+                                    {r.desc} • Default: {r.defaultLocation}
+                                  </p>
+                                </div>
+                                {isSelected && (
+                                  <Check className="w-4 h-4 text-purple-700 shrink-0 ml-1" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <div>

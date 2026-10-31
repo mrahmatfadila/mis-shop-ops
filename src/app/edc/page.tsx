@@ -1880,27 +1880,61 @@ function EdcContent() {
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
                     Toko / Perusahaan
                   </label>
-                  <select
-                    value={formData.shop_name || "Plaza Bali"}
-                    onChange={(e) => setFormData({ ...formData, shop_name: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                  >
-                    <option value="Plaza Bali">Plaza Bali</option>
-                    <option value="SAM">SAM</option>
-                  </select>
+                  <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, shop_name: "Plaza Bali" })}
+                      className={`py-1.5 px-2 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                        (formData.shop_name || "Plaza Bali") === "Plaza Bali"
+                          ? "bg-[#006622] text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <span>Plaza Bali</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, shop_name: "SAM" })}
+                      className={`py-1.5 px-2 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                        formData.shop_name === "SAM"
+                          ? "bg-amber-600 text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <span>SAM</span>
+                    </button>
+                  </div>
                 </div>
+
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
                     Status Operasional
                   </label>
-                  <select
-                    value={formData.is_active || "Y"}
-                    onChange={(e) => setFormData({ ...formData, is_active: e.target.value as "Y" | "N" })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                  >
-                    <option value="Y">Aktif (Y) - Digunakan Transaksi</option>
-                    <option value="N">Non-Aktif (N) - Standby</option>
-                  </select>
+                  <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, is_active: "Y" })}
+                      className={`py-1.5 px-2 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        (formData.is_active || "Y") === "Y"
+                          ? "bg-emerald-600 text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
+                      <span>Aktif (Y)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, is_active: "N" })}
+                      className={`py-1.5 px-2 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                        formData.is_active === "N"
+                          ? "bg-slate-700 text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <span>Standby (N)</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 

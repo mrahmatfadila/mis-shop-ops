@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, Suspense, Fragment } from "react";
+import { useState, useEffect, useMemo, useRef, Suspense, Fragment } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
 import ScannerModal from "@/components/ScannerModal";
 import BarcodeGeneratorModal from "@/components/BarcodeGeneratorModal";
@@ -41,6 +41,7 @@ import {
   Zap,
   RefreshCw,
   Wifi,
+  ChevronDown,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -153,6 +154,31 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
   const [selectedDivision, setSelectedDivision] = useState(initialDiv);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedType, setSelectedType] = useState("");
+
+  // Custom Dropdown Open States
+  const [isDivOpen, setIsDivOpen] = useState(false);
+  const [isTypeOpen, setIsTypeOpen] = useState(false);
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
+
+  const divDropdownRef = useRef<HTMLDivElement>(null);
+  const typeDropdownRef = useRef<HTMLDivElement>(null);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (divDropdownRef.current && !divDropdownRef.current.contains(event.target as Node)) {
+        setIsDivOpen(false);
+      }
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target as Node)) {
+        setIsTypeOpen(false);
+      }
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+        setIsStatusOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Modals & UI States
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -1245,48 +1271,230 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
               />
             </div>
 
-            {/* Dropdown Filters */}
+            {/* Custom Modern Dropdown Filters */}
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Division Dropdown */}
-              <select
-                value={selectedDivision}
-                onChange={(e) => setSelectedDivision(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all cursor-pointer"
-              >
-                <option value="">Semua Divisi ({locationDivisions.length})</option>
-                {locationDivisions.map((d) => (
-                  <option key={d} value={d}>
-                    Divisi {d}
-                  </option>
-                ))}
-              </select>
+              {/* 1. Division Dropdown */}
+              <div className="relative" ref={divDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDivOpen(!isDivOpen);
+                    setIsTypeOpen(false);
+                    setIsStatusOpen(false);
+                  }}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border shadow-2xs cursor-pointer select-none ${
+                    selectedDivision
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-950 ring-2 ring-emerald-500/20"
+                      : "bg-slate-50 hover:bg-slate-100/90 border-slate-200 text-slate-700 hover:border-slate-300"
+                  }`}
+                >
+                  <Building2 className={`w-3.5 h-3.5 ${selectedDivision ? "text-[#006622]" : "text-slate-400"}`} />
+                  <span>{selectedDivision ? `Divisi ${selectedDivision}` : `Semua Divisi (${locationDivisions.length})`}</span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ml-0.5 ${
+                      isDivOpen ? "rotate-180 text-emerald-600" : ""
+                    }`}
+                  />
+                </button>
 
-              {/* Type Dropdown */}
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all cursor-pointer"
-              >
-                <option value="">Semua Tipe Perangkat</option>
-                <option value="PC">PC Desktop</option>
-                <option value="UPS">UPS / Power Backup</option>
-                <option value="ROUTER">Router Network</option>
-                <option value="PABX">PABX Telepon</option>
-                <option value="FACILITY">Fasilitas / Ruangan</option>
-              </select>
+                {isDivOpen && (
+                  <div className="absolute right-0 top-full mt-1.5 w-56 max-h-64 overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-2 py-1 border-b border-slate-100 mb-1">
+                      Pilih Divisi Kantor
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedDivision("");
+                        setIsDivOpen(false);
+                      }}
+                      className={`w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                        !selectedDivision ? "bg-emerald-100/80 text-emerald-950 font-black" : "hover:bg-slate-100 text-slate-700"
+                      }`}
+                    >
+                      <span>Semua Divisi ({locationDivisions.length})</span>
+                      {!selectedDivision && <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0" />}
+                    </button>
+                    {locationDivisions.map((d) => {
+                      const isSelected = selectedDivision === d;
+                      return (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => {
+                            setSelectedDivision(d);
+                            setIsDivOpen(false);
+                          }}
+                          className={`w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                            isSelected ? "bg-emerald-100/80 text-emerald-950 font-black" : "hover:bg-slate-100 text-slate-700"
+                          }`}
+                        >
+                          <span>Divisi {d}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
-              {/* Status Dropdown */}
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all cursor-pointer"
-              >
-                <option value="">Semua Status</option>
-                <option value="OPERASIONAL">Operasional</option>
-                <option value="CADANGAN">Cadangan</option>
-                <option value="PERBAIKAN">Perbaikan</option>
-                <option value="RUSAK">Rusak</option>
-              </select>
+              {/* 2. Type Dropdown */}
+              <div className="relative" ref={typeDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsTypeOpen(!isTypeOpen);
+                    setIsDivOpen(false);
+                    setIsStatusOpen(false);
+                  }}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border shadow-2xs cursor-pointer select-none ${
+                    selectedType
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-950 ring-2 ring-emerald-500/20"
+                      : "bg-slate-50 hover:bg-slate-100/90 border-slate-200 text-slate-700 hover:border-slate-300"
+                  }`}
+                >
+                  <Cpu className={`w-3.5 h-3.5 ${selectedType ? "text-[#006622]" : "text-slate-400"}`} />
+                  <span>
+                    {selectedType === "PC"
+                      ? "PC Desktop"
+                      : selectedType === "UPS"
+                      ? "UPS Backup"
+                      : selectedType === "ROUTER"
+                      ? "Router Network"
+                      : selectedType === "PABX"
+                      ? "PABX Telepon"
+                      : selectedType === "FACILITY"
+                      ? "Fasilitas"
+                      : "Semua Tipe Perangkat"}
+                  </span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ml-0.5 ${
+                      isTypeOpen ? "rotate-180 text-emerald-600" : ""
+                    }`}
+                  />
+                </button>
+
+                {isTypeOpen && (
+                  <div className="absolute right-0 top-full mt-1.5 w-56 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-0.5">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-2 py-1 border-b border-slate-100 mb-1">
+                      Pilih Tipe Perangkat
+                    </p>
+                    {[
+                      { val: "", label: "Semua Tipe Perangkat", icon: Cpu },
+                      { val: "PC", label: "PC Desktop", icon: Monitor },
+                      { val: "UPS", label: "UPS / Power Backup", icon: Zap },
+                      { val: "ROUTER", label: "Router Network", icon: Wifi },
+                      { val: "PABX", label: "PABX Telepon", icon: PhoneCall },
+                      { val: "FACILITY", label: "Fasilitas / Ruangan", icon: Building2 },
+                    ].map((t) => {
+                      const isSelected = selectedType === t.val;
+                      const IconComp = t.icon;
+                      return (
+                        <button
+                          key={t.val}
+                          type="button"
+                          onClick={() => {
+                            setSelectedType(t.val);
+                            setIsTypeOpen(false);
+                          }}
+                          className={`w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                            isSelected ? "bg-emerald-100/80 text-emerald-950 font-black" : "hover:bg-slate-100 text-slate-700"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <IconComp className="w-3.5 h-3.5 text-slate-500" />
+                            <span>{t.label}</span>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Status Dropdown */}
+              <div className="relative" ref={statusDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsStatusOpen(!isStatusOpen);
+                    setIsDivOpen(false);
+                    setIsTypeOpen(false);
+                  }}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border shadow-2xs cursor-pointer select-none ${
+                    selectedStatus
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-950 ring-2 ring-emerald-500/20"
+                      : "bg-slate-50 hover:bg-slate-100/90 border-slate-200 text-slate-700 hover:border-slate-300"
+                  }`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      selectedStatus === "OPERASIONAL"
+                        ? "bg-emerald-500"
+                        : selectedStatus === "CADANGAN"
+                        ? "bg-amber-500"
+                        : selectedStatus === "PERBAIKAN"
+                        ? "bg-orange-500"
+                        : selectedStatus === "RUSAK"
+                        ? "bg-rose-500"
+                        : "bg-slate-400"
+                    }`}
+                  />
+                  <span>
+                    {selectedStatus === "OPERASIONAL"
+                      ? "Operasional"
+                      : selectedStatus === "CADANGAN"
+                      ? "Cadangan"
+                      : selectedStatus === "PERBAIKAN"
+                      ? "Perbaikan"
+                      : selectedStatus === "RUSAK"
+                      ? "Rusak"
+                      : "Semua Status"}
+                  </span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ml-0.5 ${
+                      isStatusOpen ? "rotate-180 text-emerald-600" : ""
+                    }`}
+                  />
+                </button>
+
+                {isStatusOpen && (
+                  <div className="absolute right-0 top-full mt-1.5 w-48 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-0.5">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-2 py-1 border-b border-slate-100 mb-1">
+                      Pilih Status Aset
+                    </p>
+                    {[
+                      { val: "", label: "Semua Status", color: "bg-slate-400" },
+                      { val: "OPERASIONAL", label: "Operasional", color: "bg-emerald-500" },
+                      { val: "CADANGAN", label: "Cadangan", color: "bg-amber-500" },
+                      { val: "PERBAIKAN", label: "Perbaikan", color: "bg-orange-500" },
+                      { val: "RUSAK", label: "Rusak", color: "bg-rose-500" },
+                    ].map((s) => {
+                      const isSelected = selectedStatus === s.val;
+                      return (
+                        <button
+                          key={s.val}
+                          type="button"
+                          onClick={() => {
+                            setSelectedStatus(s.val);
+                            setIsStatusOpen(false);
+                          }}
+                          className={`w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                            isSelected ? "bg-emerald-100/80 text-emerald-950 font-black" : "hover:bg-slate-100 text-slate-700"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${s.color}`} />
+                            <span>{s.label}</span>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
               {/* Reset Button */}
               {(search || selectedDivision || selectedType || selectedStatus) && (
