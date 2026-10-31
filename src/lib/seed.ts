@@ -2014,7 +2014,7 @@ export async function runFullSeed() {
     const initialOfficeHardwareList = [
     // MIS
     {
-      item_no: 1, asset_code: "OFF-MIS-01", division: "MIS", user_name: "PA PEPEN",
+      item_no: 1, asset_code: "PC-MIS-26-001-O", division: "MIS", user_name: "PA PEPEN",
       os: "WIN 7 ULT 64 BIT", motherboard: "GIGABYTE H110M-DS2-CF", processor: "Intel Core i5 7400 @ 3.00GHz",
       ram: "16.0GB Dual-Channel Unknown @ 1200MHz", monitor: "LG 20 INCH",
       hard_drive: "(HDD) HITACHI 100GB / (SSD) V GEN 111GB", used_disk1: "-", used_disk2: "-",
@@ -2022,7 +2022,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC MIS Pa Pepen"
     },
     {
-      item_no: 2, asset_code: "OFF-MIS-02", division: "MIS", user_name: "HAMDI",
+      item_no: 2, asset_code: "PC-MIS-26-002-O", division: "MIS", user_name: "HAMDI",
       os: "WIN 10 PRO 64 BIT", motherboard: "PRIME H610M-K D4 (LGA1700)", processor: "Intel Core i3-12100",
       ram: "16GB", monitor: "LG 24 INCH & 20 INCH",
       hard_drive: "(SSD) V GEN 512GB", used_disk1: "-", used_disk2: "-",
@@ -2030,7 +2030,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC MIS Hamdi (Dual Monitor)"
     },
     {
-      item_no: 3, asset_code: "OFF-MIS-03", division: "MIS", user_name: "FARHAN",
+      item_no: 3, asset_code: "PC-MIS-26-003-O", division: "MIS", user_name: "FARHAN",
       os: "WIN 11 64 BIT", motherboard: "ASUS PRIME H510M-E (LGA1200)", processor: "Intel Core i3 10300 @ 3.70GHz",
       ram: "24.0GB Dual-Channel Unknown @ 1064MHz", monitor: "LG 24 INCH & AOC 16 INCH",
       hard_drive: "(SSD) 1863GB Seagate ST2000DM008-2FR102", used_disk1: "-", used_disk2: "-",
@@ -2038,7 +2038,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC MIS Farhan (Dual Monitor)"
     },
     {
-      item_no: 4, asset_code: "OFF-MIS-04", division: "MIS", user_name: "PA ROBY",
+      item_no: 4, asset_code: "PC-MIS-26-004-O", division: "MIS", user_name: "PA ROBY",
       os: "-", motherboard: "-", processor: "-",
       ram: "-", monitor: "-",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2046,7 +2046,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "CADANGAN", notes: "PC MIS Pa Roby"
     },
     {
-      item_no: 5, asset_code: "OFF-MIS-05", division: "MIS", user_name: "BILLY",
+      item_no: 5, asset_code: "PC-MIS-26-005-O", division: "MIS", user_name: "BILLY",
       os: "WIN 10 PRO 64 BIT", motherboard: "ASUS PRIME H510M-K (LGA1200)", processor: "Intel Core i5 10400 @ 2.90GHz",
       ram: "16.0GB Single-Channel Unknown @ 1330MHz", monitor: "LG 24 INCH",
       hard_drive: "(SSD) Lexar 512GB", used_disk1: "-", used_disk2: "-",
@@ -2056,7 +2056,7 @@ export async function runFullSeed() {
 
     // ACCOUNTING
     {
-      item_no: 6, asset_code: "OFF-ACC-01", division: "ACCOUNTING", user_name: "BU NYOMAN",
+      item_no: 6, asset_code: "PC-ACC-26-001-O", division: "ACCOUNTING", user_name: "BU NYOMAN",
       os: "WIN 10 PRO 64 BIT", motherboard: "-", processor: "-",
       ram: "-", monitor: "LG 20 INCH",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2064,7 +2064,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Accounting Bu Nyoman"
     },
     {
-      item_no: 7, asset_code: "OFF-ACC-02", division: "ACCOUNTING", user_name: "MEGA",
+      item_no: 7, asset_code: "PC-ACC-26-002-O", division: "ACCOUNTING", user_name: "MEGA",
       os: "WIN 10 PRO 64 BIT", motherboard: "ASUS H61M-K", processor: "Intel Core i3 3240 @ 3.40GHz",
       ram: "8.00GB Single-Channel DDR3 @ 798MHz", monitor: "LG 20 INCH",
       hard_drive: "(SSD) ADATA SU650 480GB", used_disk1: "49.2 GB", used_disk2: "31.0 GB",
@@ -2072,7 +2072,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Accounting Mega"
     },
     {
-      item_no: 8, asset_code: "OFF-ACC-03", division: "ACCOUNTING", user_name: "REZA-PC",
+      item_no: 8, asset_code: "PC-ACC-26-003-O", division: "ACCOUNTING", user_name: "REZA-PC",
       os: "WIN 10 EDU 64 BIT", motherboard: "-", processor: "Intel Core i3 Gen 3",
       ram: "8 GB Dual DDR3", monitor: "AOC 16 INCH",
       hard_drive: "SSD ADATA 480GB", used_disk1: "-", used_disk2: "-",
@@ -2080,7 +2080,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Accounting Reza"
     },
     {
-      item_no: 9, asset_code: "OFF-ACC-04", division: "ACCOUNTING", user_name: "INDAH",
+      item_no: 9, asset_code: "PC-ACC-26-004-O", division: "ACCOUNTING", user_name: "INDAH",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H81M-E (SOCKET 1150)", processor: "Intel Pentium G3250 @ 3.20GHz",
       ram: "8.00GB Single-Channel DDR3", monitor: "LG 20 INCH",
       hard_drive: "(SSD) 238GB Lexar SSD NS100", used_disk1: "-", used_disk2: "-",
@@ -2088,7 +2088,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Accounting Indah"
     },
     {
-      item_no: 10, asset_code: "OFF-ACC-05", division: "ACCOUNTING", user_name: "BU MARI",
+      item_no: 10, asset_code: "PC-ACC-26-005-O", division: "ACCOUNTING", user_name: "BU MARI",
       os: "WIN 10 PRO 64 BIT", motherboard: "ASUS PRIME H510M-K (LGA1200)", processor: "Intel Pentium Gold @ 4.00GHz",
       ram: "8.00GB Single-Channel Unknown @ 1063MHz", monitor: "LG 20 INCH",
       hard_drive: "(SSD) Lexar NS100 512GB", used_disk1: "-", used_disk2: "-",
@@ -2096,7 +2096,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Accounting Bu Mari"
     },
     {
-      item_no: 11, asset_code: "OFF-ACC-06", division: "ACCOUNTING", user_name: "BU NURUL",
+      item_no: 11, asset_code: "PC-ACC-26-006-O", division: "ACCOUNTING", user_name: "BU NURUL",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H110M-K (LGA1151)", processor: "Intel Core i3 7100 @ 3.90GHz",
       ram: "8.00GB Dual-Channel Unknown @ 1199MHz", monitor: "LG 20 INCH",
       hard_drive: "(SSD) ADATA SU650 480GB", used_disk1: "51.4 GB", used_disk2: "9.98 GB",
@@ -2104,7 +2104,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Accounting Bu Nurul"
     },
     {
-      item_no: 12, asset_code: "OFF-ACC-07", division: "ACCOUNTING", user_name: "SINDY",
+      item_no: 12, asset_code: "PC-ACC-26-007-O", division: "ACCOUNTING", user_name: "SINDY",
       os: "WIN 11 PRO 64 BIT", motherboard: "GIGABYTE H610M-K", processor: "12th Gen Intel Core i3-12100 3.30 GHz",
       ram: "8.00GB Single-Channel Unknown @ 1063MHz", monitor: "LG 20 INCH",
       hard_drive: "SSD ADATA 512GB", used_disk1: "-", used_disk2: "-",
@@ -2112,7 +2112,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Accounting Sindy"
     },
     {
-      item_no: 13, asset_code: "OFF-ACC-08", division: "ACCOUNTING", user_name: "ARYANTI",
+      item_no: 13, asset_code: "PC-ACC-26-008-O", division: "ACCOUNTING", user_name: "ARYANTI",
       os: "WIN 10 PRO 64 BIT", motherboard: "ASUS PRIME H510M-K (LGA1200)", processor: "Intel Pentium Gold @ 4.00GHz",
       ram: "8 GB", monitor: "LG 20 INCH",
       hard_drive: "LEXAR 480GB", used_disk1: "-", used_disk2: "-",
@@ -2120,7 +2120,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Accounting Aryanti"
     },
     {
-      item_no: 14, asset_code: "OFF-ACC-09", division: "ACCOUNTING", user_name: "SATRIYO",
+      item_no: 14, asset_code: "PC-ACC-26-009-O", division: "ACCOUNTING", user_name: "SATRIYO",
       os: "WIN 10 PRO 64 BIT", motherboard: "GIGABYTE H510MK V2", processor: "Intel Core i3 10300 @ 3.70GHz",
       ram: "8 GB Single Channel", monitor: "SAMSUNG 20 INCH",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2130,7 +2130,7 @@ export async function runFullSeed() {
 
     // FINANCE
     {
-      item_no: 15, asset_code: "OFF-FIN-01", division: "FINANCE", user_name: "YANA",
+      item_no: 15, asset_code: "PC-FIN-26-001-O", division: "FINANCE", user_name: "YANA",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H61M-K (LGA1155)", processor: "Intel Core i3 2100 @ 3.10GHz",
       ram: "8.00GB Single-Channel DDR3 @ 798MHz", monitor: "LG 20 INCH",
       hard_drive: "(SSD) 447GB ADATA SU650", used_disk1: "36.0 GB", used_disk2: "2.02 GB",
@@ -2138,7 +2138,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Finance Yana"
     },
     {
-      item_no: 16, asset_code: "OFF-FIN-02", division: "FINANCE", user_name: "ABEL",
+      item_no: 16, asset_code: "PC-FIN-26-002-O", division: "FINANCE", user_name: "ABEL",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H81M-E (SOCKET 1150)", processor: "Intel Pentium G3260 @ 3.30GHz",
       ram: "4.00GB Single-Channel DDR3 @ 698MHz", monitor: "LG 20 INCH",
       hard_drive: "(SSD) 447GB ADATA SU650", used_disk1: "41.1 GB", used_disk2: "13.5 GB",
@@ -2146,7 +2146,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Finance Abel"
     },
     {
-      item_no: 17, asset_code: "OFF-FIN-03", division: "FINANCE", user_name: "BU RINA",
+      item_no: 17, asset_code: "PC-FIN-26-003-O", division: "FINANCE", user_name: "BU RINA",
       os: "WIN 7 PROF 64 BIT", motherboard: "ASUS H61M-C (LGA1155)", processor: "Intel Pentium G2030 @ 3.00GHz",
       ram: "8.00GB Dual-Channel Unknown", monitor: "LG 20 INCH",
       hard_drive: "(SSD) 120GB SATA Flash Drive", used_disk1: "38.7 GB", used_disk2: "1.63 GB",
@@ -2154,7 +2154,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Finance Bu Rina"
     },
     {
-      item_no: 18, asset_code: "OFF-FIN-04", division: "FINANCE", user_name: "SAYUTI",
+      item_no: 18, asset_code: "PC-FIN-26-004-O", division: "FINANCE", user_name: "SAYUTI",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H110M-K (LGA1151)", processor: "Intel Core i3 7100 @ 3.90GHz",
       ram: "4.00GB DDR4 Single-Channel Unknown @ 1197MHz", monitor: "LG 20 INCH",
       hard_drive: "(HDD) 111GB V-GEN11SM18EG120GB", used_disk1: "33.3 GB", used_disk2: "41.2 GB",
@@ -2162,7 +2162,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Finance Sayuti"
     },
     {
-      item_no: 19, asset_code: "OFF-FIN-05", division: "FINANCE", user_name: "BU NUNUNG",
+      item_no: 19, asset_code: "PC-FIN-26-005-O", division: "FINANCE", user_name: "BU NUNUNG",
       os: "WIN 7 PROF 64 BIT", motherboard: "ECS H61H2-M12 (SOCKET 0)", processor: "Intel Core i3 2100 @ 3.10GHz",
       ram: "8.00GB Single-Channel DDR3 @ 665MHz", monitor: "LG 27 INCH",
       hard_drive: "(SSD) V-GEN11SM18EG120GB", used_disk1: "-", used_disk2: "-",
@@ -2170,7 +2170,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Finance Bu Nunung"
     },
     {
-      item_no: 20, asset_code: "OFF-FIN-06", division: "FINANCE", user_name: "RENALDY",
+      item_no: 20, asset_code: "PC-FIN-26-006-O", division: "FINANCE", user_name: "RENALDY",
       os: "WIN 7 ULT 64 BIT", motherboard: "G41 Series (CPU 1)", processor: "Intel Core 2 Duo E4300 @ 1.80GHz",
       ram: "4.00GB Dual-Channel DDR3 @ 398MHz", monitor: "LG 20 INCH",
       hard_drive: "(SSD) 447GB ADATA SU650", used_disk1: "34.7 GB", used_disk2: "6.22 GB",
@@ -2178,7 +2178,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Finance Renaldy (IP 172.16.45.x)"
     },
     {
-      item_no: 21, asset_code: "OFF-FIN-07", division: "FINANCE", user_name: "PA SUGIARTO",
+      item_no: 21, asset_code: "PC-FIN-26-007-O", division: "FINANCE", user_name: "PA SUGIARTO",
       os: "WIN 10", motherboard: "-", processor: "-",
       ram: "-", monitor: "SAMSUNG 24 INCH",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2188,7 +2188,7 @@ export async function runFullSeed() {
 
     // MERCHANDISE
     {
-      item_no: 22, asset_code: "OFF-MCH-01", division: "MERCHANDISE", user_name: "BU IVED",
+      item_no: 22, asset_code: "PC-MCH-26-001-O", division: "MERCHANDISE", user_name: "BU IVED",
       os: "WIN 7 ULT 32 BIT", motherboard: "ASUS H61M-C (LGA1155)", processor: "Intel Core i3 3250 @ 3.50GHz",
       ram: "4.00GB Single-Channel DDR3 @ 798MHz", monitor: "LG 27 INCH",
       hard_drive: "(HDD) 465GB Western Digital WDC WD5000AVCS-632DY", used_disk1: "69.1 GB", used_disk2: "152 GB",
@@ -2196,7 +2196,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Merchandising Bu Ived"
     },
     {
-      item_no: 23, asset_code: "OFF-MCH-02", division: "MERCHANDISE", user_name: "FAZRIYAH",
+      item_no: 23, asset_code: "PC-MCH-26-002-O", division: "MERCHANDISE", user_name: "FAZRIYAH",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H61M-K (LGA1155)", processor: "Intel Core i3 2100 @ 3.10GHz",
       ram: "6.00GB Dual-Channel DDR3 @ 665MHz", monitor: "LG 20 INCH",
       hard_drive: "(SSD) 447GB ADATA SU650", used_disk1: "50.9 GB", used_disk2: "9.37 GB",
@@ -2204,7 +2204,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Merchandising Fazriyah"
     },
     {
-      item_no: 24, asset_code: "OFF-MCH-03", division: "MERCHANDISE", user_name: "PA MIKE",
+      item_no: 24, asset_code: "PC-MCH-26-003-O", division: "MERCHANDISE", user_name: "PA MIKE",
       os: "WIN 7 ULT 32 BIT", motherboard: "ECS H61H2-M12", processor: "Intel Core i3 2100 @ 3.10GHz",
       ram: "4 GB DDR3", monitor: "LG 24 INCH",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2212,7 +2212,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Merchandising Pa Mike"
     },
     {
-      item_no: 25, asset_code: "OFF-MCH-04", division: "MERCHANDISE", user_name: "BU JULY",
+      item_no: 25, asset_code: "PC-MCH-26-004-O", division: "MERCHANDISE", user_name: "BU JULY",
       os: "WIN 10 PRO 64 BIT", motherboard: "-", processor: "-",
       ram: "-", monitor: "LG 32 INCH CURVED",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2220,7 +2220,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Merchandising Bu July (32 Inch Curved Monitor)"
     },
     {
-      item_no: 26, asset_code: "OFF-MCH-05", division: "MERCHANDISE", user_name: "BU TIFF",
+      item_no: 26, asset_code: "PC-MCH-26-005-O", division: "MERCHANDISE", user_name: "BU TIFF",
       os: "WIN 7 PRO 64 BIT", motherboard: "ASUS H110M-K (LGA1151)", processor: "Intel Core i3 6100 @ 3.70GHz",
       ram: "8.00GB Single-Channel Unknown @ 1063MHz", monitor: "LG 20 INCH",
       hard_drive: "(SSD) Western Digital WDC WDS120G2G0A-00JH", used_disk1: "50.1 GB", used_disk2: "-",
@@ -2230,7 +2230,7 @@ export async function runFullSeed() {
 
     // GS
     {
-      item_no: 27, asset_code: "OFF-GS-01", division: "GS", user_name: "PA BAGUS",
+      item_no: 27, asset_code: "PC-GS-26-001-O", division: "GS", user_name: "PA BAGUS",
       os: "WIN 7 PROF 32 BIT", motherboard: "ASUS H61M-C (LGA1155)", processor: "Intel Core i3 2100 @ 3.10GHz",
       ram: "4.00GB Single-Channel DDR3 @ 665MHz", monitor: "SAMSUNG 16 INCH",
       hard_drive: "(HDD) 74GB Seagate ST380817AS", used_disk1: "-", used_disk2: "-",
@@ -2238,7 +2238,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC GS Pa Bagus"
     },
     {
-      item_no: 28, asset_code: "OFF-GS-02", division: "GS", user_name: "DENTI",
+      item_no: 28, asset_code: "PC-GS-26-002-O", division: "GS", user_name: "DENTI",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H61M-K (LGA1155)", processor: "Intel Core i3 2100 @ 3.10GHz",
       ram: "6.00GB Dual-Channel DDR3 @ 665MHz", monitor: "LG 20 INCH",
       hard_drive: "(SSD) Lexar SSD NS100 512GB", used_disk1: "-", used_disk2: "-",
@@ -2246,7 +2246,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC GS Denti"
     },
     {
-      item_no: 29, asset_code: "OFF-GS-03", division: "GS", user_name: "RIANI",
+      item_no: 29, asset_code: "PC-GS-26-003-O", division: "GS", user_name: "RIANI",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H61M-K (LGA1155)", processor: "Intel Core i3 2100 @ 3.10GHz",
       ram: "8.00GB Dual-Channel DDR3", monitor: "AOC 16 INCH",
       hard_drive: "(SSD) 447GB ADATA SU650", used_disk1: "40.8 GB", used_disk2: "18.7 GB",
@@ -2254,7 +2254,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC GS Riani"
     },
     {
-      item_no: 30, asset_code: "OFF-GS-04", division: "GS", user_name: "BU ENNY",
+      item_no: 30, asset_code: "PC-GS-26-004-O", division: "GS", user_name: "BU ENNY",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H110M-K (LGA1151)", processor: "-",
       ram: "-", monitor: "LG 24 INCH",
       hard_drive: "(SSD) 447GB ADATA SU650", used_disk1: "42.2 GB", used_disk2: "28.2 GB",
@@ -2264,7 +2264,7 @@ export async function runFullSeed() {
 
     // HRD
     {
-      item_no: 31, asset_code: "OFF-HRD-01", division: "HRD", user_name: "BU FITRI",
+      item_no: 31, asset_code: "PC-HRD-26-001-O", division: "HRD", user_name: "BU FITRI",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H110M-K (LGA1151)", processor: "Intel Core i3 7100 @ 3.90GHz",
       ram: "8.00GB Dual-Channel Unknown @ 1063MHz", monitor: "LG 27 INCH",
       hard_drive: "(HDD) 465GB Seagate ST350031", used_disk1: "50.1 GB", used_disk2: "63.5 GB",
@@ -2272,7 +2272,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC HRD Bu Fitri"
     },
     {
-      item_no: 32, asset_code: "OFF-HRD-02", division: "HRD", user_name: "FIKRI",
+      item_no: 32, asset_code: "PC-HRD-26-002-O", division: "HRD", user_name: "FIKRI",
       os: "WIN 10 PRO 64 BIT", motherboard: "ASUS H61M-K (LGA1155)", processor: "Intel Core i3 2120 @ 3.30GHz",
       ram: "8.00GB Dual-Channel DDR3 @ 665MHz", monitor: "LG 20 INCH",
       hard_drive: "(SSD) Lexar SSD NS100 256GB", used_disk1: "-", used_disk2: "-",
@@ -2280,7 +2280,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC HRD Fikri"
     },
     {
-      item_no: 33, asset_code: "OFF-HRD-03", division: "HRD", user_name: "PC EX BENNY",
+      item_no: 33, asset_code: "PC-HRD-26-003-O", division: "HRD", user_name: "PC EX BENNY",
       os: "WIN 10 ENT 64 BIT", motherboard: "ASUS H61M-K (LGA1155)", processor: "Intel Core i3 2100 @ 3.10GHz",
       ram: "4.00GB Single-Channel DDR3 @ 665MHz", monitor: "AOC 16 INCH",
       hard_drive: "(HDD) 465GB Hitachi HGST", used_disk1: "34 GB", used_disk2: "947 MB",
@@ -2288,7 +2288,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "CADANGAN", notes: "PC HRD Ex Benny (Cadangan)"
     },
     {
-      item_no: 34, asset_code: "OFF-HRD-04", division: "HRD", user_name: "PA ARYO",
+      item_no: 34, asset_code: "PC-HRD-26-004-O", division: "HRD", user_name: "PA ARYO",
       os: "WIN 10 PRO 64 BIT", motherboard: "ASUS H110M-K (LGA1151)", processor: "Intel(R) Core(TM) i3-7100 CPU",
       ram: "8.00GB Single-Channel Unknown", monitor: "LG 20 INCH",
       hard_drive: "476GB (SSD)", used_disk1: "-", used_disk2: "-",
@@ -2296,7 +2296,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC HRD Pa Aryo"
     },
     {
-      item_no: 35, asset_code: "OFF-HRD-05", division: "HRD", user_name: "BU LOLA",
+      item_no: 35, asset_code: "PC-HRD-26-005-O", division: "HRD", user_name: "BU LOLA",
       os: "WIN 7 ULT 64 BIT", motherboard: "-", processor: "-",
       ram: "-", monitor: "LG 20 INCH",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2306,7 +2306,7 @@ export async function runFullSeed() {
 
     // SECRETARY
     {
-      item_no: 36, asset_code: "OFF-SEC-01", division: "SECRETARY", user_name: "BU SYLVIE",
+      item_no: 36, asset_code: "PC-SEC-26-001-O", division: "SECRETARY", user_name: "BU SYLVIE",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H61M-K (LGA1155)", processor: "Intel Core i3 2100 @ 3.10GHz",
       ram: "4.00GB Single-Channel DDR3 @ 665MHz", monitor: "LG 20 INCH",
       hard_drive: "(HDD) 465GB Seagate ST500DM002", used_disk1: "63.7 GB", used_disk2: "12 GB",
@@ -2314,7 +2314,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Secretary Bu Sylvie"
     },
     {
-      item_no: 37, asset_code: "OFF-SEC-02", division: "SECRETARY", user_name: "PA ANDY",
+      item_no: 37, asset_code: "PC-SEC-26-002-O", division: "SECRETARY", user_name: "PA ANDY",
       os: "WIN 10 PRO 64 BIT", motherboard: "ECS H61H2-M12", processor: "INTEL PENTIUM G630 @ 2.70GHz",
       ram: "8 GB Dual-Channel Unknown DDR3", monitor: "24 INCH",
       hard_drive: "SSD ADATA 256 GB", used_disk1: "-", used_disk2: "-",
@@ -2324,37 +2324,37 @@ export async function runFullSeed() {
 
     // FASILITAS & RUANGAN
     {
-      item_no: 38, asset_code: "OFF-FCL-01", division: "FASILITAS", user_name: "PANTRY",
+      item_no: 38, asset_code: "FCL-FCL-26-001-O", division: "FASILITAS", user_name: "PANTRY",
       os: "-", motherboard: "-", processor: "-", ram: "-", monitor: "-", hard_drive: "-",
       used_disk1: "-", used_disk2: "-", keyboard: "-", mouse: "-", printer: "-", ip_address: "-",
       device_type: "FACILITY", status: "OPERASIONAL", notes: "Area Fasilitas Pantry Office"
     },
     {
-      item_no: 39, asset_code: "OFF-FCL-02", division: "FASILITAS", user_name: "ANAK PA HL",
+      item_no: 39, asset_code: "FCL-FCL-26-002-O", division: "FASILITAS", user_name: "ANAK PA HL",
       os: "-", motherboard: "-", processor: "-", ram: "-", monitor: "-", hard_drive: "-",
       used_disk1: "-", used_disk2: "-", keyboard: "-", mouse: "-", printer: "-", ip_address: "-",
       device_type: "FACILITY", status: "OPERASIONAL", notes: "Ruangan Anak Pa HL"
     },
     {
-      item_no: 40, asset_code: "OFF-FCL-03", division: "FASILITAS", user_name: "TRAINING",
+      item_no: 40, asset_code: "FCL-FCL-26-003-O", division: "FASILITAS", user_name: "TRAINING",
       os: "-", motherboard: "-", processor: "-", ram: "-", monitor: "-", hard_drive: "-",
       used_disk1: "-", used_disk2: "-", keyboard: "-", mouse: "-", printer: "-", ip_address: "-",
       device_type: "FACILITY", status: "OPERASIONAL", notes: "Ruang Training Office"
     },
     {
-      item_no: 41, asset_code: "OFF-FCL-04", division: "FASILITAS", user_name: "MEETING KECIL",
+      item_no: 41, asset_code: "FCL-FCL-26-004-O", division: "FASILITAS", user_name: "MEETING KECIL",
       os: "-", motherboard: "-", processor: "-", ram: "-", monitor: "-", hard_drive: "-",
       used_disk1: "-", used_disk2: "-", keyboard: "-", mouse: "-", printer: "-", ip_address: "-",
       device_type: "FACILITY", status: "OPERASIONAL", notes: "Ruang Meeting Kecil Office"
     },
     {
-      item_no: 42, asset_code: "OFF-FCL-05", division: "FASILITAS", user_name: "MEETING GEDE",
+      item_no: 42, asset_code: "FCL-FCL-26-005-O", division: "FASILITAS", user_name: "MEETING GEDE",
       os: "-", motherboard: "-", processor: "-", ram: "-", monitor: "-", hard_drive: "-",
       used_disk1: "-", used_disk2: "-", keyboard: "-", mouse: "-", printer: "-", ip_address: "172.16.90.9",
       device_type: "FACILITY", status: "OPERASIONAL", notes: "Ruang Meeting Gede (IP: 172.16.90.9)"
     },
     {
-      item_no: 43, asset_code: "OFF-FCL-06", division: "FASILITAS", user_name: "GUDANG SAM",
+      item_no: 43, asset_code: "FCL-FCL-26-006-O", division: "FASILITAS", user_name: "GUDANG SAM",
       os: "-", motherboard: "-", processor: "-", ram: "-", monitor: "-", hard_drive: "-",
       used_disk1: "-", used_disk2: "-", keyboard: "-", mouse: "-", printer: "-", ip_address: "172.16.16.16",
       device_type: "FACILITY", status: "OPERASIONAL", notes: "Area Gudang SAM (IP: 172.16.16.16)"
@@ -2362,25 +2362,25 @@ export async function runFullSeed() {
 
     // ROUTER & JARINGAN
     {
-      item_no: 44, asset_code: "OFF-NET-01", division: "NETWORK", user_name: "ROUTER PLAZABALI_03",
+      item_no: 44, asset_code: "NET-NET-26-001-O", division: "NETWORK", user_name: "ROUTER PLAZABALI_03",
       os: "RouterOS", motherboard: "-", processor: "-", ram: "-", monitor: "-", hard_drive: "-",
       used_disk1: "-", used_disk2: "-", keyboard: "-", mouse: "-", printer: "-", ip_address: "172.16.1.11",
       device_type: "ROUTER", status: "OPERASIONAL", notes: "Router Plaza Bali 03 - Pass: PB20061991 | IP Sekunder: 172.16.1.102"
     },
     {
-      item_no: 45, asset_code: "OFF-NET-02", division: "NETWORK", user_name: "ROUTER PLAZABALI",
+      item_no: 45, asset_code: "NET-NET-26-002-O", division: "NETWORK", user_name: "ROUTER PLAZABALI",
       os: "RouterOS", motherboard: "-", processor: "-", ram: "-", monitor: "-", hard_drive: "-",
       used_disk1: "-", used_disk2: "-", keyboard: "-", mouse: "-", printer: "-", ip_address: "172.16.1.12",
       device_type: "ROUTER", status: "OPERASIONAL", notes: "Router Plaza Bali Office - Pass: PB20061991 | Subnet LAN: 192.168.x.x"
     },
     {
-      item_no: 46, asset_code: "OFF-NET-03", division: "NETWORK", user_name: "PABX TELEPON BALI",
+      item_no: 46, asset_code: "PBX-NET-26-003-O", division: "NETWORK", user_name: "PABX TELEPON BALI",
       os: "PABX System", motherboard: "-", processor: "-", ram: "-", monitor: "-", hard_drive: "-",
       used_disk1: "-", used_disk2: "-", keyboard: "-", mouse: "-", printer: "-", ip_address: "-",
       device_type: "PABX", status: "OPERASIONAL", notes: "PABX Bali: 10 Pesawat, 50 CH, 1 Operator"
     },
     {
-      item_no: 47, asset_code: "OFF-NET-04", division: "NETWORK", user_name: "PABX TELEPON SURABAYA",
+      item_no: 47, asset_code: "PBX-NET-26-004-O", division: "NETWORK", user_name: "PABX TELEPON SURABAYA",
       os: "PABX System", motherboard: "-", processor: "-", ram: "-", monitor: "-", hard_drive: "-",
       used_disk1: "-", used_disk2: "-", keyboard: "-", mouse: "-", printer: "-", ip_address: "-",
       device_type: "PABX", status: "OPERASIONAL", notes: "PABX Surabaya (SBY): 9 Pesawat"
@@ -2388,7 +2388,7 @@ export async function runFullSeed() {
 
     // WAREHOUSE / GUDANG (WHS)
     {
-      item_no: 48, asset_code: "OFF-WHS-01", office_location: "Warehouse (WHS)", division: "WHS", user_name: "PRINTER SHARING WHS",
+      item_no: 48, asset_code: "PRN-WHS-26-001-O", office_location: "Warehouse (WHS)", division: "WHS", user_name: "PRINTER SHARING WHS",
       os: "-", motherboard: "-", processor: "-",
       ram: "-", monitor: "-",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2396,7 +2396,7 @@ export async function runFullSeed() {
       device_type: "PRINTER", status: "OPERASIONAL", notes: "Printer Sharing Multifungsi Warehouse / Gudang"
     },
     {
-      item_no: 49, asset_code: "OFF-WHS-02", office_location: "Warehouse (WHS)", division: "WHS", user_name: "PA SANTO",
+      item_no: 49, asset_code: "PC-WHS-26-002-O", office_location: "Warehouse (WHS)", division: "WHS", user_name: "PA SANTO",
       os: "WIN 7 PROF 64 BIT", motherboard: "ASUS H61M-K (LGA1155)", processor: "Intel Core i3 2120 @ 3.30GHz",
       ram: "12.00GB Dual-Channel DDR3 @ 665MHz", monitor: "-",
       hard_drive: "(SSD) ADATA SU650 480GB", used_disk1: "76.9 GB", used_disk2: "126 GB",
@@ -2404,7 +2404,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Pa Santo Warehouse WHS"
     },
     {
-      item_no: 50, asset_code: "OFF-WHS-03", office_location: "Warehouse (WHS)", division: "WHS", user_name: "DIMAS",
+      item_no: 50, asset_code: "PC-WHS-26-003-O", office_location: "Warehouse (WHS)", division: "WHS", user_name: "DIMAS",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H61M-K (LGA1155)", processor: "Intel Core i3 2100 @ 3.10GHz",
       ram: "8.00GB Dual-Channel DDR3", monitor: "-",
       hard_drive: "(SSD) Lexar SSD NS100 256GB", used_disk1: "-", used_disk2: "-",
@@ -2412,7 +2412,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Dimas Warehouse WHS"
     },
     {
-      item_no: 51, asset_code: "OFF-WHS-04", office_location: "Warehouse (WHS)", division: "WHS", user_name: "PA TOHIR",
+      item_no: 51, asset_code: "PC-WHS-26-004-O", office_location: "Warehouse (WHS)", division: "WHS", user_name: "PA TOHIR",
       os: "WIN 10 PRO 64 BIT", motherboard: "ASUS PRIME H510M-K (LGA1200)", processor: "Intel Pentium Gold @ 4.00GHz",
       ram: "8.00GB Single-Channel Unknown @ 1197MHz", monitor: "-",
       hard_drive: "(SSD) 120GB SATA Flash Drive", used_disk1: "-", used_disk2: "-",
@@ -2420,7 +2420,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Pa Tohir Warehouse WHS (Windows 10)"
     },
     {
-      item_no: 52, asset_code: "OFF-WHS-05", office_location: "Warehouse (WHS)", division: "WHS", user_name: "IPCAM PARKIRAN",
+      item_no: 52, asset_code: "CCTV-WHS-26-005-O", office_location: "Warehouse (WHS)", division: "WHS", user_name: "IPCAM PARKIRAN",
       os: "-", motherboard: "EZVIZ", processor: "-",
       ram: "-", monitor: "-",
       hard_drive: "(HDD) 465GB Seagate ST3500312CS", used_disk1: "-", used_disk2: "-",
@@ -2428,7 +2428,7 @@ export async function runFullSeed() {
       device_type: "CCTV", status: "OPERASIONAL", notes: "IP Camera Area Parkiran Warehouse (HDD 465GB)"
     },
     {
-      item_no: 53, asset_code: "OFF-WHS-06", office_location: "Warehouse (WHS)", division: "WHS", user_name: "NURUL",
+      item_no: 53, asset_code: "PC-WHS-26-006-O", office_location: "Warehouse (WHS)", division: "WHS", user_name: "NURUL",
       os: "WIN 7 ULT 64 BIT", motherboard: "GIGABYTE H110M-DS2-CF", processor: "Intel Pentium G4600 @ 3.60GHz",
       ram: "8.00GB Single-Channel Unknown DDR4 @ 1200MHz", monitor: "-",
       hard_drive: "(SSD) ADATA SU650 480GB", used_disk1: "37.1 GB", used_disk2: "14.3 GB",
@@ -2436,7 +2436,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Nurul Warehouse WHS"
     },
     {
-      item_no: 54, asset_code: "OFF-WHS-07", office_location: "Warehouse (WHS)", division: "WHS", user_name: "ARIS",
+      item_no: 54, asset_code: "PC-WHS-26-007-O", office_location: "Warehouse (WHS)", division: "WHS", user_name: "ARIS",
       os: "WIN 10 ENT 64 BIT", motherboard: "ASUS PRIME H510M-K (LGA1200)", processor: "Intel Pentium Gold @ 4.00GHz",
       ram: "8.00GB Single-Channel Unknown @ 1197MHz", monitor: "-",
       hard_drive: "(SSD) Lexar 256GB", used_disk1: "44 GB", used_disk2: "23.5 GB",
@@ -2444,7 +2444,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Aris Warehouse WHS (Windows 10 Enterprise)"
     },
     {
-      item_no: 55, asset_code: "OFF-WHS-08", office_location: "Warehouse (WHS)", division: "WHS", user_name: "PA NYOMAN",
+      item_no: 55, asset_code: "PC-WHS-26-008-O", office_location: "Warehouse (WHS)", division: "WHS", user_name: "PA NYOMAN",
       os: "WIN 7 PROF 64 BIT", motherboard: "ASUS H81M-V PLUS", processor: "Intel Core i5 4590 @ 3.30GHz",
       ram: "8.00GB Single-Channel DDR3 @ 665MHz", monitor: "-",
       hard_drive: "(SSD) ADATA SU650 480GB", used_disk1: "65.7 GB", used_disk2: "-",
@@ -2452,7 +2452,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Pa Nyoman Warehouse WHS"
     },
     {
-      item_no: 56, asset_code: "OFF-WHS-09", office_location: "Warehouse (WHS)", division: "WHS", user_name: "KOMP GUDANG BELAKANG",
+      item_no: 56, asset_code: "PC-WHS-26-009-O", office_location: "Warehouse (WHS)", division: "WHS", user_name: "KOMP GUDANG BELAKANG",
       os: "WIN 7 ULT 32 BIT", motherboard: "-", processor: "Intel Core 2 Duo E8500 @ 3.16GHz",
       ram: "4.00GB Dual-Channel DDR3 @ 398MHz", monitor: "-",
       hard_drive: "(HDD) 111GB Seagate ST3120022A", used_disk1: "47.6 GB", used_disk2: "11.0 GB",
@@ -2460,7 +2460,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Gudang Belakang Warehouse (HDD 111GB)"
     },
     {
-      item_no: 57, asset_code: "OFF-WHS-10", office_location: "Warehouse (WHS)", division: "WHS", user_name: "KOMP BEACUKAI",
+      item_no: 57, asset_code: "PC-WHS-26-010-O", office_location: "Warehouse (WHS)", division: "WHS", user_name: "KOMP BEACUKAI",
       os: "-", motherboard: "-", processor: "-",
       ram: "-", monitor: "-",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2470,7 +2470,7 @@ export async function runFullSeed() {
 
     // KOMPUTER DI OFFICE T2 (TERMINAL 2 BANDARA)
     {
-      item_no: 58, asset_code: "OFF-T2-01", office_location: "Office Terminal 2", division: "SPV T2", user_name: "SPV J5",
+      item_no: 58, asset_code: "PC-T2-26-001-O", office_location: "Office Terminal 2", division: "SPV T2", user_name: "SPV J5",
       os: "WIN 10 PRO 64 BIT", motherboard: "ASUS PRIME H610M-K D4", processor: "Intel(R) Core(TM) i3-12100 3.30 GHz",
       ram: "8.00GB", monitor: "-",
       hard_drive: "(M2) 238GB ADATA", used_disk1: "-", used_disk2: "-",
@@ -2478,7 +2478,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC SPV J5 Office Terminal 2"
     },
     {
-      item_no: 59, asset_code: "OFF-T2-02", office_location: "Office Terminal 2", division: "STOCK CONTROL T2", user_name: "DANU",
+      item_no: 59, asset_code: "PC-T2-26-002-O", office_location: "Office Terminal 2", division: "STOCK CONTROL T2", user_name: "DANU",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H61M-A (LGA1155)", processor: "Intel Core i3 3250 @ 3.50GHz",
       ram: "8,00GB Dual-Channel DDR3 @ 665MHz", monitor: "-",
       hard_drive: "(SSD) ADATA SU650 480GB", used_disk1: "106 GB", used_disk2: "201 GB",
@@ -2486,7 +2486,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Stock Control T2 Danu"
     },
     {
-      item_no: 60, asset_code: "OFF-T2-03", office_location: "Office Terminal 2", division: "STOCK CONTROL SAM T2", user_name: "HILMI",
+      item_no: 60, asset_code: "PC-T2-26-003-O", office_location: "Office Terminal 2", division: "STOCK CONTROL SAM T2", user_name: "HILMI",
       os: "WIN 10 PRO 64 BIT", motherboard: "ASUS H61M-K (LGA1155)", processor: "Intel Core i3 2120 @ 3.30GHz",
       ram: "4.00GB Single-Channel DDR3 @ 665MHz", monitor: "-",
       hard_drive: "(HDD) 465GB Seagate ST3500414CS", used_disk1: "50.2 GB", used_disk2: "9.49 GB",
@@ -2494,7 +2494,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Stock Control SAM T2 Hilmi"
     },
     {
-      item_no: 61, asset_code: "OFF-T2-04", office_location: "Office Terminal 2", division: "SECURITY", user_name: "SECURITY T2-J5",
+      item_no: 61, asset_code: "PC-T2-26-004-O", office_location: "Office Terminal 2", division: "SECURITY", user_name: "SECURITY T2-J5",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H110M-K (LGA1151)", processor: "INTEL CORE I3 7100 3.90GHz",
       ram: "4GB DDR4-2400 (1200MHz) 1 OF 2", monitor: "-",
       hard_drive: "SSD SATA = 256GB LEXAR", used_disk1: "193GB FREE OF 256GB", used_disk2: "-",
@@ -2502,7 +2502,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Security T2 J5"
     },
     {
-      item_no: 62, asset_code: "OFF-T2-05", office_location: "Office Terminal 2", division: "SPV T2", user_name: "BU ANI",
+      item_no: 62, asset_code: "PC-T2-26-005-O", office_location: "Office Terminal 2", division: "SPV T2", user_name: "BU ANI",
       os: "-", motherboard: "-", processor: "-",
       ram: "-", monitor: "-",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2512,7 +2512,7 @@ export async function runFullSeed() {
 
     // KOMPUTER DI OFFICE T3 (TERMINAL 3 BANDARA)
     {
-      item_no: 63, asset_code: "OFF-T3-01", office_location: "Office Terminal 3", division: "SECURITY", user_name: "SECURITY T3-COLO",
+      item_no: 63, asset_code: "PC-T3-26-001-O", office_location: "Office Terminal 3", division: "SECURITY", user_name: "SECURITY T3-COLO",
       os: "WIN 7 PRO 64 BIT", motherboard: "INTEL DH61WW", processor: "INTEL CORE I3 3240 3.40GHz",
       ram: "4GB DDR3-12800 (800MHz)", monitor: "-",
       hard_drive: "SSD SATA = 256GB LEXAR", used_disk1: "68GB FREE OF 101GB", used_disk2: "133GB FREE OF 136GB",
@@ -2520,7 +2520,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Security T3 Colonial"
     },
     {
-      item_no: 64, asset_code: "OFF-T3-02", office_location: "Office Terminal 3", division: "SPV T3", user_name: "BU LUHDE",
+      item_no: 64, asset_code: "PC-T3-26-002-O", office_location: "Office Terminal 3", division: "SPV T3", user_name: "BU LUHDE",
       os: "WIN 7 PRO 64 BIT", motherboard: "ASUS H510M-K (LGA1200)", processor: "INTEL PENTIUM GOLD COMET LAKE 4GHz",
       ram: "8GB DDR4 (1196MHz)", monitor: "-",
       hard_drive: "SSD SATA = 512GB LEXAR", used_disk1: "63GB FREE OF 106GB", used_disk2: "298GB FREE OF 369GB",
@@ -2528,7 +2528,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC SPV T3 Bu Luhde"
     },
     {
-      item_no: 65, asset_code: "OFF-T3-03", office_location: "Office Terminal 3", division: "SPV T3", user_name: "SPV DF1",
+      item_no: 65, asset_code: "PC-T3-26-003-O", office_location: "Office Terminal 3", division: "SPV T3", user_name: "SPV DF1",
       os: "WIN 7 PRO 64 BIT", motherboard: "ASUS H61M-K (LGA1155)", processor: "INTEL CORE I3 3220 3.30 GHz",
       ram: "6GB DDR3-1200 (800MHz)", monitor: "-",
       hard_drive: "HDD SATA = 500GB SEAGATE", used_disk1: "143 FREE OF 194GB", used_disk2: "86GB FREE OF 270GB",
@@ -2536,7 +2536,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC SPV Duty Free 1 (DF1) T3"
     },
     {
-      item_no: 66, asset_code: "OFF-T3-04", office_location: "Office Terminal 3", division: "SPV T3", user_name: "SPV JADA 2",
+      item_no: 66, asset_code: "PC-T3-26-004-O", office_location: "Office Terminal 3", division: "SPV T3", user_name: "SPV JADA 2",
       os: "WIN 10 ENTERPRISE 64BIT", motherboard: "ASUS H61M-K (LGA1155)", processor: "INTEL I3 2120 3.30GHz",
       ram: "4GB DDR3-12800 (800MHz)", monitor: "-",
       hard_drive: "SSD SATA = 120GB VGEN", used_disk1: "10GB FREE OF 64GB", used_disk2: "30GB FREE OF 47GB",
@@ -2544,7 +2544,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC SPV Jada 2 T3"
     },
     {
-      item_no: 67, asset_code: "OFF-T3-05", office_location: "Office Terminal 3", division: "SPV T3", user_name: "KOMP CCTV SPV T3",
+      item_no: 67, asset_code: "PC-T3-26-005-O", office_location: "Office Terminal 3", division: "SPV T3", user_name: "KOMP CCTV SPV T3",
       os: "WIN 10 PRO 64 BIT", motherboard: "ASUS H110M-K (LGA1151)", processor: "INTEL CORE I3 7100 3.90GHz",
       ram: "8GB DDR4-2400 (1200MHz)", monitor: "-",
       hard_drive: "SSD SATA = 120GB", used_disk1: "62GB FREE OF 111GB", used_disk2: "-",
@@ -2552,7 +2552,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Monitoring CCTV SPV Terminal 3"
     },
     {
-      item_no: 68, asset_code: "OFF-T3-06", office_location: "Office Terminal 3", division: "SPV T3", user_name: "SPV COLO",
+      item_no: 68, asset_code: "PC-T3-26-006-O", office_location: "Office Terminal 3", division: "SPV T3", user_name: "SPV COLO",
       os: "WIN 7 ULT 64 BIT", motherboard: "ASUS H110M-K (LGA1151)", processor: "INTEL I3 7100 3.90 GHz",
       ram: "4GB DDR4-2400 (1200MHz)", monitor: "-",
       hard_drive: "HDD SATA = 500GB SEAGATE", used_disk1: "256GB FREE 0F 297GB", used_disk2: "164GB FREE OF 166GB",
@@ -2560,7 +2560,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC SPV Colonial T3"
     },
     {
-      item_no: 69, asset_code: "OFF-T3-07", office_location: "Office Terminal 3", division: "SPV T3", user_name: "BU LOLA T3",
+      item_no: 69, asset_code: "PC-T3-26-007-O", office_location: "Office Terminal 3", division: "SPV T3", user_name: "BU LOLA T3",
       os: "WIN 7 ULT 32 BIT", motherboard: "ASUS H61M-A (LGA1155)", processor: "INTEL I3-3240 3.40GHz",
       ram: "4G DDR3-12800", monitor: "-",
       hard_drive: "HDD SATA = 500GB", used_disk1: "109GB FREE OF 146GB", used_disk2: "52GB FREE OF 319GB",
@@ -2568,7 +2568,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Bu Lola Terminal 3"
     },
     {
-      item_no: 70, asset_code: "OFF-T3-08", office_location: "Office Terminal 3", division: "STOCK CONTROL T3", user_name: "RIZKY",
+      item_no: 70, asset_code: "PC-T3-26-008-O", office_location: "Office Terminal 3", division: "STOCK CONTROL T3", user_name: "RIZKY",
       os: "WIN 7 ULT 64 BIT", motherboard: "H612H2-M12 (LGA 1155)", processor: "INTEL PENTIUM G630 2.70GHz",
       ram: "4GB DDR3-10700 (667MHz)", monitor: "-",
       hard_drive: "HDD SATA = 500GB WESTERN DIGITAL", used_disk1: "49GB FREE OF 117GB", used_disk2: "335GB FREE OF 348GB",
@@ -2576,7 +2576,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Stock Control T3 Rizky"
     },
     {
-      item_no: 71, asset_code: "OFF-T3-09", office_location: "Office Terminal 3", division: "ME", user_name: "ME T3",
+      item_no: 71, asset_code: "PC-T3-26-009-O", office_location: "Office Terminal 3", division: "ME", user_name: "ME T3",
       os: "WIN 10 PRO 64 BIT", motherboard: "-", processor: "-",
       ram: "-", monitor: "-",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2584,7 +2584,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Mechanical Electrical (ME) T3"
     },
     {
-      item_no: 72, asset_code: "OFF-T3-10", office_location: "Office Terminal 3", division: "MIS", user_name: "MIS T3",
+      item_no: 72, asset_code: "PC-T3-26-010-O", office_location: "Office Terminal 3", division: "MIS", user_name: "MIS T3",
       os: "WIN 10 PRO 64 BIT", motherboard: "INTEL NUC 10i3FNB (mini pc)", processor: "INTEL CORE I3-10110U 2.10GHz",
       ram: "4GB DDR4-2666 (1333MHz)", monitor: "-",
       hard_drive: "SSD SATA = 250GB", used_disk1: "64GB FREE OF 125GB", used_disk2: "29GB FREE OF 97GB",
@@ -2594,7 +2594,7 @@ export async function runFullSeed() {
 
     // PERANGKAT OFFICE & OPERASIONAL SURABAYA
     {
-      item_no: 73, asset_code: "OFF-SBY-01", office_location: "Office Surabaya", division: "SPV SBY", user_name: "PC BU ANI",
+      item_no: 73, asset_code: "PC-SBY-26-001-O", office_location: "Office Surabaya", division: "SPV SBY", user_name: "PC BU ANI",
       os: "WIN 10 PRO 64 BIT", motherboard: "-", processor: "-",
       ram: "-", monitor: "-",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2602,7 +2602,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC SPV Bu Ani Surabaya"
     },
     {
-      item_no: 74, asset_code: "OFF-SBY-02", office_location: "Office Surabaya", division: "SPV SBY", user_name: "PC SPV",
+      item_no: 74, asset_code: "PC-SBY-26-002-O", office_location: "Office Surabaya", division: "SPV SBY", user_name: "PC SPV",
       os: "WIN 10 PRO 64 BIT", motherboard: "-", processor: "-",
       ram: "-", monitor: "-",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2610,7 +2610,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC SPV Office Surabaya"
     },
     {
-      item_no: 75, asset_code: "OFF-SBY-03", office_location: "Office Surabaya", division: "SPV SBY", user_name: "PC MONITOR CCTV",
+      item_no: 75, asset_code: "PC-SBY-26-003-O", office_location: "Office Surabaya", division: "SPV SBY", user_name: "PC MONITOR CCTV",
       os: "WIN 10 PRO 64 BIT", motherboard: "-", processor: "-",
       ram: "-", monitor: "-",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2618,7 +2618,7 @@ export async function runFullSeed() {
       device_type: "PC", status: "OPERASIONAL", notes: "PC Client Monitoring CCTV Surabaya"
     },
     {
-      item_no: 76, asset_code: "OFF-SBY-04", office_location: "Office Surabaya", division: "OPERASIONAL SBY", user_name: "PRICETAG HANGING",
+      item_no: 76, asset_code: "PRN-SBY-26-004-O", office_location: "Office Surabaya", division: "OPERASIONAL SBY", user_name: "PRICETAG HANGING",
       os: "-", motherboard: "-", processor: "-",
       ram: "-", monitor: "-",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",
@@ -2626,7 +2626,7 @@ export async function runFullSeed() {
       device_type: "PRINTER", status: "OPERASIONAL", notes: "Perangkat / Printer Pricetag Hanging Surabaya"
     },
     {
-      item_no: 77, asset_code: "OFF-SBY-05", office_location: "Office Surabaya", division: "OPERASIONAL SBY", user_name: "PRICETAG LABEL",
+      item_no: 77, asset_code: "PRN-SBY-26-005-O", office_location: "Office Surabaya", division: "OPERASIONAL SBY", user_name: "PRICETAG LABEL",
       os: "-", motherboard: "-", processor: "-",
       ram: "-", monitor: "-",
       hard_drive: "-", used_disk1: "-", used_disk2: "-",

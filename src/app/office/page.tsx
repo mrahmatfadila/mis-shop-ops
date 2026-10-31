@@ -772,14 +772,14 @@ function OfficeContent() {
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse table-fixed text-[11px] min-w-[1890px]">
+              <table className="w-full text-left border-collapse table-fixed text-[11px] min-w-[1930px]">
                 <colgroup>
                   {/* 1. No: 40px */}
                   <col className="w-[40px]" />
                   {/* 2. Divisi: 105px */}
                   <col className="w-[105px]" />
-                  {/* 3. Kode Aset: 95px */}
-                  <col className="w-[95px]" />
+                  {/* 3. Kode Aset: 135px */}
+                  <col className="w-[135px]" />
                   {/* 4. Nama Pengguna: 140px */}
                   <col className="w-[140px]" />
                   {/* 5. IP Address: 140px */}
@@ -889,7 +889,7 @@ function OfficeContent() {
 
                         {/* 3. Kode Aset */}
                         <td className="py-3 px-2.5 align-top border-r border-slate-100 whitespace-nowrap">
-                          <span className="font-mono text-[10.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs inline-block">
+                          <span className="font-mono text-[10px] font-bold text-slate-700 bg-slate-100/90 px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs inline-block tracking-tight">
                             {item.asset_code}
                           </span>
                         </td>
