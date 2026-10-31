@@ -51,7 +51,7 @@ export async function GET() {
         features = [
           "Akses Penuh Plaza Bali, SAM & Surabaya",
           `Inventaris ${posCount} POS & ${edcCount} Mesin EDC Bank`,
-          `PC Head Office & Gudang WHS (${officeCount} Unit)`,
+          `Aset Head Office & Gudang WHS (${officeCount} Unit)`,
           `Rak Server 32U & Wallmount (${rackPorts} Port)`,
         ];
       } else if (isManager) {

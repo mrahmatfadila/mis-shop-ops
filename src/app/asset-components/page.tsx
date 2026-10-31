@@ -1052,11 +1052,11 @@ function AssetComponentsContent() {
             </span>
             {[
               { key: "ALL", label: "Semua Perangkat", count: unifiedSets.length },
-              { key: "HEAD_OFFICE", label: "PC Head Office", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("head") || s.location.toLowerCase().includes("pusat")).length },
-              { key: "WHS", label: "PC Warehouse", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("warehouse") || s.location.toLowerCase().includes("whs")).length },
-              { key: "T2", label: "PC Terminal 2", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("terminal 2") || s.location.toLowerCase().includes("t2")).length },
-              { key: "T3", label: "PC Terminal 3", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("terminal 3") || s.location.toLowerCase().includes("t3")).length },
-              { key: "SBY", label: "PC Surabaya", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("surabaya") || s.location.toLowerCase().includes("sby")).length },
+              { key: "HEAD_OFFICE", label: "Aset Head Office", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("head") || s.location.toLowerCase().includes("pusat")).length },
+              { key: "WHS", label: "Aset Warehouse", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("warehouse") || s.location.toLowerCase().includes("whs")).length },
+              { key: "T2", label: "Aset Terminal 2", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("terminal 2") || s.location.toLowerCase().includes("t2")).length },
+              { key: "T3", label: "Aset Terminal 3", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("terminal 3") || s.location.toLowerCase().includes("t3")).length },
+              { key: "SBY", label: "Aset Surabaya", count: unifiedSets.filter((s) => s.location.toLowerCase().includes("surabaya") || s.location.toLowerCase().includes("sby")).length },
               { key: "POS", label: "Kasir POS Bandara", count: unifiedSets.filter((s) => s.setCategory === "POS").length },
             ].map((scope) => (
               <button

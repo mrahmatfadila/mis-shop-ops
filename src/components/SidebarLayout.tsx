@@ -337,7 +337,7 @@ export default function SidebarLayout({
         },
         {
           href: "/office",
-          label: "PC Head Office",
+          label: "Aset Head Office",
           sub: "Head Office (Pusat)",
           icon: Building2,
           badge: stats?.officeHeadOfficeCount !== undefined ? `${stats.officeHeadOfficeCount}` : "47",
@@ -346,7 +346,7 @@ export default function SidebarLayout({
         },
         {
           href: "/office/warehouse",
-          label: "PC Warehouse PlazaBali",
+          label: "Aset Warehouse PlazaBali",
           sub: "Warehouse (WHS)",
           icon: Building2,
           badge: stats?.officeWhsCount !== undefined ? `${stats.officeWhsCount}` : "10",
@@ -355,7 +355,7 @@ export default function SidebarLayout({
         },
         {
           href: "/office/t2",
-          label: "PC Terminal 2 (T2)",
+          label: "Aset Terminal 2 (T2)",
           sub: "Office Bandara T2",
           icon: Building2,
           badge: stats?.officeT2Count !== undefined ? `${stats.officeT2Count}` : "5",
@@ -364,7 +364,7 @@ export default function SidebarLayout({
         },
         {
           href: "/office/t3",
-          label: "PC Terminal 3 (T3)",
+          label: "Aset Terminal 3 (T3)",
           sub: "Office Bandara T3",
           icon: Building2,
           badge: stats?.officeT3Count !== undefined ? `${stats.officeT3Count}` : "10",
@@ -373,7 +373,7 @@ export default function SidebarLayout({
         },
         {
           href: "/office/surabaya",
-          label: "PC Surabaya (SBY)",
+          label: "Aset Surabaya (SBY)",
           sub: "Office Surabaya",
           icon: Building2,
           badge: stats?.officeSbyCount !== undefined ? `${stats.officeSbyCount}` : "5",

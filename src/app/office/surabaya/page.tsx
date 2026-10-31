@@ -6,7 +6,7 @@ export default function OfficeSurabayaPage() {
   return (
     <OfficeLocationView
       locationKey="Office Surabaya"
-      pageTitle="PC Surabaya (SBY)"
+      pageTitle="Aset Surabaya (SBY)"
       pageSubtitle="Monitoring inventaris komputer, printer & hardware Kantor Cabang Plaza Bali Surabaya (Juanda)"
     />
   );
