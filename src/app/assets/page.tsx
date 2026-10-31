@@ -169,7 +169,8 @@ function AssetsContent() {
     y: number;
     component: string;
     model: string;
-    assetCode: string;
+    itemId: string;
+    position: string;
     price: string;
     purchasedFrom: string;
     purchaseDate: string;
@@ -179,25 +180,83 @@ function AssetsContent() {
     notes?: string;
   } | null>(null);
 
-  const getComponentAssetCode = (component: string, pos: PosHardwareAsset) => {
+  const getComponentItemId = (component: string, pos: PosHardwareAsset) => {
     const compUpper = component.toUpperCase();
-    const posCode = pos.pos_code || `POS-${pos.pos_number}`;
+    const posNum = Number(pos.pos_number || pos.id || 1);
+    const seq = String(posNum).padStart(3, "0");
+    const parentCode = pos.pos_code || `POS-${pos.pos_number}`;
 
-    if (compUpper.includes("KEYBOARD")) return `KBD-${posCode}`;
-    if (compUpper.includes("MOUSE")) return `MOU-${posCode}`;
-    if (compUpper.includes("PRINTER")) return `PRN-${posCode}`;
-    if (compUpper.includes("BARCODE")) return `SCN-${posCode}`;
-    if (compUpper.includes("PASSPORT")) return `PAS-${posCode}`;
-    if (compUpper.includes("DRAWER") || compUpper.includes("LACI")) return `DRW-${posCode}`;
-    if (compUpper.includes("FINGERPRINT") || compUpper.includes("SIDIK JARI")) return `FPR-${posCode}`;
-    if (compUpper.includes("RAM") || compUpper.includes("MEMORY")) return `COMP-RAM-${posCode}`;
-    if (compUpper.includes("STORAGE") || compUpper.includes("SSD") || compUpper.includes("HDD")) return `COMP-SSD-${posCode}`;
-    if (compUpper.includes("PROCESSOR") || compUpper.includes("CPU")) return `COMP-CPU-${posCode}`;
-    if (compUpper.includes("UNIT") || compUpper.includes("POS")) return `CPU-${posCode}`;
-    if (compUpper.includes("OS") || compUpper.includes("WINDOWS")) return `LIC-WIN-${posCode}`;
-    if (compUpper.includes("PATCH") || compUpper.includes("TSIGUNTA")) return `APP-TSG-${posCode}`;
+    if (compUpper.includes("KEYBOARD")) {
+      return {
+        itemId: `ACC-${String(posNum * 2 - 1).padStart(3, "0")}`,
+        position: `Dipakai di Set ${parentCode}`
+      };
+    }
+    if (compUpper.includes("MOUSE")) {
+      return {
+        itemId: `ACC-${String(posNum * 2).padStart(3, "0")}`,
+        position: `Dipakai di Set ${parentCode}`
+      };
+    }
+    if (compUpper.includes("RAM") || compUpper.includes("MEMORY")) {
+      return {
+        itemId: `RAM-${seq}`,
+        position: `Terpasang di ${parentCode}`
+      };
+    }
+    if (compUpper.includes("STORAGE") || compUpper.includes("SSD") || compUpper.includes("HDD")) {
+      return {
+        itemId: `SSD-${seq}`,
+        position: `Terpasang di ${parentCode}`
+      };
+    }
+    if (compUpper.includes("PROCESSOR") || compUpper.includes("CPU")) {
+      return {
+        itemId: `CPU-${seq}`,
+        position: `Terpasang di ${parentCode}`
+      };
+    }
+    if (compUpper.includes("PRINTER")) {
+      return {
+        itemId: `PRN-${seq}`,
+        position: `Terhubung ke ${parentCode}`
+      };
+    }
+    if (compUpper.includes("BARCODE")) {
+      return {
+        itemId: `SCN-${seq}`,
+        position: `Terhubung ke ${parentCode}`
+      };
+    }
+    if (compUpper.includes("PASSPORT")) {
+      return {
+        itemId: `PAS-${seq}`,
+        position: `Terhubung ke ${parentCode}`
+      };
+    }
+    if (compUpper.includes("DRAWER") || compUpper.includes("LACI")) {
+      return {
+        itemId: `DRW-${seq}`,
+        position: `Terhubung ke ${parentCode}`
+      };
+    }
+    if (compUpper.includes("FINGERPRINT") || compUpper.includes("SIDIK JARI")) {
+      return {
+        itemId: `ACC-${String(posNum + 200).padStart(3, "0")}`,
+        position: `Dipakai di Set ${parentCode}`
+      };
+    }
+    if (compUpper.includes("UNIT") || compUpper.includes("POS")) {
+      return {
+        itemId: `POS-${seq}`,
+        position: `Unit Utama ${parentCode}`
+      };
+    }
 
-    return `AST-${posCode}`;
+    return {
+      itemId: `ACC-${seq}`,
+      position: `Terpasang di ${parentCode}`
+    };
   };
 
   const getComponentProcurement = (component: string, model: string, pos: PosHardwareAsset) => {
@@ -307,14 +366,15 @@ function AssetsContent() {
       : "Bawaan Unit";
 
     const { price, purchasedFrom, purchaseDate, customNote } = getComponentProcurement(component, model, pos);
-    const assetCode = getComponentAssetCode(component, pos);
+    const { itemId, position } = getComponentItemId(component, pos);
 
     setHoverDetail({
       x: rect.left + rect.width / 2,
       y: rect.top,
       component,
       model,
-      assetCode,
+      itemId,
+      position,
       price,
       purchasedFrom,
       purchaseDate,
@@ -2790,17 +2850,23 @@ function AssetsContent() {
             </div>
 
             {/* Main Spec Highlight Box */}
-            <div className="p-2 bg-slate-50/90 border border-slate-200/80 rounded-xl mb-2 space-y-1.5">
+            <div className="p-2.5 bg-slate-50/90 border border-slate-200/80 rounded-xl mb-2 space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium text-[9px]">Kode Aset:</span>
+                <span className="text-slate-500 font-medium text-[9px]">ID Barang:</span>
                 <span className="font-mono font-black text-indigo-700 bg-indigo-50 border border-indigo-200/90 px-1.5 py-0.5 rounded text-[10px] tracking-tight">
-                  {hoverDetail.assetCode}
+                  {hoverDetail.itemId}
                 </span>
               </div>
               <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                <span className="text-slate-500 font-medium text-[9px]">Model / Tipe:</span>
-                <span className="font-mono font-black text-slate-900 text-[11px]">
+                <span className="text-slate-500 font-medium text-[9px]">Model / Spesifikasi:</span>
+                <span className="font-mono font-black text-slate-900 text-[10.5px] truncate max-w-[140px]" title={hoverDetail.model}>
                   {hoverDetail.model}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between gap-1 pt-1 border-t border-slate-200/60">
+                <span className="text-slate-500 font-medium text-[9px] shrink-0">Status / Posisi:</span>
+                <span className="font-mono font-bold text-emerald-800 text-[9px] truncate max-w-[150px]" title={hoverDetail.position}>
+                  {hoverDetail.position}
                 </span>
               </div>
             </div>
