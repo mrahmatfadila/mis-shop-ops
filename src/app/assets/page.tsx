@@ -169,6 +169,7 @@ function AssetsContent() {
     y: number;
     component: string;
     model: string;
+    assetCode: string;
     price: string;
     purchasedFrom: string;
     purchaseDate: string;
@@ -177,6 +178,27 @@ function AssetsContent() {
     sn?: string;
     notes?: string;
   } | null>(null);
+
+  const getComponentAssetCode = (component: string, pos: PosHardwareAsset) => {
+    const compUpper = component.toUpperCase();
+    const posCode = pos.pos_code || `POS-${pos.pos_number}`;
+
+    if (compUpper.includes("KEYBOARD")) return `KBD-${posCode}`;
+    if (compUpper.includes("MOUSE")) return `MOU-${posCode}`;
+    if (compUpper.includes("PRINTER")) return `PRN-${posCode}`;
+    if (compUpper.includes("BARCODE")) return `SCN-${posCode}`;
+    if (compUpper.includes("PASSPORT")) return `PAS-${posCode}`;
+    if (compUpper.includes("DRAWER") || compUpper.includes("LACI")) return `DRW-${posCode}`;
+    if (compUpper.includes("FINGERPRINT") || compUpper.includes("SIDIK JARI")) return `FPR-${posCode}`;
+    if (compUpper.includes("RAM") || compUpper.includes("MEMORY")) return `COMP-RAM-${posCode}`;
+    if (compUpper.includes("STORAGE") || compUpper.includes("SSD") || compUpper.includes("HDD")) return `COMP-SSD-${posCode}`;
+    if (compUpper.includes("PROCESSOR") || compUpper.includes("CPU")) return `COMP-CPU-${posCode}`;
+    if (compUpper.includes("UNIT") || compUpper.includes("POS")) return `CPU-${posCode}`;
+    if (compUpper.includes("OS") || compUpper.includes("WINDOWS")) return `LIC-WIN-${posCode}`;
+    if (compUpper.includes("PATCH") || compUpper.includes("TSIGUNTA")) return `APP-TSG-${posCode}`;
+
+    return `AST-${posCode}`;
+  };
 
   const getComponentProcurement = (component: string, model: string, pos: PosHardwareAsset) => {
     // 1. Cek riwayat penggantian terstruktur di pos.notes
@@ -285,12 +307,14 @@ function AssetsContent() {
       : "Bawaan Unit";
 
     const { price, purchasedFrom, purchaseDate, customNote } = getComponentProcurement(component, model, pos);
+    const assetCode = getComponentAssetCode(component, pos);
 
     setHoverDetail({
       x: rect.left + rect.width / 2,
       y: rect.top,
       component,
       model,
+      assetCode,
       price,
       purchasedFrom,
       purchaseDate,
@@ -2766,11 +2790,19 @@ function AssetsContent() {
             </div>
 
             {/* Main Spec Highlight Box */}
-            <div className="p-2 bg-slate-50/90 border border-slate-200/80 rounded-xl mb-2 flex items-center justify-between">
-              <span className="text-slate-500 font-medium text-[9px]">Model / Tipe:</span>
-              <span className="font-mono font-black text-slate-900 text-[11px]">
-                {hoverDetail.model}
-              </span>
+            <div className="p-2 bg-slate-50/90 border border-slate-200/80 rounded-xl mb-2 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 font-medium text-[9px]">Kode Aset:</span>
+                <span className="font-mono font-black text-indigo-700 bg-indigo-50 border border-indigo-200/90 px-1.5 py-0.5 rounded text-[10px] tracking-tight">
+                  {hoverDetail.assetCode}
+                </span>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                <span className="text-slate-500 font-medium text-[9px]">Model / Tipe:</span>
+                <span className="font-mono font-black text-slate-900 text-[11px]">
+                  {hoverDetail.model}
+                </span>
+              </div>
             </div>
 
             {/* Spec & Detail Metadata */}
