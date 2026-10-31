@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
 import { jsonError } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     await initDb();
@@ -15,6 +17,7 @@ export async function GET() {
       onlineDevicesRes,
       totalDevicesRes,
       totalOfficeRes,
+      officeLocsRes,
       posCountRes,
       edcCountRes,
       t3CountRes,
@@ -32,6 +35,7 @@ export async function GET() {
       db.execute("SELECT COUNT(*) as c FROM monitoring_devices WHERE status = 'ONLINE'"),
       db.execute("SELECT COUNT(*) as c FROM monitoring_devices"),
       db.execute("SELECT COUNT(*) as c FROM office_hardware_assets"),
+      db.execute("SELECT office_location, COUNT(*) as c FROM office_hardware_assets GROUP BY office_location"),
       db.execute("SELECT COUNT(*) as c FROM pos_hardware_assets"),
       db.execute("SELECT COUNT(*) as c FROM edc_assets"),
       db.execute("SELECT COUNT(*) as c FROM t3_fixed_assets"),
@@ -41,6 +45,28 @@ export async function GET() {
       db.execute("SELECT COUNT(*) as c FROM purchases"),
       db.execute("SELECT COUNT(*) as c FROM knowledge_base WHERE is_published = 1"),
     ]);
+
+    let officeHeadOfficeCount = 0;
+    let officeWhsCount = 0;
+    let officeT2Count = 0;
+    let officeT3Count = 0;
+    let officeSbyCount = 0;
+
+    for (const row of officeLocsRes.rows) {
+      const loc = String(row.office_location || "Head Office").toLowerCase();
+      const cnt = Number(row.c);
+      if (loc.includes("warehouse") || loc.includes("whs")) {
+        officeWhsCount += cnt;
+      } else if (loc.includes("terminal 2") || loc.includes("t2")) {
+        officeT2Count += cnt;
+      } else if (loc.includes("terminal 3") || loc.includes("t3")) {
+        officeT3Count += cnt;
+      } else if (loc.includes("surabaya") || loc.includes("sby")) {
+        officeSbyCount += cnt;
+      } else {
+        officeHeadOfficeCount += cnt;
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -53,6 +79,12 @@ export async function GET() {
         onlineDevices: Number(onlineDevicesRes.rows[0].c),
         totalMonitoredDevices: Number(totalDevicesRes.rows[0].c),
         totalOfficeAssets: Number(totalOfficeRes.rows[0].c),
+        // Live counts for individual office locations
+        officeHeadOfficeCount,
+        officeWhsCount,
+        officeT2Count,
+        officeT3Count,
+        officeSbyCount,
         // Live counts for sidebar mapping
         posCount: Number(posCountRes.rows[0].c),
         edcCount: Number(edcCountRes.rows[0].c),

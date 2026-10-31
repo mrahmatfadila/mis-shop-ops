@@ -3,6 +3,8 @@ import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
 
+export const dynamic = "force-dynamic";
+
 // Daftar path standar instalasi AnyDesk di Windows
 const CANDIDATE_PATHS = [
   "C:\\Program Files (x86)\\AnyDesk\\AnyDesk.exe",
