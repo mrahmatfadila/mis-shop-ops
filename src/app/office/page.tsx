@@ -1025,39 +1025,25 @@ function OfficeContent() {
                           )}
                         </td>
 
-                        {/* 15. IP Address & Hostname */}
+                        {/* 15. IP Address */}
                         <td className="py-3 px-3 align-top border-r border-slate-100 whitespace-nowrap">
                           {item.ip_address && item.ip_address !== "-" && item.ip_address.startsWith("172.") ? (
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] shrink-0"></span>
-                                <span className="font-mono font-bold text-xs text-blue-700 bg-blue-50/90 px-1.5 py-0.5 rounded border border-blue-200 shadow-2xs">
-                                  {item.ip_address}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => copyToClipboard(item.ip_address!, `ip-${item.id}`)}
-                                  title="Salin IP Address"
-                                  className="p-1 text-slate-400 hover:text-blue-600 rounded hover:bg-blue-50 transition-colors"
-                                >
-                                  {isCopied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                                </button>
-                              </div>
-                              {item.notes && (
-                                <span className="text-[9.5px] text-slate-500 font-medium block truncate max-w-[130px]" title={item.notes}>
-                                  {item.notes}
-                                </span>
-                              )}
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] shrink-0"></span>
+                              <span className="font-mono font-bold text-xs text-blue-700 bg-blue-50/90 px-1.5 py-0.5 rounded border border-blue-200 shadow-2xs">
+                                {item.ip_address}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(item.ip_address!, `ip-${item.id}`)}
+                                title="Salin IP Address"
+                                className="p-1 text-slate-400 hover:text-blue-600 rounded hover:bg-blue-50 transition-colors"
+                              >
+                                {isCopied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                              </button>
                             </div>
                           ) : (
-                            <div className="space-y-0.5">
-                              <span className="text-[11px] text-slate-400 font-mono select-none">—</span>
-                              {item.notes && (
-                                <span className="text-[9.5px] text-slate-400 block truncate max-w-[130px]" title={item.notes}>
-                                  {item.notes}
-                                </span>
-                              )}
-                            </div>
+                            <span className="text-slate-300 font-mono select-none text-xs">—</span>
                           )}
                         </td>
 
