@@ -782,30 +782,30 @@ function OfficeContent() {
                   <col className="w-[95px]" />
                   {/* 4. Nama Pengguna: 140px */}
                   <col className="w-[140px]" />
-                  {/* 5. Lokasi Kantor: 120px */}
-                  <col className="w-[120px]" />
-                  {/* 6. OS: 110px */}
-                  <col className="w-[110px]" />
-                  {/* 7. Processor: 185px */}
-                  <col className="w-[185px]" />
-                  {/* 8. Motherboard: 155px */}
-                  <col className="w-[155px]" />
-                  {/* 9. RAM: 95px */}
-                  <col className="w-[95px]" />
-                  {/* 10. Storage (SSD): 135px */}
-                  <col className="w-[135px]" />
-                  {/* 11. Storage (HDD): 135px */}
-                  <col className="w-[135px]" />
-                  {/* 12. Monitor: 125px */}
-                  <col className="w-[125px]" />
-                  {/* 13. Printer: 135px */}
-                  <col className="w-[135px]" />
-                  {/* 14. Keyboard: 110px */}
-                  <col className="w-[110px]" />
-                  {/* 15. Mouse: 110px */}
-                  <col className="w-[110px]" />
-                  {/* 16. IP & Jaringan: 140px */}
+                  {/* 5. IP Address: 140px */}
                   <col className="w-[140px]" />
+                  {/* 6. Lokasi Kantor: 120px */}
+                  <col className="w-[120px]" />
+                  {/* 7. OS: 110px */}
+                  <col className="w-[110px]" />
+                  {/* 8. Processor: 185px */}
+                  <col className="w-[185px]" />
+                  {/* 9. Motherboard: 155px */}
+                  <col className="w-[155px]" />
+                  {/* 10. RAM: 95px */}
+                  <col className="w-[95px]" />
+                  {/* 11. Storage (SSD): 135px */}
+                  <col className="w-[135px]" />
+                  {/* 12. Storage (HDD): 135px */}
+                  <col className="w-[135px]" />
+                  {/* 13. Monitor: 125px */}
+                  <col className="w-[125px]" />
+                  {/* 14. Printer: 135px */}
+                  <col className="w-[135px]" />
+                  {/* 15. Keyboard: 110px */}
+                  <col className="w-[110px]" />
+                  {/* 16. Mouse: 110px */}
+                  <col className="w-[110px]" />
                   {/* 17. Status: 95px */}
                   <col className="w-[95px]" />
                   {/* 18. Aksi: 85px */}
@@ -815,12 +815,12 @@ function OfficeContent() {
                   {/* Tier 1: Category Header Groups */}
                   <tr className="uppercase font-black text-[10px] tracking-wider select-none">
                     <th
-                      colSpan={6}
+                      colSpan={7}
                       className="py-2.5 px-3 bg-blue-50/90 text-blue-900 border-b border-r border-blue-200/80 text-left"
                     >
                       <div className="flex items-center gap-1.5">
                         <UserCheck className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Identitas & Pengguna Office</span>
+                        <span>Identitas, Pengguna & IP Jaringan</span>
                       </div>
                     </th>
                     <th
@@ -842,15 +842,6 @@ function OfficeContent() {
                       </div>
                     </th>
                     <th
-                      colSpan={1}
-                      className="py-2.5 px-3 bg-amber-50/90 text-amber-900 border-b border-r border-amber-200/80 text-left"
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <Activity className="w-3.5 h-3.5 text-amber-600" />
-                        <span>IP & Jaringan VPN</span>
-                      </div>
-                    </th>
-                    <th
                       colSpan={2}
                       className="py-2.5 px-3 bg-slate-100 text-slate-800 border-b border-slate-200 text-center"
                     >
@@ -863,6 +854,7 @@ function OfficeContent() {
                     <th className="py-2 px-2.5 border-r border-slate-200/60">Divisi</th>
                     <th className="py-2 px-2.5 border-r border-slate-200/60">Kode Aset</th>
                     <th className="py-2 px-3 border-r border-slate-200/60">Nama Pengguna</th>
+                    <th className="py-2 px-3 border-r border-slate-200/60">IP Address</th>
                     <th className="py-2 px-2.5 border-r border-slate-200/60">Lokasi Kantor</th>
                     <th className="py-2 px-2.5 border-r border-slate-200/60">Sistem Operasi (OS)</th>
                     <th className="py-2 px-3 border-r border-slate-200/60">Processor</th>
@@ -874,7 +866,6 @@ function OfficeContent() {
                     <th className="py-2 px-2.5 border-r border-slate-200/60">Printer</th>
                     <th className="py-2 px-2.5 border-r border-slate-200/60">Keyboard</th>
                     <th className="py-2 px-2.5 border-r border-slate-200/60">Mouse</th>
-                    <th className="py-2 px-3 border-r border-slate-200/60">IP Address</th>
                     <th className="py-2 px-2 text-center border-r border-slate-200/60">Status</th>
                     <th className="py-2 px-2.5 text-right">Aksi</th>
                   </tr>
@@ -916,7 +907,29 @@ function OfficeContent() {
                           </div>
                         </td>
 
-                        {/* 5. Lokasi Kantor */}
+                        {/* 5. IP Address */}
+                        <td className="py-3 px-3 align-top border-r border-slate-100 whitespace-nowrap">
+                          {item.ip_address && item.ip_address !== "-" && item.ip_address.startsWith("172.") ? (
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] shrink-0"></span>
+                              <span className="font-mono font-bold text-xs text-blue-700 bg-blue-50/90 px-1.5 py-0.5 rounded border border-blue-200 shadow-2xs">
+                                {item.ip_address}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(item.ip_address!, `ip-${item.id}`)}
+                                title="Salin IP Address"
+                                className="p-1 text-slate-400 hover:text-blue-600 rounded hover:bg-blue-50 transition-colors"
+                              >
+                                {isCopied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-slate-300 font-mono select-none text-xs">—</span>
+                          )}
+                        </td>
+
+                        {/* 6. Lokasi Kantor */}
                         <td className="py-3 px-2.5 align-top border-r border-slate-100">
                           <span className="text-[10px] text-slate-600 font-medium">
                             {item.office_location || "Head Office"}
@@ -1038,7 +1051,7 @@ function OfficeContent() {
                           )}
                         </td>
 
-                        {/* 14. Mouse */}
+                        {/* 16. Mouse */}
                         <td className="py-3 px-2.5 align-top border-r border-slate-100">
                           {item.mouse && item.mouse !== "-" ? (
                             <span className="text-[10px] text-slate-700 font-semibold block truncate" title={item.mouse}>
@@ -1049,29 +1062,7 @@ function OfficeContent() {
                           )}
                         </td>
 
-                        {/* 15. IP Address */}
-                        <td className="py-3 px-3 align-top border-r border-slate-100 whitespace-nowrap">
-                          {item.ip_address && item.ip_address !== "-" && item.ip_address.startsWith("172.") ? (
-                            <div className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] shrink-0"></span>
-                              <span className="font-mono font-bold text-xs text-blue-700 bg-blue-50/90 px-1.5 py-0.5 rounded border border-blue-200 shadow-2xs">
-                                {item.ip_address}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => copyToClipboard(item.ip_address!, `ip-${item.id}`)}
-                                title="Salin IP Address"
-                                className="p-1 text-slate-400 hover:text-blue-600 rounded hover:bg-blue-50 transition-colors"
-                              >
-                                {isCopied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-slate-300 font-mono select-none text-xs">—</span>
-                          )}
-                        </td>
-
-                        {/* 15. Status */}
+                        {/* 17. Status */}
                         <td className="py-3 px-2 text-center align-top whitespace-nowrap border-r border-slate-100">
                           <StatusBadge
                             status={item.status}
