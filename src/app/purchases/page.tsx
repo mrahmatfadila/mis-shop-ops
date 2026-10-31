@@ -154,6 +154,156 @@ const STATUS_PIPELINE: {
   },
 ];
 
+interface ItemStepInfo {
+  step: number; // 0..6
+  label: string;
+  shortLabel: string;
+  sublabel: string;
+  picRole: string;
+  nextStepName: string;
+  progressPercent: number;
+  theme: {
+    textColor: string;
+    bgColor: string;
+    borderColor: string;
+    badgeBg: string;
+    dotBg: string;
+    ringColor: string;
+  };
+}
+
+function getItemStepInfo(status: PurchaseStatus): ItemStepInfo {
+  switch (status) {
+    case "PENGAJUAN":
+      return {
+        step: 1,
+        label: "Tahap 1: Pengajuan (Review Manager)",
+        shortLabel: "1. Pengajuan Awal",
+        sublabel: "Menunggu persetujuan & arahan dari MIS Manager",
+        picRole: "MIS Manager",
+        nextStepName: "Persetujuan Supervisi & Input CAPEX",
+        progressPercent: 17,
+        theme: {
+          textColor: "text-amber-800",
+          bgColor: "bg-amber-50",
+          borderColor: "border-amber-300",
+          badgeBg: "bg-amber-500",
+          dotBg: "bg-amber-500",
+          ringColor: "ring-amber-400/30",
+        },
+      };
+    case "DISETUJUI_MANAGER":
+      return {
+        step: 2,
+        label: "Tahap 2: Disetujui (Siap CAPEX & Order)",
+        shortLabel: "2. Disetujui Manager",
+        sublabel: "Telah disetujui, siap diinput No CAPEX & toko oleh Procurement",
+        picRole: "MIS Procurement Support",
+        nextStepName: "Pemesanan Barang & Input Link Toko",
+        progressPercent: 35,
+        theme: {
+          textColor: "text-blue-800",
+          bgColor: "bg-blue-50",
+          borderColor: "border-blue-300",
+          badgeBg: "bg-blue-600",
+          dotBg: "bg-blue-600",
+          ringColor: "ring-blue-400/30",
+        },
+      };
+    case "PROSES_ORDER":
+      return {
+        step: 3,
+        label: "Tahap 3: Proses Pembelian di Toko",
+        shortLabel: "3. Sedang Dipesan",
+        sublabel: "Barang sudah dipesan ke toko/supplier, menunggu pengiriman fisik",
+        picRole: "MIS Procurement & Vendor",
+        nextStepName: "Penerimaan & QC di Procurement",
+        progressPercent: 52,
+        theme: {
+          textColor: "text-purple-800",
+          bgColor: "bg-purple-50",
+          borderColor: "border-purple-300",
+          badgeBg: "bg-purple-600",
+          dotBg: "bg-purple-600",
+          ringColor: "ring-purple-400/30",
+        },
+      };
+    case "SUDAH_DATANG":
+      return {
+        step: 4,
+        label: "Tahap 4: Tiba di Procurement (QC)",
+        shortLabel: "4. QC Procurement",
+        sublabel: "Fisik barang tiba di procurement, pemeriksaan spesifikasi & packing",
+        picRole: "MIS Procurement",
+        nextStepName: "Ekspedisi / Pengiriman ke Lokasi",
+        progressPercent: 68,
+        theme: {
+          textColor: "text-indigo-800",
+          bgColor: "bg-indigo-50",
+          borderColor: "border-indigo-300",
+          badgeBg: "bg-indigo-600",
+          dotBg: "bg-indigo-600",
+          ringColor: "ring-indigo-400/30",
+        },
+      };
+    case "SIAP_KIRIM_T3":
+      return {
+        step: 5,
+        label: "Tahap 5: Dalam Pengiriman ke Lokasi",
+        shortLabel: "5. Dalam Pengiriman",
+        sublabel: "Barang sedang dibawa kurir/teknisi menuju toko / terminal tujuan",
+        picRole: "Kurir / MIS Support Lapangan",
+        nextStepName: "Penerimaan Fisik & Pemasangan POS",
+        progressPercent: 85,
+        theme: {
+          textColor: "text-cyan-800",
+          bgColor: "bg-cyan-50",
+          borderColor: "border-cyan-300",
+          badgeBg: "bg-cyan-600",
+          dotBg: "bg-cyan-600",
+          ringColor: "ring-cyan-400/30",
+        },
+      };
+    case "DITERIMA_T3":
+      return {
+        step: 6,
+        label: "Tahap 6: Diterima di Lokasi & Selesai",
+        shortLabel: "6. Selesai Terpasang",
+        sublabel: "Barang telah diterima operasional toko & terpasang di POS",
+        picRole: "MIS OPS Toko",
+        nextStepName: "Selesai (Operasional Penuh)",
+        progressPercent: 100,
+        theme: {
+          textColor: "text-emerald-800",
+          bgColor: "bg-emerald-50",
+          borderColor: "border-emerald-300",
+          badgeBg: "bg-[#006622]",
+          dotBg: "bg-[#006622]",
+          ringColor: "ring-emerald-400/30",
+        },
+      };
+    case "DITOLAK_MANAGER":
+    default:
+      return {
+        step: 0,
+        label: "Ditolak / Perlu Revisi",
+        shortLabel: "Ditolak Manager",
+        sublabel: "Pengajuan ditolak oleh Manager, silakan cek catatan revisi",
+        picRole: "MIS OPS (Revisi Pengajuan)",
+        nextStepName: "Revisi / Pengajuan Ulang",
+        progressPercent: 0,
+        theme: {
+          textColor: "text-rose-800",
+          bgColor: "bg-rose-50",
+          borderColor: "border-rose-300",
+          badgeBg: "bg-rose-600",
+          dotBg: "bg-rose-600",
+          ringColor: "ring-rose-400/30",
+        },
+      };
+  }
+}
+
 function PurchasesContent() {
   const { user, isAdmin, isMIS, isManager, isProcurement } = useAuth();
 
@@ -955,32 +1105,98 @@ function PurchasesContent() {
           </div>
         </div>
 
-        {/* 4. Interactive Visual Pipeline Stepper Cards */}
+        {/* 4. Total Pipeline Funnel Cards (Company-Wide Distribution Filter) */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm overflow-x-auto">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[11px] font-black text-slate-500 uppercase tracking-wider">
-              Alur Tahapan Pengadaan & Status Berjalan (Klik step untuk filter):
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-emerald-100 text-[#006622] font-black text-[11px]">
+                  Σ
+                </span>
+                <p className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                  Distribusi Total Pipeline Pengadaan (Klik Tahap Untuk Filter)
+                </p>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Statistik akumulasi seluruh pengadaan kantor berjalan berdasarkan 6 siklus perolehan barang (Bukan progress 1 barang)
+              </p>
+            </div>
             {selectedStatus && (
               <button
                 type="button"
                 onClick={() => setSelectedStatus("")}
-                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 hover:underline"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-all self-start sm:self-auto cursor-pointer"
               >
-                Reset Filter Status
+                <span>Hapus Filter ({selectedStatus})</span>
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
           <div className="flex items-center justify-between min-w-[760px] gap-2">
             {[
-              { step: 1, statusCode: "PENGAJUAN", title: "1. Pengajuan", role: "MIS OPS", count: stats.pendingManager, active: stats.pendingManager > 0 },
-              { step: 2, statusCode: "DISETUJUI_MANAGER", title: "2. Disetujui", role: "MIS Manager", count: stats.readyCapex, active: stats.readyCapex > 0 },
-              { step: 3, statusCode: "PROSES_ORDER", title: "3. CAPEX & Order", role: "MIS Proc", count: stats.inOrder, active: stats.inOrder > 0 },
-              { step: 4, statusCode: "SUDAH_DATANG", title: "4. Barang Datang", role: "MIS Proc", count: stats.arrivedProc, active: stats.arrivedProc > 0 },
-              { step: 5, statusCode: "SIAP_KIRIM_T3", title: "5. Siap Kirim T3", role: "MIS Proc", count: stats.readyShipT3, active: stats.readyShipT3 > 0 },
-              { step: 6, statusCode: "DITERIMA_T3", title: "6. Diterima T3", role: "MIS OPS", count: stats.completedT3, active: stats.completedT3 > 0 },
+              {
+                step: 1,
+                statusCode: "PENGAJUAN",
+                title: "1. Pengajuan",
+                role: "MIS OPS",
+                count: stats.pendingManager,
+                activeTheme: "bg-amber-50/70 border-amber-300 hover:bg-amber-100/70",
+                badgeActive: "bg-amber-500 text-white",
+                stepColor: "text-amber-700 font-bold",
+              },
+              {
+                step: 2,
+                statusCode: "DISETUJUI_MANAGER",
+                title: "2. Disetujui",
+                role: "MIS Manager",
+                count: stats.readyCapex,
+                activeTheme: "bg-blue-50/70 border-blue-300 hover:bg-blue-100/70",
+                badgeActive: "bg-blue-600 text-white",
+                stepColor: "text-blue-700 font-bold",
+              },
+              {
+                step: 3,
+                statusCode: "PROSES_ORDER",
+                title: "3. CAPEX & Order",
+                role: "MIS Proc",
+                count: stats.inOrder,
+                activeTheme: "bg-purple-50/70 border-purple-300 hover:bg-purple-100/70",
+                badgeActive: "bg-purple-600 text-white",
+                stepColor: "text-purple-700 font-bold",
+              },
+              {
+                step: 4,
+                statusCode: "SUDAH_DATANG",
+                title: "4. QC Barang",
+                role: "MIS Proc",
+                count: stats.arrivedProc,
+                activeTheme: "bg-indigo-50/70 border-indigo-300 hover:bg-indigo-100/70",
+                badgeActive: "bg-indigo-600 text-white",
+                stepColor: "text-indigo-700 font-bold",
+              },
+              {
+                step: 5,
+                statusCode: "SIAP_KIRIM_T3",
+                title: "5. Siap Kirim T3",
+                role: "MIS Proc",
+                count: stats.readyShipT3,
+                activeTheme: "bg-cyan-50/70 border-cyan-300 hover:bg-cyan-100/70",
+                badgeActive: "bg-cyan-600 text-white",
+                stepColor: "text-cyan-700 font-bold",
+              },
+              {
+                step: 6,
+                statusCode: "DITERIMA_T3",
+                title: "6. Diterima T3",
+                role: "MIS OPS",
+                count: stats.completedT3,
+                activeTheme: "bg-emerald-50/70 border-emerald-300 hover:bg-emerald-100/70",
+                badgeActive: "bg-[#006622] text-white",
+                stepColor: "text-[#006622] font-bold",
+              },
             ].map((st, idx) => {
               const isCurrentFilter = selectedStatus === st.statusCode;
+              const hasItems = st.count > 0;
               return (
                 <div key={st.step} className="flex-1 flex items-center">
                   <button
@@ -988,33 +1204,33 @@ function PurchasesContent() {
                     onClick={() => setSelectedStatus(isCurrentFilter ? "" : st.statusCode)}
                     className={`flex-1 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                       isCurrentFilter
-                        ? "bg-slate-900 text-white border-slate-900 shadow-sm ring-2 ring-slate-900/20"
-                        : st.active
-                        ? "bg-emerald-50/80 border-emerald-300 ring-2 ring-emerald-500/10 hover:bg-emerald-100/70"
-                        : "bg-slate-50/70 border-slate-200/80 hover:bg-slate-100"
+                        ? "bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-slate-900/30"
+                        : hasItems
+                        ? `${st.activeTheme} ring-1 ring-slate-900/5`
+                        : "bg-slate-50/60 border-slate-200/80 text-slate-400 hover:bg-slate-100"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className={`text-[10px] font-black ${isCurrentFilter ? "text-emerald-300" : "text-slate-400"}`}>
+                      <span className={`text-[10px] font-black ${isCurrentFilter ? "text-emerald-300" : hasItems ? st.stepColor : "text-slate-400"}`}>
                         Step {st.step}
                       </span>
                       <span
                         className={`text-[10px] font-black px-1.5 py-0.2 rounded ${
                           isCurrentFilter
                             ? "bg-emerald-500 text-white"
-                            : st.active
-                            ? "bg-[#006622] text-white"
-                            : "bg-slate-200 text-slate-600"
+                            : hasItems
+                            ? st.badgeActive
+                            : "bg-slate-200 text-slate-500"
                         }`}
                       >
-                        {st.count}
+                        {st.count} Dokumen
                       </span>
                     </div>
-                    <p className={`text-xs font-bold mt-1 leading-tight truncate ${isCurrentFilter ? "text-white" : "text-slate-900"}`}>
+                    <p className={`text-xs font-bold mt-1 leading-tight truncate ${isCurrentFilter ? "text-white" : hasItems ? "text-slate-900 font-extrabold" : "text-slate-500"}`}>
                       {st.title}
                     </p>
                     <p className={`text-[10px] font-medium truncate mt-0.5 ${isCurrentFilter ? "text-slate-300" : "text-slate-500"}`}>
-                      Oleh: {st.role}
+                      PIC: {st.role}
                     </p>
                   </button>
                   {idx < 5 && (
@@ -1166,6 +1382,7 @@ function PurchasesContent() {
                 <tbody className="divide-y divide-slate-100">
                   {purchases.map((item) => {
                     const stObj = getStatusObj(item.status);
+                    const itemStep = getItemStepInfo(item.status);
                     const qty = item.quantity || 1;
                     const finalPrice = item.item_price || item.estimated_price || 0;
                     const totalPrice = item.total_price || finalPrice * qty;
@@ -1194,7 +1411,8 @@ function PurchasesContent() {
                               )}
                             </button>
                           </div>
-                          <div className="mt-1.5">
+                          
+                          <div className="mt-1.5 flex items-center gap-1.5">
                             <span
                               className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${stObj.bg} ${stObj.color} ${stObj.border}`}
                             >
@@ -1202,7 +1420,57 @@ function PurchasesContent() {
                               {stObj.badgeLabel}
                             </span>
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-1">
+
+                          {/* Mini Per-Item Step Stepper (Pintar & Canggih) */}
+                          <div className="mt-2.5 pt-2 border-t border-slate-100 max-w-[170px]">
+                            <div className="flex items-center justify-between text-[10px] mb-1 font-semibold">
+                              <span className={itemStep.step > 0 ? itemStep.theme.textColor : "text-rose-600"}>
+                                {itemStep.step > 0 ? `Step ${itemStep.step} / 6` : "Ditolak"}
+                              </span>
+                              <span className="text-[9px] font-bold text-slate-400">
+                                {itemStep.progressPercent}%
+                              </span>
+                            </div>
+                            
+                            {/* 6-Segment Visual Bar */}
+                            <div className="grid grid-cols-6 gap-1 w-full">
+                              {[1, 2, 3, 4, 5, 6].map((stNum) => {
+                                const isPassed = itemStep.step > stNum;
+                                const isCurrent = itemStep.step === stNum;
+                                return (
+                                  <div
+                                    key={stNum}
+                                    title={`Tahap ${stNum}`}
+                                    className={`h-1.5 rounded-xs transition-all ${
+                                      isCurrent
+                                        ? `${itemStep.theme.badgeBg} animate-pulse ring-1 ring-offset-0.5 ${itemStep.theme.ringColor}`
+                                        : isPassed
+                                        ? "bg-emerald-500"
+                                        : "bg-slate-200"
+                                    }`}
+                                  />
+                                );
+                              })}
+                            </div>
+                            
+                            <p className="text-[10px] text-slate-500 font-medium mt-1 truncate" title={itemStep.label}>
+                              {itemStep.step === 1
+                                ? "⏳ Review Manager"
+                                : itemStep.step === 2
+                                ? "📝 Input No CAPEX"
+                                : itemStep.step === 3
+                                ? "🛍️ Sedang Dipesan"
+                                : itemStep.step === 4
+                                ? "📦 Tiba di Proc"
+                                : itemStep.step === 5
+                                ? "🚚 Kirim ke Lokasi"
+                                : itemStep.step === 6
+                                ? "✅ Terpasang di POS"
+                                : "❌ Perlu Revisi"}
+                            </p>
+                          </div>
+
+                          <p className="text-[10px] text-slate-400 mt-1.5">
                             Oleh: <span className="font-semibold text-slate-600">{item.requester}</span>
                           </p>
                         </td>
@@ -2477,23 +2745,249 @@ function PurchasesContent() {
                 </button>
               </div>
 
-              <div className="mt-4 space-y-4 text-xs">
-                {/* Status Bar */}
-                <div className="p-3 bg-slate-50 rounded-xl border flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase">Status Pengadaan Saat Ini</p>
-                    <p className="font-black text-slate-900 text-sm mt-0.5">
-                      {getStatusObj(activeItem.status).label}
-                    </p>
+              {/* Intelligent Lifecycle Stepper Container */}
+              {(() => {
+                const detailStep = getItemStepInfo(activeItem.status);
+                const isRejected = activeItem.status === "DITOLAK_MANAGER";
+
+                return (
+                  <div className="space-y-4">
+                    {/* 1. Header Progress Bar & Stepper Visualizer */}
+                    <div className="p-4 bg-slate-900 text-white rounded-2xl shadow-md border border-slate-800 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                              Tracking Progres Dokumen
+                            </span>
+                            <span className="text-xs font-bold text-slate-300">
+                              {isRejected ? "Status Pengajuan: DITOLAK" : `Tahap ${detailStep.step} dari 6`}
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-black text-white mt-1">
+                            {detailStep.label}
+                          </h4>
+                          <p className="text-[11px] text-slate-400 mt-0.5">
+                            {detailStep.sublabel}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-2xl font-black text-emerald-400">
+                            {detailStep.progressPercent}%
+                          </span>
+                          <p className="text-[10px] text-slate-400 font-medium">
+                            Kelengkapan Siklus
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* 6-Node Horizontal Stepper */}
+                      <div className="pt-2">
+                        <div className="relative flex items-center justify-between">
+                          {/* Background connecting line */}
+                          <div className="absolute left-4 right-4 top-3.5 h-1 bg-slate-800 -z-0" />
+                          {/* Active filled connecting line */}
+                          <div
+                            className="absolute left-4 top-3.5 h-1 bg-emerald-500 transition-all duration-500 -z-0"
+                            style={{
+                              width:
+                                detailStep.step > 1
+                                  ? `${Math.min(100, ((detailStep.step - 1) / 5) * 100)}%`
+                                  : "0%",
+                            }}
+                          />
+
+                          {[
+                            { stepNum: 1, name: "Pengajuan", role: "MIS OPS" },
+                            { stepNum: 2, name: "Approval", role: "Manager" },
+                            { stepNum: 3, name: "CAPEX", role: "Proc" },
+                            { stepNum: 4, name: "QC Tiba", role: "Proc" },
+                            { stepNum: 5, name: "Kirim", role: "Kurir" },
+                            { stepNum: 6, name: "Terpasang", role: "MIS OPS" },
+                          ].map((node) => {
+                            const isDone = detailStep.step > node.stepNum;
+                            const isCurrent = detailStep.step === node.stepNum;
+                            return (
+                              <div
+                                key={node.stepNum}
+                                className="flex flex-col items-center relative z-10"
+                              >
+                                <div
+                                  className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                                    isDone
+                                      ? "bg-[#006622] text-white ring-2 ring-emerald-400/40"
+                                      : isCurrent
+                                      ? isRejected
+                                        ? "bg-rose-600 text-white ring-4 ring-rose-500/30 animate-pulse"
+                                        : `${detailStep.theme.badgeBg} text-white ring-4 ${detailStep.theme.ringColor} animate-pulse scale-110`
+                                      : "bg-slate-800 text-slate-500 border border-slate-700"
+                                  }`}
+                                >
+                                  {isDone ? (
+                                    <Check className="w-4 h-4 stroke-[3]" />
+                                  ) : (
+                                    <span>{node.stepNum}</span>
+                                  )}
+                                </div>
+                                <span
+                                  className={`text-[9px] mt-1.5 font-bold whitespace-nowrap ${
+                                    isCurrent
+                                      ? "text-emerald-300"
+                                      : isDone
+                                      ? "text-slate-300"
+                                      : "text-slate-500"
+                                  }`}
+                                >
+                                  {node.name}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Info PIC & Langkah Selanjutnya */}
+                      <div className="mt-3 pt-2.5 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between text-[11px] gap-2">
+                        <div className="flex items-center gap-1.5 text-slate-300">
+                          <span className="text-slate-500">Penanggung Jawab Aksi:</span>
+                          <span className="font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                            {detailStep.picRole}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-slate-300">
+                          <span className="text-slate-500">Langkah Berikutnya:</span>
+                          <span className="font-semibold text-slate-200">
+                            {detailStep.nextStepName}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contextual Action Bar (Tombol Cepat Langsung) */}
+                    {activeItem.status === "PENGAJUAN" && (isManager || isAdmin) && (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-bold text-amber-900">
+                            Tindakan Supervisi Diperlukan (MIS Manager):
+                          </p>
+                          <p className="text-[11px] text-amber-700 mt-0.5">
+                            Permintaan ini masih di Step 1. Klik tombol di samping untuk menyetujui atau menolak.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsDetailModalOpen(false);
+                            setIsManagerModalOpen(true);
+                          }}
+                          className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 shrink-0 cursor-pointer"
+                        >
+                          <ShieldCheck className="w-4 h-4" />
+                          <span>Putuskan Persetujuan</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {activeItem.status === "DISETUJUI_MANAGER" && (isProcurement || isAdmin) && (
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-bold text-blue-900">
+                            Tindakan Tim Procurement (Step 2):
+                          </p>
+                          <p className="text-[11px] text-blue-700 mt-0.5">
+                            Pengajuan telah disetujui Manager. Silakan input nomor CAPEX & toko pembelian.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsDetailModalOpen(false);
+                            setIsProcOrderModalOpen(true);
+                          }}
+                          className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 shrink-0 cursor-pointer"
+                        >
+                          <Store className="w-4 h-4" />
+                          <span>Input CAPEX & Toko</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {activeItem.status === "PROSES_ORDER" && (isProcurement || isAdmin) && (
+                      <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-bold text-purple-900">
+                            Tindakan Tim Procurement (Step 3):
+                          </p>
+                          <p className="text-[11px] text-purple-700 mt-0.5">
+                            Bila pesanan barang fisik telah tiba di kantor Procurement, konfirmasikan kedatangan.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsDetailModalOpen(false);
+                            setIsArrivedModalOpen(true);
+                          }}
+                          className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 shrink-0 cursor-pointer"
+                        >
+                          <Package className="w-4 h-4" />
+                          <span>Konfirmasi Tiba di Proc</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {activeItem.status === "SUDAH_DATANG" && (isProcurement || isAdmin) && (
+                      <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-bold text-indigo-900">
+                            Tindakan Tim Procurement (Step 4):
+                          </p>
+                          <p className="text-[11px] text-indigo-700 mt-0.5">
+                            Barang sudah lulus QC. Siapkan data pengiriman kurir menuju lokasi toko / terminal.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsDetailModalOpen(false);
+                            setIsShipModalOpen(true);
+                          }}
+                          className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 shrink-0 cursor-pointer"
+                        >
+                          <Truck className="w-4 h-4" />
+                          <span>Proses Kirim ke Lokasi</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {activeItem.status === "SIAP_KIRIM_T3" && (isMIS || isAdmin) && (
+                      <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-bold text-emerald-900">
+                            Tindakan Tim MIS OPS (Step 5):
+                          </p>
+                          <p className="text-[11px] text-emerald-700 mt-0.5">
+                            Fisik barang telah tiba di lokasi. Konfirmasi penerimaan dan pasang ke sistem POS toko.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsDetailModalOpen(false);
+                            setIsReceiveModalOpen(true);
+                          }}
+                          className="px-3.5 py-1.5 bg-[#006622] hover:bg-[#00521b] text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 shrink-0 cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Konfirmasi Terima & Pasang</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-black ${
-                      getStatusObj(activeItem.status).bg
-                    } ${getStatusObj(activeItem.status).color} border`}
-                  >
-                    {getStatusObj(activeItem.status).badgeLabel}
-                  </span>
-                </div>
+                );
+              })()}
+
+              <div className="mt-4 space-y-4 text-xs">
 
                 {/* Section 1: Pengajuan MIS OPS */}
                 <div className="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/80 space-y-2">
