@@ -406,50 +406,36 @@ function OfficeContent() {
     );
   };
 
-  // Helper: Format Storage (SSD vs HDD)
-  const formatStorageDisplay = (hardDrive?: string, usedDisk1?: string, usedDisk2?: string) => {
-    if (!hardDrive || hardDrive === "-") return <span className="text-slate-300 select-none font-mono">—</span>;
+  // Helper: Parse Storage (SSD vs HDD)
+  const parseStorage = (hardDrive?: string) => {
+    if (!hardDrive || hardDrive === "-") return { ssd: null, hdd: null };
 
     const parts = hardDrive.split(/\s*[\/,]\s*(?=\()/).length > 1
       ? hardDrive.split(/\s*[\/,]\s*(?=\()/)
       : hardDrive.split(/\s*\/\s*/);
 
-    return (
-      <div className="space-y-1">
-        <div className="flex flex-col gap-1">
-          {parts.map((p, idx) => {
-            const isSsd = p.toUpperCase().includes("SSD");
-            const isHdd = p.toUpperCase().includes("HDD");
-            const cleaned = p.replace(/\((SSD|HDD)\)/gi, "").trim();
+    let ssd: string | null = null;
+    let hdd: string | null = null;
 
-            return (
-              <div
-                key={idx}
-                className={`flex items-center gap-1.5 text-[10.5px] px-1.5 py-0.5 rounded border max-w-fit shadow-2xs ${
-                  isSsd
-                    ? "bg-blue-50/90 border-blue-200 text-blue-900 font-semibold"
-                    : isHdd
-                    ? "bg-amber-50/90 border-amber-200 text-amber-900 font-semibold"
-                    : "bg-slate-50 border-slate-200 text-slate-800 font-medium"
-                }`}
-              >
-                <HardDrive className={`w-3 h-3 shrink-0 ${isSsd ? "text-blue-600" : isHdd ? "text-amber-600" : "text-slate-500"}`} />
-                <span className={`text-[8.5px] font-black uppercase px-1 rounded ${isSsd ? "bg-blue-600 text-white" : isHdd ? "bg-amber-600 text-white" : "bg-slate-600 text-white"}`}>
-                  {isSsd ? "SSD" : isHdd ? "HDD" : "DRV"}
-                </span>
-                <span className="truncate max-w-[140px] font-mono text-[10px]" title={cleaned}>{cleaned}</span>
-              </div>
-            );
-          })}
-        </div>
-        {((usedDisk1 && usedDisk1 !== "-") || (usedDisk2 && usedDisk2 !== "-")) && (
-          <div className="text-[9px] text-slate-500 font-mono tracking-tight pt-0.5">
-            {usedDisk1 && usedDisk1 !== "-" && <span>C: <strong className="text-slate-700">{usedDisk1}</strong></span>}
-            {usedDisk2 && usedDisk2 !== "-" && <span> • D: <strong className="text-slate-700">{usedDisk2}</strong></span>}
-          </div>
-        )}
-      </div>
-    );
+    parts.forEach((p) => {
+      const isSsd = p.toUpperCase().includes("SSD");
+      const isHdd = p.toUpperCase().includes("HDD");
+      const cleaned = p.replace(/\((SSD|HDD)\)/gi, "").trim();
+
+      if (isSsd) {
+        ssd = cleaned;
+      } else if (isHdd) {
+        hdd = cleaned;
+      } else {
+        if (/lexar|adata|v[\s-]?gen|kingston|samsung|nvme|m\.2/i.test(p)) {
+          ssd = cleaned;
+        } else {
+          hdd = cleaned;
+        }
+      }
+    });
+
+    return { ssd, hdd };
   };
 
   // Helper: Format Processor Display
@@ -786,7 +772,7 @@ function OfficeContent() {
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse table-fixed text-[11px] min-w-[1720px]">
+              <table className="w-full text-left border-collapse table-fixed text-[11px] min-w-[1890px]">
                 <colgroup>
                   {/* 1. No: 40px */}
                   <col className="w-[40px]" />
@@ -806,21 +792,23 @@ function OfficeContent() {
                   <col className="w-[155px]" />
                   {/* 9. RAM: 95px */}
                   <col className="w-[95px]" />
-                  {/* 10. Storage: 165px */}
-                  <col className="w-[165px]" />
-                  {/* 11. Monitor: 125px */}
-                  <col className="w-[125px]" />
-                  {/* 12. Printer: 135px */}
+                  {/* 10. Storage (SSD): 135px */}
                   <col className="w-[135px]" />
-                  {/* 13. Keyboard: 110px */}
+                  {/* 11. Storage (HDD): 135px */}
+                  <col className="w-[135px]" />
+                  {/* 12. Monitor: 125px */}
+                  <col className="w-[125px]" />
+                  {/* 13. Printer: 135px */}
+                  <col className="w-[135px]" />
+                  {/* 14. Keyboard: 110px */}
                   <col className="w-[110px]" />
-                  {/* 14. Mouse: 110px */}
+                  {/* 15. Mouse: 110px */}
                   <col className="w-[110px]" />
-                  {/* 15. IP & Jaringan: 140px */}
+                  {/* 16. IP & Jaringan: 140px */}
                   <col className="w-[140px]" />
-                  {/* 16. Status: 95px */}
+                  {/* 17. Status: 95px */}
                   <col className="w-[95px]" />
-                  {/* 17. Aksi: 85px */}
+                  {/* 18. Aksi: 85px */}
                   <col className="w-[85px]" />
                 </colgroup>
                 <thead>
@@ -836,7 +824,7 @@ function OfficeContent() {
                       </div>
                     </th>
                     <th
-                      colSpan={4}
+                      colSpan={5}
                       className="py-2.5 px-3 bg-indigo-50/90 text-indigo-900 border-b border-r border-indigo-200/80 text-left"
                     >
                       <div className="flex items-center gap-1.5">
@@ -880,7 +868,8 @@ function OfficeContent() {
                     <th className="py-2 px-3 border-r border-slate-200/60">Processor</th>
                     <th className="py-2 px-2.5 border-r border-slate-200/60">Motherboard</th>
                     <th className="py-2 px-2.5 border-r border-slate-200/60">RAM</th>
-                    <th className="py-2 px-3 border-r border-slate-200/60">Storage (SSD/HDD)</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Storage (SSD)</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Storage (HDD)</th>
                     <th className="py-2 px-2.5 border-r border-slate-200/60">Monitor</th>
                     <th className="py-2 px-2.5 border-r border-slate-200/60">Printer</th>
                     <th className="py-2 px-2.5 border-r border-slate-200/60">Keyboard</th>
@@ -974,9 +963,48 @@ function OfficeContent() {
                           {formatRamDisplay(item.ram)}
                         </td>
 
-                        {/* 10. Storage */}
-                        <td className="py-3 px-3 align-top border-r border-slate-100">
-                          {formatStorageDisplay(item.hard_drive, item.used_disk1, item.used_disk2)}
+                        {/* 10. Storage (SSD) */}
+                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
+                          {(() => {
+                            const { ssd } = parseStorage(item.hard_drive);
+                            if (!ssd) return <span className="text-slate-300 font-mono select-none">—</span>;
+                            return (
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1.5 text-[10.5px] px-2 py-0.5 rounded border border-blue-200/90 bg-blue-50/90 text-blue-900 font-bold max-w-fit shadow-2xs">
+                                  <HardDrive className="w-3 h-3 text-blue-600 shrink-0" />
+                                  <span className="text-[8.5px] font-black uppercase px-1 rounded bg-blue-600 text-white">SSD</span>
+                                  <span className="truncate max-w-[105px] font-mono text-[10px]" title={ssd}>{ssd}</span>
+                                </div>
+                                {item.used_disk1 && item.used_disk1 !== "-" && (
+                                  <div className="text-[9px] text-slate-500 font-mono tracking-tight pt-0.5">
+                                    C: <strong className="text-slate-700">{item.used_disk1}</strong>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </td>
+
+                        {/* 11. Storage (HDD) */}
+                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
+                          {(() => {
+                            const { hdd } = parseStorage(item.hard_drive);
+                            if (!hdd) return <span className="text-slate-300 font-mono select-none">—</span>;
+                            return (
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1.5 text-[10.5px] px-2 py-0.5 rounded border border-amber-200/90 bg-amber-50/90 text-amber-900 font-bold max-w-fit shadow-2xs">
+                                  <HardDrive className="w-3 h-3 text-amber-600 shrink-0" />
+                                  <span className="text-[8.5px] font-black uppercase px-1 rounded bg-amber-600 text-white">HDD</span>
+                                  <span className="truncate max-w-[105px] font-mono text-[10px]" title={hdd}>{hdd}</span>
+                                </div>
+                                {item.used_disk2 && item.used_disk2 !== "-" && (
+                                  <div className="text-[9px] text-slate-500 font-mono tracking-tight pt-0.5">
+                                    D: <strong className="text-slate-700">{item.used_disk2}</strong>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </td>
 
                         {/* 11. Monitor */}
