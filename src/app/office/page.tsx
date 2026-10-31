@@ -786,30 +786,46 @@ function OfficeContent() {
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse table-fixed text-[11px]">
+              <table className="w-full text-left border-collapse table-fixed text-[11px] min-w-[1720px]">
                 <colgroup>
-                  {/* No: 3% */}
-                  <col className="w-[3%]" />
-                  {/* Divisi & Pengguna: 18% */}
-                  <col className="w-[18%]" />
-                  {/* Hardware & Mobo: 21% */}
-                  <col className="w-[21%]" />
-                  {/* Storage & RAM: 19% */}
-                  <col className="w-[19%]" />
-                  {/* Periferal & Monitor: 16% */}
-                  <col className="w-[16%]" />
-                  {/* IP & Jaringan: 11% */}
-                  <col className="w-[11%]" />
-                  {/* Status: 6% */}
-                  <col className="w-[6%]" />
-                  {/* Aksi: 6% */}
-                  <col className="w-[6%]" />
+                  {/* 1. No: 40px */}
+                  <col className="w-[40px]" />
+                  {/* 2. Divisi: 105px */}
+                  <col className="w-[105px]" />
+                  {/* 3. Kode Aset: 95px */}
+                  <col className="w-[95px]" />
+                  {/* 4. Nama Pengguna: 140px */}
+                  <col className="w-[140px]" />
+                  {/* 5. Lokasi Kantor: 120px */}
+                  <col className="w-[120px]" />
+                  {/* 6. OS: 110px */}
+                  <col className="w-[110px]" />
+                  {/* 7. Processor: 185px */}
+                  <col className="w-[185px]" />
+                  {/* 8. Motherboard: 155px */}
+                  <col className="w-[155px]" />
+                  {/* 9. RAM: 95px */}
+                  <col className="w-[95px]" />
+                  {/* 10. Storage: 165px */}
+                  <col className="w-[165px]" />
+                  {/* 11. Monitor: 125px */}
+                  <col className="w-[125px]" />
+                  {/* 12. Printer: 135px */}
+                  <col className="w-[135px]" />
+                  {/* 13. Keyboard & Mouse: 130px */}
+                  <col className="w-[130px]" />
+                  {/* 14. IP & Jaringan: 140px */}
+                  <col className="w-[140px]" />
+                  {/* 15. Status: 95px */}
+                  <col className="w-[95px]" />
+                  {/* 16. Aksi: 85px */}
+                  <col className="w-[85px]" />
                 </colgroup>
                 <thead>
                   {/* Tier 1: Category Header Groups */}
                   <tr className="uppercase font-black text-[10px] tracking-wider select-none">
                     <th
-                      colSpan={2}
+                      colSpan={6}
                       className="py-2.5 px-3 bg-blue-50/90 text-blue-900 border-b border-r border-blue-200/80 text-left"
                     >
                       <div className="flex items-center gap-1.5">
@@ -818,6 +834,7 @@ function OfficeContent() {
                       </div>
                     </th>
                     <th
+                      colSpan={4}
                       className="py-2.5 px-3 bg-indigo-50/90 text-indigo-900 border-b border-r border-indigo-200/80 text-left"
                     >
                       <div className="flex items-center gap-1.5">
@@ -826,27 +843,21 @@ function OfficeContent() {
                       </div>
                     </th>
                     <th
-                      className="py-2.5 px-3 bg-sky-50/90 text-sky-900 border-b border-r border-sky-200/80 text-left"
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <HardDrive className="w-3.5 h-3.5 text-sky-600" />
-                        <span>Storage & Kapasitas Drive</span>
-                      </div>
-                    </th>
-                    <th
+                      colSpan={3}
                       className="py-2.5 px-3 bg-emerald-50/90 text-emerald-900 border-b border-r border-emerald-200/80 text-left"
                     >
                       <div className="flex items-center gap-1.5">
                         <Monitor className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Periferal & Monitor</span>
+                        <span>Periferal & Aksesori</span>
                       </div>
                     </th>
                     <th
+                      colSpan={1}
                       className="py-2.5 px-3 bg-amber-50/90 text-amber-900 border-b border-r border-amber-200/80 text-left"
                     >
                       <div className="flex items-center gap-1.5">
                         <Activity className="w-3.5 h-3.5 text-amber-600" />
-                        <span>IP Address & VPN</span>
+                        <span>IP & Jaringan VPN</span>
                       </div>
                     </th>
                     <th
@@ -858,13 +869,21 @@ function OfficeContent() {
                   </tr>
                   {/* Tier 2: Column Sub-headers */}
                   <tr className="bg-slate-50/95 border-b border-slate-200 text-slate-600 font-bold text-[10px] tracking-wider uppercase select-none">
-                    <th className="py-2 px-2.5 text-center border-r border-slate-200/60">No</th>
-                    <th className="py-2 px-3 border-r border-slate-200/60">Divisi & User</th>
-                    <th className="py-2 px-3 border-r border-slate-200/60">Processor & Motherboard</th>
-                    <th className="py-2 px-3 border-r border-slate-200/60">RAM & Penyimpanan</th>
-                    <th className="py-2 px-3 border-r border-slate-200/60">Monitor & Printer</th>
-                    <th className="py-2 px-3 border-r border-slate-200/60">IP & Hostname</th>
-                    <th className="py-2 px-2.5 text-center border-r border-slate-200/60">Status</th>
+                    <th className="py-2 px-2 text-center border-r border-slate-200/60">No</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Divisi</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Kode Aset</th>
+                    <th className="py-2 px-3 border-r border-slate-200/60">Nama Pengguna</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Lokasi Kantor</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Sistem Operasi (OS)</th>
+                    <th className="py-2 px-3 border-r border-slate-200/60">Processor</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Motherboard</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">RAM</th>
+                    <th className="py-2 px-3 border-r border-slate-200/60">Storage (SSD/HDD)</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Monitor</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Printer</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Keyboard & Mouse</th>
+                    <th className="py-2 px-3 border-r border-slate-200/60">IP Address</th>
+                    <th className="py-2 px-2 text-center border-r border-slate-200/60">Status</th>
                     <th className="py-2 px-2.5 text-right">Aksi</th>
                   </tr>
                 </thead>
@@ -873,85 +892,135 @@ function OfficeContent() {
                     const isCopied = copiedKey === `ip-${item.id}`;
                     return (
                       <tr key={item.id} className="hover:bg-blue-50/30 transition-colors group">
-                        {/* No */}
-                        <td className="py-3 px-2.5 text-center font-mono font-bold text-slate-400 text-xs align-top border-r border-slate-100">
+                        {/* 1. No */}
+                        <td className="py-3 px-2 text-center font-mono font-bold text-slate-400 text-xs align-top border-r border-slate-100">
                           {String(item.item_no || idx + 1).padStart(2, "0")}
                         </td>
 
-                        {/* Divisi & User */}
+                        {/* 2. Divisi */}
+                        <td className="py-3 px-2.5 align-top border-r border-slate-100 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border shadow-2xs inline-block ${getDivisionBadge(item.division)}`}>
+                            {item.division}
+                          </span>
+                        </td>
+
+                        {/* 3. Kode Aset */}
+                        <td className="py-3 px-2.5 align-top border-r border-slate-100 whitespace-nowrap">
+                          <span className="font-mono text-[10.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs inline-block">
+                            {item.asset_code}
+                          </span>
+                        </td>
+
+                        {/* 4. Nama Pengguna */}
                         <td className="py-3 px-3 align-top border-r border-slate-100">
-                          <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border shadow-2xs ${getDivisionBadge(item.division)}`}>
-                              {item.division}
-                            </span>
-                            <span className="font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs">
-                              {item.asset_code}
-                            </span>
-                          </div>
-                          <div className="font-black text-slate-900 text-sm flex items-center gap-1.5 leading-tight tracking-tight">
+                          <div className="font-black text-slate-900 text-xs flex items-center gap-1.5 leading-tight tracking-tight">
                             <span>{item.user_name}</span>
                             {item.device_type === "ROUTER" && (
-                              <span className="px-1.5 py-0.5 bg-orange-100 text-orange-800 border border-orange-200 text-[9px] rounded font-bold">ROUTER</span>
+                              <span className="px-1.5 py-0.2 bg-orange-100 text-orange-800 border border-orange-200 text-[8.5px] rounded font-bold">ROUTER</span>
                             )}
                             {item.device_type === "PABX" && (
-                              <span className="px-1.5 py-0.5 bg-purple-100 text-purple-800 border border-purple-200 text-[9px] rounded font-bold">PABX</span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            {item.os && item.os !== "-" && (
-                              <span className="text-[9.5px] text-slate-500 font-semibold flex items-center gap-1 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60">
-                                <Laptop className="w-2.5 h-2.5 text-slate-400" />
-                                {item.os}
-                              </span>
-                            )}
-                            {item.office_location && (
-                              <span className="text-[9.5px] text-slate-400 font-medium">
-                                {item.office_location}
-                              </span>
+                              <span className="px-1.5 py-0.2 bg-purple-100 text-purple-800 border border-purple-200 text-[8.5px] rounded font-bold">PABX</span>
                             )}
                           </div>
                         </td>
 
-                        {/* Hardware & Spec */}
-                        <td className="py-3 px-3 align-top border-r border-slate-100">
-                          {formatProcessorDisplay(item.processor, item.motherboard)}
+                        {/* 5. Lokasi Kantor */}
+                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
+                          <span className="text-[10px] text-slate-600 font-medium">
+                            {item.office_location || "Head Office"}
+                          </span>
                         </td>
 
-                        {/* RAM & Storage */}
-                        <td className="py-3 px-3 align-top border-r border-slate-100 space-y-1.5">
-                          {item.ram && item.ram !== "-" && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">RAM:</span>
-                              {formatRamDisplay(item.ram)}
-                            </div>
+                        {/* 6. OS */}
+                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
+                          {item.os && item.os !== "-" ? (
+                            <span className="text-[9.5px] text-slate-600 font-semibold flex items-center gap-1 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 max-w-fit">
+                              <Laptop className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                              <span className="truncate">{item.os}</span>
+                            </span>
+                          ) : (
+                            <span className="text-slate-300 font-mono select-none">—</span>
                           )}
+                        </td>
+
+                        {/* 7. Processor */}
+                        <td className="py-3 px-3 align-top border-r border-slate-100">
+                          {item.processor && item.processor !== "-" ? (
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900" title={item.processor}>
+                              <Cpu className={`w-3.5 h-3.5 shrink-0 ${item.processor.toLowerCase().includes("intel") ? "text-blue-600" : item.processor.toLowerCase().includes("amd") ? "text-rose-600" : "text-indigo-600"}`} />
+                              <span className="truncate">{item.processor}</span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-300 font-mono select-none">—</span>
+                          )}
+                        </td>
+
+                        {/* 8. Motherboard */}
+                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
+                          {item.motherboard && item.motherboard !== "-" ? (
+                            <span className="text-[10.5px] text-slate-700 font-semibold block truncate" title={item.motherboard}>
+                              {item.motherboard}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300 font-mono select-none">—</span>
+                          )}
+                        </td>
+
+                        {/* 9. RAM */}
+                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
+                          {formatRamDisplay(item.ram)}
+                        </td>
+
+                        {/* 10. Storage */}
+                        <td className="py-3 px-3 align-top border-r border-slate-100">
                           {formatStorageDisplay(item.hard_drive, item.used_disk1, item.used_disk2)}
                         </td>
 
-                        {/* Peripheral & Monitor */}
-                        <td className="py-3 px-3 align-top border-r border-slate-100">
-                          <div className="space-y-1.5">
-                            {item.monitor && item.monitor !== "-" && (
-                              <div className="flex items-center gap-1.5 text-xs text-slate-800 font-bold" title={item.monitor}>
-                                <Monitor className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                                <span className="truncate">{item.monitor}</span>
-                              </div>
-                            )}
-                            {item.printer && item.printer !== "-" && (
-                              <div className="flex items-center gap-1.5 text-[10.5px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/90 max-w-fit shadow-2xs">
-                                <Printer className="w-3 h-3 text-emerald-600 shrink-0" />
-                                <span className="truncate max-w-[150px]" title={item.printer}>{item.printer}</span>
-                              </div>
-                            )}
-                            {(item.keyboard && item.keyboard !== "-") && (
-                              <div className="text-[9.5px] text-slate-400 truncate">
-                                KB: {item.keyboard} {item.mouse && item.mouse !== "-" ? `• Mouse: ${item.mouse}` : ""}
-                              </div>
-                            )}
-                          </div>
+                        {/* 11. Monitor */}
+                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
+                          {item.monitor && item.monitor !== "-" ? (
+                            <div className="flex items-center gap-1.5 text-[10.5px] text-slate-800 font-bold" title={item.monitor}>
+                              <Monitor className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                              <span className="truncate">{item.monitor}</span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-300 font-mono select-none">—</span>
+                          )}
                         </td>
 
-                        {/* IP Address & Network */}
+                        {/* 12. Printer */}
+                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
+                          {item.printer && item.printer !== "-" ? (
+                            <div className="flex items-center gap-1.5 text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/90 max-w-fit shadow-2xs" title={item.printer}>
+                              <Printer className="w-3 h-3 text-emerald-600 shrink-0" />
+                              <span className="truncate max-w-[110px]">{item.printer}</span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-300 font-mono select-none">—</span>
+                          )}
+                        </td>
+
+                        {/* 13. Keyboard & Mouse */}
+                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
+                          {(item.keyboard && item.keyboard !== "-") || (item.mouse && item.mouse !== "-") ? (
+                            <div className="text-[10px] text-slate-600 font-medium space-y-0.5">
+                              {item.keyboard && item.keyboard !== "-" && (
+                                <div className="truncate" title={`KB: ${item.keyboard}`}>
+                                  <span className="text-slate-400 font-bold">KB:</span> {item.keyboard}
+                                </div>
+                              )}
+                              {item.mouse && item.mouse !== "-" && (
+                                <div className="truncate" title={`M: ${item.mouse}`}>
+                                  <span className="text-slate-400 font-bold">M:</span> {item.mouse}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-300 font-mono select-none">—</span>
+                          )}
+                        </td>
+
+                        {/* 14. IP Address & Hostname */}
                         <td className="py-3 px-3 align-top border-r border-slate-100 whitespace-nowrap">
                           {item.ip_address && item.ip_address !== "-" && item.ip_address.startsWith("172.") ? (
                             <div className="space-y-1">
@@ -970,7 +1039,7 @@ function OfficeContent() {
                                 </button>
                               </div>
                               {item.notes && (
-                                <span className="text-[10px] text-slate-500 font-medium block truncate max-w-[150px]" title={item.notes}>
+                                <span className="text-[9.5px] text-slate-500 font-medium block truncate max-w-[130px]" title={item.notes}>
                                   {item.notes}
                                 </span>
                               )}
@@ -979,7 +1048,7 @@ function OfficeContent() {
                             <div className="space-y-0.5">
                               <span className="text-[11px] text-slate-400 font-mono select-none">—</span>
                               {item.notes && (
-                                <span className="text-[10px] text-slate-400 block truncate max-w-[150px]" title={item.notes}>
+                                <span className="text-[9.5px] text-slate-400 block truncate max-w-[130px]" title={item.notes}>
                                   {item.notes}
                                 </span>
                               )}
@@ -987,8 +1056,8 @@ function OfficeContent() {
                           )}
                         </td>
 
-                        {/* Status */}
-                        <td className="py-3 px-2.5 text-center align-top whitespace-nowrap border-r border-slate-100">
+                        {/* 15. Status */}
+                        <td className="py-3 px-2 text-center align-top whitespace-nowrap border-r border-slate-100">
                           <StatusBadge
                             status={item.status}
                             label={
@@ -1007,15 +1076,15 @@ function OfficeContent() {
                             }
                             className={
                               item.status === "CADANGAN"
-                                ? "bg-amber-50 text-amber-800 border-amber-200 font-bold px-2.5 py-0.5 shadow-2xs"
+                                ? "bg-amber-50 text-amber-800 border-amber-200 font-bold px-2 py-0.5 shadow-2xs text-[9.5px]"
                                 : item.status === "OPERASIONAL"
-                                ? "bg-emerald-50 text-[#006622] border-emerald-200/90 font-bold px-2.5 py-0.5 shadow-2xs"
-                                : "px-2.5 py-0.5 shadow-2xs"
+                                ? "bg-emerald-50 text-[#006622] border-emerald-200/90 font-bold px-2 py-0.5 shadow-2xs text-[9.5px]"
+                                : "px-2 py-0.5 shadow-2xs text-[9.5px]"
                             }
                           />
                         </td>
 
-                        {/* Actions */}
+                        {/* 16. Actions */}
                         <td className="py-3 px-2.5 text-right align-top whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1">
                             <button
