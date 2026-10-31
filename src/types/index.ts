@@ -127,6 +127,7 @@ export interface PosHardwareAsset {
   cash_drawer?: string;
   monitor?: string;
   os_version?: string;
+  ups?: string;
   status: 'OPERASIONAL' | 'RUSAK' | 'PERBAIKAN' | 'CADANGAN';
   notes?: string;
   anydesk_id?: string;
@@ -194,6 +195,7 @@ export interface OfficeHardwareAsset {
   keyboard?: string;
   mouse?: string;
   printer?: string;
+  ups?: string;
   ip_address?: string;
   device_type?: 'PC' | 'PRINTER' | 'ROUTER' | 'PABX' | 'FACILITY' | 'UPS' | string;
   status: 'OPERASIONAL' | 'RUSAK' | 'PERBAIKAN' | 'CADANGAN';

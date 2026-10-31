@@ -122,6 +122,7 @@ function AssetsContent() {
     cash_drawer: "PANDA",
     monitor: "-",
     os_version: "WINDOWS 7 EMBEDDED STANDARD SP1 64BIT",
+    ups: "-",
     status: "OPERASIONAL",
     notes: "",
   });
@@ -975,6 +976,7 @@ function AssetsContent() {
       cash_drawer: defaultShop === "SAM" ? "VSC" : "PANDA",
       monitor: "-",
       os_version: defaultShop === "SAM" ? "WINDOWS 10 PRO SP1 64BIT" : "WINDOWS 7 EMBEDDED STANDARD SP1 64BIT",
+      ups: "-",
       status: "OPERASIONAL",
       notes: "",
     });
@@ -2355,6 +2357,16 @@ function AssetsContent() {
                       value={posFormData.cash_drawer || ""}
                       onChange={(e) => setPosFormData({ ...posFormData, cash_drawer: e.target.value })}
                       placeholder="PANDA"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-500 block">UPS Power Backup:</label>
+                    <input
+                      type="text"
+                      value={posFormData.ups || ""}
+                      onChange={(e) => setPosFormData({ ...posFormData, ups: e.target.value })}
+                      placeholder="APC Smart-UPS 1500VA / ICA 1200VA / -"
                       className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
                     />
                   </div>

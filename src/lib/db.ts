@@ -37,6 +37,25 @@ export async function initDb() {
     // Kolom sudah ada
   }
 
+  // Kolom UPS Power Backup
+  try {
+    await db.execute("ALTER TABLE pos_hardware_assets ADD COLUMN ups TEXT DEFAULT '-';");
+  } catch (e) {}
+
+  try {
+    await db.execute("ALTER TABLE office_hardware_assets ADD COLUMN ups TEXT DEFAULT '-';");
+  } catch (e) {}
+
+  // Update unit POS terpilih yang menggunakan UPS (misal Counter T3 DF2, DF4, DF7) jika belum diset
+  try {
+    await db.execute(`
+      UPDATE pos_hardware_assets 
+      SET ups = 'APC Smart-UPS 1500VA LCD' 
+      WHERE (pos_code LIKE '%DFD02%' OR pos_code LIKE '%DFD04%' OR pos_code LIKE '%DFD07%') 
+        AND (ups IS NULL OR ups = '-' OR ups = '');
+    `);
+  } catch (e) {}
+
   // Kolom integrasi Pembelian & Penggantian Hardware POS
   try {
     await db.execute("ALTER TABLE purchases ADD COLUMN component_type TEXT DEFAULT '-';");

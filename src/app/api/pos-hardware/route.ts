@@ -48,6 +48,7 @@ export async function GET(request: Request) {
         p.cash_drawer,
         p.monitor,
         p.os_version,
+        COALESCE(NULLIF(p.ups, ''), '-') as ups,
         p.status,
         p.notes,
         p.created_at,
@@ -177,6 +178,7 @@ export async function POST(request: Request) {
       cash_drawer = "PANDA",
       monitor = "-",
       os_version = "WINDOWS 7 EMBEDDED STANDARD SP1 64BIT",
+      ups = "-",
       status = "OPERASIONAL",
       notes = "",
     } = body;
@@ -192,13 +194,13 @@ export async function POST(request: Request) {
               pos_number, counter_no, pos_code, shop_name, terminal, counter_zone, store_alias,
               ip_address, pos_brand, pos_sn, processor, ram, ssd, tsigunta_version,
               passport_scanner, barcode_scanner, printer, fingerprint_scanner,
-              keyboard, mouse, cash_drawer, monitor, os_version, status, notes
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              keyboard, mouse, cash_drawer, monitor, os_version, ups, status, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         pos_number || 99, counter_no, pos_code, shop_name, terminal, counter_zone, store_alias,
         ip_address, pos_brand, pos_sn, processor, ram, ssd, tsigunta_version,
         passport_scanner, barcode_scanner, printer, fingerprint_scanner,
-        keyboard, mouse, cash_drawer, monitor, os_version, status, notes
+        keyboard, mouse, cash_drawer, monitor, os_version, ups, status, notes
       ],
     });
 

@@ -47,6 +47,7 @@ import {
   CreditCard,
   Archive,
   Calendar,
+  Zap,
 } from "lucide-react";
 
 // Tipe representasi Komponen ID Barang terpadu
@@ -66,6 +67,7 @@ export interface UnifiedComponentItem {
     | "PASSPORT_READER"
     | "CASH_DRAWER"
     | "OS"
+    | "UPS"
     | "OTHER";
   componentTypeName: string;
   model: string;
@@ -145,6 +147,8 @@ function getComponentIcon(type: UnifiedComponentItem["componentType"]) {
       return Archive;
     case "OS":
       return ShieldCheck;
+    case "UPS":
+      return Zap;
     default:
       return Tag;
   }
@@ -178,6 +182,8 @@ function getComponentTypeBadgeColor(type: UnifiedComponentItem["componentType"])
       return "bg-yellow-50 text-yellow-800 border-yellow-200";
     case "OS":
       return "bg-emerald-50 text-[#006622] border-emerald-200";
+    case "UPS":
+      return "bg-amber-50 text-amber-900 border-amber-300 font-extrabold";
     default:
       return "bg-slate-50 text-slate-700 border-slate-200";
   }
@@ -456,6 +462,27 @@ function AssetComponentsContent() {
         });
       }
 
+      // UPS / Power Backup
+      if (item.ups && item.ups !== "-" && item.ups.trim() !== "") {
+        comps.push({
+          id: `UPS-${seq}`,
+          componentType: "UPS",
+          componentTypeName: "UPS / Power Backup",
+          model: item.ups,
+          parentAssetCode: assetCode,
+          parentType: "OFFICE",
+          parentTitle: user,
+          location,
+          subLocation: div,
+          ipAddress: item.ip_address,
+          status,
+          price: "Rp 2.450.000",
+          purchasedFrom: "APC Schneider Electric Indonesia",
+          purchaseDate: dateStr,
+          lastUpdate: updStr,
+        });
+      }
+
       list.push({
         assetCode,
         setCategory: "OFFICE",
@@ -690,6 +717,27 @@ function AssetComponentsContent() {
           status,
           price: "Rp 2.150.000",
           purchasedFrom: "Microsoft OEM Partner",
+          purchaseDate: dateStr,
+          lastUpdate: updStr,
+        });
+      }
+
+      // UPS / Power Backup (Hanya bagi unit POS yang menggunakan UPS)
+      if (pos.ups && pos.ups !== "-" && pos.ups.trim() !== "") {
+        comps.push({
+          id: `UPS-${seq}`,
+          componentType: "UPS",
+          componentTypeName: "UPS / Power Backup",
+          model: pos.ups,
+          parentAssetCode: assetCode,
+          parentType: "POS",
+          parentTitle: pos.pos_code,
+          location,
+          subLocation: shopName,
+          ipAddress: pos.ip_address,
+          status,
+          price: "Rp 3.850.000",
+          purchasedFrom: "APC by Schneider Electric Official",
           purchaseDate: dateStr,
           lastUpdate: updStr,
         });
@@ -1068,12 +1116,12 @@ function AssetComponentsContent() {
             labelClassName="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
             value={
               <>
-                {allComponents.filter((c) => ["MONITOR", "PRINTER", "KEYBOARD", "MOUSE", "BARCODE_SCANNER", "PASSPORT_READER", "CASH_DRAWER"].includes(c.componentType)).length}{" "}
+                {allComponents.filter((c) => ["MONITOR", "PRINTER", "KEYBOARD", "MOUSE", "BARCODE_SCANNER", "PASSPORT_READER", "CASH_DRAWER", "UPS"].includes(c.componentType)).length}{" "}
                 <span className="text-xs font-normal text-slate-400">Unit</span>
               </>
             }
             valueClassName="text-2xl text-amber-600 mt-0.5 font-black"
-            hint="Monitor, Printer & Aksesori"
+            hint="Monitor, Printer, UPS & Aksesori"
             hintClassName="text-[10.5px] text-slate-500 mt-0.5"
             icon={Monitor}
             iconWrapperClassName="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center font-bold"
@@ -1169,6 +1217,7 @@ function AssetComponentsContent() {
                 <option value="PASSPORT_READER">Passport Reader (PAS-xxx)</option>
                 <option value="CASH_DRAWER">Cash Drawer (DRW-xxx)</option>
                 <option value="OS">Lisensi OS (LIC-xxx)</option>
+                <option value="UPS">UPS / Power Backup (UPS-xxx)</option>
               </select>
 
               {/* Status Dropdown */}
