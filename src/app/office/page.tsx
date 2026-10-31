@@ -812,13 +812,15 @@ function OfficeContent() {
                   <col className="w-[125px]" />
                   {/* 12. Printer: 135px */}
                   <col className="w-[135px]" />
-                  {/* 13. Keyboard & Mouse: 130px */}
-                  <col className="w-[130px]" />
-                  {/* 14. IP & Jaringan: 140px */}
+                  {/* 13. Keyboard: 110px */}
+                  <col className="w-[110px]" />
+                  {/* 14. Mouse: 110px */}
+                  <col className="w-[110px]" />
+                  {/* 15. IP & Jaringan: 140px */}
                   <col className="w-[140px]" />
-                  {/* 15. Status: 95px */}
+                  {/* 16. Status: 95px */}
                   <col className="w-[95px]" />
-                  {/* 16. Aksi: 85px */}
+                  {/* 17. Aksi: 85px */}
                   <col className="w-[85px]" />
                 </colgroup>
                 <thead>
@@ -843,7 +845,7 @@ function OfficeContent() {
                       </div>
                     </th>
                     <th
-                      colSpan={3}
+                      colSpan={4}
                       className="py-2.5 px-3 bg-emerald-50/90 text-emerald-900 border-b border-r border-emerald-200/80 text-left"
                     >
                       <div className="flex items-center gap-1.5">
@@ -881,7 +883,8 @@ function OfficeContent() {
                     <th className="py-2 px-3 border-r border-slate-200/60">Storage (SSD/HDD)</th>
                     <th className="py-2 px-2.5 border-r border-slate-200/60">Monitor</th>
                     <th className="py-2 px-2.5 border-r border-slate-200/60">Printer</th>
-                    <th className="py-2 px-2.5 border-r border-slate-200/60">Keyboard & Mouse</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Keyboard</th>
+                    <th className="py-2 px-2.5 border-r border-slate-200/60">Mouse</th>
                     <th className="py-2 px-3 border-r border-slate-200/60">IP Address</th>
                     <th className="py-2 px-2 text-center border-r border-slate-200/60">Status</th>
                     <th className="py-2 px-2.5 text-right">Aksi</th>
@@ -1000,27 +1003,29 @@ function OfficeContent() {
                           )}
                         </td>
 
-                        {/* 13. Keyboard & Mouse */}
+                        {/* 13. Keyboard */}
                         <td className="py-3 px-2.5 align-top border-r border-slate-100">
-                          {(item.keyboard && item.keyboard !== "-") || (item.mouse && item.mouse !== "-") ? (
-                            <div className="text-[10px] text-slate-600 font-medium space-y-0.5">
-                              {item.keyboard && item.keyboard !== "-" && (
-                                <div className="truncate" title={`KB: ${item.keyboard}`}>
-                                  <span className="text-slate-400 font-bold">KB:</span> {item.keyboard}
-                                </div>
-                              )}
-                              {item.mouse && item.mouse !== "-" && (
-                                <div className="truncate" title={`M: ${item.mouse}`}>
-                                  <span className="text-slate-400 font-bold">M:</span> {item.mouse}
-                                </div>
-                              )}
-                            </div>
+                          {item.keyboard && item.keyboard !== "-" ? (
+                            <span className="text-[10px] text-slate-700 font-semibold block truncate" title={item.keyboard}>
+                              {item.keyboard}
+                            </span>
                           ) : (
                             <span className="text-slate-300 font-mono select-none">—</span>
                           )}
                         </td>
 
-                        {/* 14. IP Address & Hostname */}
+                        {/* 14. Mouse */}
+                        <td className="py-3 px-2.5 align-top border-r border-slate-100">
+                          {item.mouse && item.mouse !== "-" ? (
+                            <span className="text-[10px] text-slate-700 font-semibold block truncate" title={item.mouse}>
+                              {item.mouse}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300 font-mono select-none">—</span>
+                          )}
+                        </td>
+
+                        {/* 15. IP Address & Hostname */}
                         <td className="py-3 px-3 align-top border-r border-slate-100 whitespace-nowrap">
                           {item.ip_address && item.ip_address !== "-" && item.ip_address.startsWith("172.") ? (
                             <div className="space-y-1">
