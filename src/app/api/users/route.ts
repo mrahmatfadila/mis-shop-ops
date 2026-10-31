@@ -28,6 +28,19 @@ export async function GET(request: Request) {
       args.push(role);
     }
 
+    const group = searchParams.get("group");
+    if (group === "MIS") {
+      sql += " AND role IN ('ADMIN', 'MIS', 'MANAGER', 'IT_PROCUREMENT')";
+    } else if (group === "SPV_PB_T2") {
+      sql += " AND (role = 'SPV_PLAZABALI_T2' OR (role = 'SPV_PLAZABALI' AND shop_location LIKE '%Terminal 2%'))";
+    } else if (group === "SPV_PB_T3") {
+      sql += " AND (role = 'SPV_PLAZABALI_T3' OR (role = 'SPV_PLAZABALI' AND shop_location LIKE '%Terminal 3%'))";
+    } else if (group === "SPV_SAM_T2") {
+      sql += " AND (role = 'SPV_SAM_T2' OR (role = 'SPV_SAM' AND shop_location LIKE '%Terminal 2%'))";
+    } else if (group === "SPV_SAM_T3") {
+      sql += " AND (role = 'SPV_SAM_T3' OR (role = 'SPV_SAM' AND (shop_location LIKE '%Terminal 3%' OR shop_location = 'SAM')))";
+    }
+
     if (shop) {
       sql += " AND shop_location LIKE ?";
       args.push(`%${shop}%`);

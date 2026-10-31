@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, Fragment } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { User, UserRole } from "@/types";
 import {
@@ -31,66 +31,164 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import AccessDenied from "@/components/AccessDenied";
 
-const ROLE_OPTIONS: { role: UserRole; label: string; desc: string; badge: string }[] = [
+type UserGroupKey = "ALL" | "MIS" | "SPV_PB_T2" | "SPV_PB_T3" | "SPV_SAM_T2" | "SPV_SAM_T3";
+
+interface GroupConfig {
+  key: UserGroupKey;
+  label: string;
+  shortLabel: string;
+  desc: string;
+  color: string;
+  badgeBg: string;
+  badgeText: string;
+  badgeBorder: string;
+  cardBg: string;
+  dotColor: string;
+}
+
+const USER_GROUPS: Record<Exclude<UserGroupKey, "ALL">, GroupConfig> = {
+  MIS: {
+    key: "MIS",
+    label: "MIS (IT, Manager & Procurement)",
+    shortLabel: "MIS",
+    desc: "Admin, MIS OPS, Manager, Procurement",
+    color: "emerald",
+    badgeBg: "bg-emerald-50",
+    badgeText: "text-emerald-800",
+    badgeBorder: "border-emerald-200",
+    cardBg: "from-emerald-50 to-emerald-100/50",
+    dotColor: "bg-emerald-500",
+  },
+  SPV_PB_T2: {
+    key: "SPV_PB_T2",
+    label: "SPV PB T2 (Plaza Bali Terminal 2)",
+    shortLabel: "SPV PB T2",
+    desc: "Supervisor Toko Plaza Bali Bandara Terminal 2",
+    color: "teal",
+    badgeBg: "bg-teal-50",
+    badgeText: "text-teal-800",
+    badgeBorder: "border-teal-200",
+    cardBg: "from-teal-50 to-teal-100/50",
+    dotColor: "bg-teal-500",
+  },
+  SPV_PB_T3: {
+    key: "SPV_PB_T3",
+    label: "SPV PB T3 (Plaza Bali Terminal 3)",
+    shortLabel: "SPV PB T3",
+    desc: "Supervisor Toko Plaza Bali Bandara Terminal 3",
+    color: "cyan",
+    badgeBg: "bg-cyan-50",
+    badgeText: "text-cyan-800",
+    badgeBorder: "border-cyan-200",
+    cardBg: "from-cyan-50 to-cyan-100/50",
+    dotColor: "bg-cyan-500",
+  },
+  SPV_SAM_T2: {
+    key: "SPV_SAM_T2",
+    label: "SPV SAM T2 (Toko SAM Terminal 2)",
+    shortLabel: "SPV SAM T2",
+    desc: "Supervisor Toko SAM Bandara Terminal 2",
+    color: "sky",
+    badgeBg: "bg-sky-50",
+    badgeText: "text-sky-800",
+    badgeBorder: "border-sky-200",
+    cardBg: "from-sky-50 to-sky-100/50",
+    dotColor: "bg-sky-500",
+  },
+  SPV_SAM_T3: {
+    key: "SPV_SAM_T3",
+    label: "SPV SAM T3 (Toko SAM Terminal 3)",
+    shortLabel: "SPV SAM T3",
+    desc: "Supervisor Toko SAM Bandara Terminal 3",
+    color: "indigo",
+    badgeBg: "bg-indigo-50",
+    badgeText: "text-indigo-800",
+    badgeBorder: "border-indigo-200",
+    cardBg: "from-indigo-50 to-indigo-100/50",
+    dotColor: "bg-indigo-500",
+  },
+};
+
+function getUserGroup(u: User): Exclude<UserGroupKey, "ALL"> {
+  if (["ADMIN", "MIS", "MANAGER", "IT_PROCUREMENT"].includes(u.role)) {
+    return "MIS";
+  }
+  if (u.role === "SPV_PLAZABALI_T2" || (u.role.includes("PLAZABALI") && u.shop_location?.includes("Terminal 2"))) {
+    return "SPV_PB_T2";
+  }
+  if (u.role === "SPV_PLAZABALI_T3" || (u.role.includes("PLAZABALI") && (u.shop_location?.includes("Terminal 3") || !u.shop_location?.includes("Terminal 2")))) {
+    return "SPV_PB_T3";
+  }
+  if (u.role === "SPV_SAM_T2" || (u.role.includes("SAM") && u.shop_location?.includes("Terminal 2"))) {
+    return "SPV_SAM_T2";
+  }
+  return "SPV_SAM_T3";
+}
+
+const ROLE_OPTIONS: { role: UserRole; label: string; desc: string; badge: string; groupKey: Exclude<UserGroupKey, "ALL">; defaultLocation: string }[] = [
   {
     role: "ADMIN",
     label: "Administrator Sistem",
-    desc: "Akses Superuser Penuh ke Seluruh Menu & User Management",
+    desc: "Akses Superuser Penuh",
     badge: "bg-purple-100 text-purple-800 border-purple-200",
+    groupKey: "MIS",
+    defaultLocation: "Semua Toko",
   },
   {
     role: "MIS",
     label: "MIS OPS (IT Support)",
-    desc: "Teknis Kasir, Hardware POS, Jaringan VPN & AnyDesk",
+    desc: "Teknis Kasir & Jaringan",
     badge: "bg-emerald-100 text-[#006622] border-emerald-200",
+    groupKey: "MIS",
+    defaultLocation: "Semua Toko",
   },
   {
     role: "MANAGER",
     label: "MIS MANAGER",
-    desc: "Supervisi Eksekutif, Review & Approval Pengajuan Barang",
+    desc: "Supervisi & Approval",
     badge: "bg-amber-100 text-amber-800 border-amber-200",
+    groupKey: "MIS",
+    defaultLocation: "Semua Toko",
   },
   {
     role: "IT_PROCUREMENT",
-    label: "MIS PROCUREMENT SUPPORT",
-    desc: "Pencatatan CAPEX, Proses Order & Pengadaan Barang IT",
+    label: "MIS PROCUREMENT",
+    desc: "Pengadaan IT & CAPEX",
     badge: "bg-blue-100 text-blue-800 border-blue-200",
-  },
-  {
-    role: "SPV_PLAZABALI_T3",
-    label: "SPV Plaza Bali (Terminal 3)",
-    desc: "Supervisor Operasional Toko Plaza Bali Bandara T3",
-    badge: "bg-teal-100 text-teal-800 border-teal-200",
+    groupKey: "MIS",
+    defaultLocation: "Semua Toko",
   },
   {
     role: "SPV_PLAZABALI_T2",
     label: "SPV Plaza Bali (Terminal 2)",
-    desc: "Supervisor Operasional Toko Plaza Bali Bandara T2",
-    badge: "bg-teal-50 text-teal-700 border-teal-200",
+    desc: "Supervisor Toko Plaza Bali T2",
+    badge: "bg-teal-100 text-teal-800 border-teal-200",
+    groupKey: "SPV_PB_T2",
+    defaultLocation: "Plaza Bali (Terminal 2)",
   },
   {
-    role: "SPV_SAM_T3",
-    label: "SPV SAM (Terminal 3)",
-    desc: "Supervisor Operasional Toko SAM Bandara T3",
-    badge: "bg-indigo-100 text-indigo-800 border-indigo-200",
+    role: "SPV_PLAZABALI_T3",
+    label: "SPV Plaza Bali (Terminal 3)",
+    desc: "Supervisor Toko Plaza Bali T3",
+    badge: "bg-cyan-100 text-cyan-800 border-cyan-200",
+    groupKey: "SPV_PB_T3",
+    defaultLocation: "Plaza Bali (Terminal 3)",
   },
   {
     role: "SPV_SAM_T2",
     label: "SPV SAM (Terminal 2)",
-    desc: "Supervisor Operasional Toko SAM Bandara T2",
+    desc: "Supervisor Toko SAM T2",
     badge: "bg-sky-100 text-sky-800 border-sky-200",
+    groupKey: "SPV_SAM_T2",
+    defaultLocation: "SAM (Terminal 2)",
   },
   {
-    role: "SPV_PLAZABALI",
-    label: "SPV Plaza Bali (Umum)",
-    desc: "Operasional Toko Plaza Bali",
-    badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  {
-    role: "SPV_SAM",
-    label: "SPV SAM (Umum)",
-    desc: "Operasional Toko SAM",
-    badge: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    role: "SPV_SAM_T3",
+    label: "SPV SAM (Terminal 3)",
+    desc: "Supervisor Toko SAM T3",
+    badge: "bg-indigo-100 text-indigo-800 border-indigo-200",
+    groupKey: "SPV_SAM_T3",
+    defaultLocation: "SAM (Terminal 3)",
   },
 ];
 
@@ -105,8 +203,8 @@ function UsersContent() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Filters
+  const [selectedGroup, setSelectedGroup] = useState<UserGroupKey>("ALL");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedRole, setSelectedRole] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
 
   // UI state
@@ -130,12 +228,7 @@ function UsersContent() {
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (searchTerm) params.set("search", searchTerm);
-      if (selectedRole) params.set("role", selectedRole);
-      if (selectedLocation) params.set("shop", selectedLocation);
-
-      const res = await fetch(`/api/users?${params.toString()}`);
+      const res = await fetch("/api/users");
       const json = await res.json();
       if (json.success) {
         setUsersList(json.data);
@@ -149,7 +242,7 @@ function UsersContent() {
 
   useEffect(() => {
     fetchUsers();
-  }, [searchTerm, selectedRole, selectedLocation]);
+  }, []);
 
   const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
@@ -266,10 +359,34 @@ function UsersContent() {
     document.body.removeChild(link);
   };
 
-  // Metrics
-  const adminAndMisCount = usersList.filter((u) => ["ADMIN", "MIS", "MANAGER", "IT_PROCUREMENT"].includes(u.role)).length;
-  const spvPlazaBaliCount = usersList.filter((u) => u.role.includes("PLAZABALI")).length;
-  const spvSamCount = usersList.filter((u) => u.role.includes("SAM")).length;
+  // Metrics & Groups
+  const misUsers = usersList.filter((u) => getUserGroup(u) === "MIS");
+  const spvPbT2Users = usersList.filter((u) => getUserGroup(u) === "SPV_PB_T2");
+  const spvPbT3Users = usersList.filter((u) => getUserGroup(u) === "SPV_PB_T3");
+  const spvSamT2Users = usersList.filter((u) => getUserGroup(u) === "SPV_SAM_T2");
+  const spvSamT3Users = usersList.filter((u) => getUserGroup(u) === "SPV_SAM_T3");
+
+  const filteredUsers = usersList.filter((u) => {
+    const grp = getUserGroup(u);
+    if (selectedGroup !== "ALL" && grp !== selectedGroup) return false;
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      const matchName = u.name?.toLowerCase().includes(term);
+      const matchUser = u.username?.toLowerCase().includes(term);
+      const matchShop = u.shop_location?.toLowerCase().includes(term);
+      const matchRole = u.role?.toLowerCase().includes(term);
+      if (!matchName && !matchUser && !matchShop && !matchRole) return false;
+    }
+
+    if (selectedLocation) {
+      if (!u.shop_location?.toLowerCase().includes(selectedLocation.toLowerCase())) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 
   const getRoleBadgeStyle = (role: UserRole) => {
     const opt = ROLE_OPTIONS.find((r) => r.role === role);
@@ -289,6 +406,14 @@ function UsersContent() {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
+  const groupsOrder: (Exclude<UserGroupKey, "ALL">)[] = [
+    "MIS",
+    "SPV_PB_T2",
+    "SPV_PB_T3",
+    "SPV_SAM_T2",
+    "SPV_SAM_T3",
+  ];
+
   return (
     <SidebarLayout>
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-2.5 sm:px-4 py-5 space-y-4">
@@ -299,6 +424,9 @@ function UsersContent() {
               <Users className="w-4 h-4" />
               <span>Manajemen User & Akun Sistem ({usersList.length} Pengguna)</span>
             </div>
+            <span className="hidden sm:inline-block px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold border border-slate-200">
+              5 Kelompok Pengguna
+            </span>
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto">
@@ -323,93 +451,178 @@ function UsersContent() {
           </div>
         </div>
 
-        {/* Top 4 KPI Metric Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Pengguna</p>
-              <p className="text-2xl font-black text-slate-900 mt-0.5">{usersList.length} <span className="text-xs font-normal text-slate-400">Akun</span></p>
-              <p className="text-[10.5px] text-slate-500 mt-0.5">Terdaftar di Sistem Database</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
-              <Users className="w-5 h-5" />
-            </div>
-          </div>
-
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tim MIS & Support</p>
-              <p className="text-2xl font-black text-[#006622] mt-0.5">{adminAndMisCount} <span className="text-xs font-normal text-slate-400">User</span></p>
-              <p className="text-[10.5px] text-slate-500 mt-0.5">Admin, MIS OPS, Mgr, Proc</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#006622] flex items-center justify-center font-bold">
-              <Shield className="w-5 h-5" />
-            </div>
-          </div>
-
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">SPV Plaza Bali</p>
-              <p className="text-2xl font-black text-teal-700 mt-0.5">{spvPlazaBaliCount} <span className="text-xs font-normal text-slate-400">User</span></p>
-              <p className="text-[10.5px] text-slate-500 mt-0.5">Supervisor Terminal 2 & 3</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold">
-              <Store className="w-5 h-5" />
+        {/* 5 KPI Metric Cards: MIS, SPV PB T2, SPV PB T3, SPV SAM T2, SPV SAM T3 */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {/* 1. MIS */}
+          <div
+            onClick={() => setSelectedGroup(selectedGroup === "MIS" ? "ALL" : "MIS")}
+            className={`p-3.5 bg-white rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
+              selectedGroup === "MIS"
+                ? "border-emerald-600 ring-2 ring-emerald-500/30 shadow-md bg-gradient-to-br from-emerald-50/50 to-white"
+                : "border-slate-200/90 shadow-2xs hover:border-emerald-300 hover:shadow-xs"
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <p className="text-[11px] font-black text-slate-500 uppercase tracking-wider">MIS</p>
+                </div>
+                <p className="text-2xl font-black text-emerald-700 mt-1">
+                  {misUsers.length} <span className="text-xs font-semibold text-slate-400">User</span>
+                </p>
+                <p className="text-[10px] text-slate-500 font-medium mt-0.5">Admin, Support, Mgr, Proc</p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold shrink-0 group-hover:scale-105 transition-transform">
+                <Shield className="w-4.5 h-4.5" />
+              </div>
             </div>
           </div>
 
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">SPV Toko SAM</p>
-              <p className="text-2xl font-black text-indigo-700 mt-0.5">{spvSamCount} <span className="text-xs font-normal text-slate-400">User</span></p>
-              <p className="text-[10.5px] text-slate-500 mt-0.5">Supervisor Terminal 2 & 3</p>
+          {/* 2. SPV PB T2 */}
+          <div
+            onClick={() => setSelectedGroup(selectedGroup === "SPV_PB_T2" ? "ALL" : "SPV_PB_T2")}
+            className={`p-3.5 bg-white rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
+              selectedGroup === "SPV_PB_T2"
+                ? "border-teal-600 ring-2 ring-teal-500/30 shadow-md bg-gradient-to-br from-teal-50/50 to-white"
+                : "border-slate-200/90 shadow-2xs hover:border-teal-300 hover:shadow-xs"
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-teal-500"></span>
+                  <p className="text-[11px] font-black text-slate-500 uppercase tracking-wider">SPV PB T2</p>
+                </div>
+                <p className="text-2xl font-black text-teal-700 mt-1">
+                  {spvPbT2Users.length} <span className="text-xs font-semibold text-slate-400">User</span>
+                </p>
+                <p className="text-[10px] text-slate-500 font-medium mt-0.5">Plaza Bali Terminal 2</p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold shrink-0 group-hover:scale-105 transition-transform">
+                <Store className="w-4.5 h-4.5" />
+              </div>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
-              <Store className="w-5 h-5" />
+          </div>
+
+          {/* 3. SPV PB T3 */}
+          <div
+            onClick={() => setSelectedGroup(selectedGroup === "SPV_PB_T3" ? "ALL" : "SPV_PB_T3")}
+            className={`p-3.5 bg-white rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
+              selectedGroup === "SPV_PB_T3"
+                ? "border-cyan-600 ring-2 ring-cyan-500/30 shadow-md bg-gradient-to-br from-cyan-50/50 to-white"
+                : "border-slate-200/90 shadow-2xs hover:border-cyan-300 hover:shadow-xs"
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-cyan-500"></span>
+                  <p className="text-[11px] font-black text-slate-500 uppercase tracking-wider">SPV PB T3</p>
+                </div>
+                <p className="text-2xl font-black text-cyan-700 mt-1">
+                  {spvPbT3Users.length} <span className="text-xs font-semibold text-slate-400">User</span>
+                </p>
+                <p className="text-[10px] text-slate-500 font-medium mt-0.5">Plaza Bali Terminal 3</p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center font-bold shrink-0 group-hover:scale-105 transition-transform">
+                <Store className="w-4.5 h-4.5" />
+              </div>
+            </div>
+          </div>
+
+          {/* 4. SPV SAM T2 */}
+          <div
+            onClick={() => setSelectedGroup(selectedGroup === "SPV_SAM_T2" ? "ALL" : "SPV_SAM_T2")}
+            className={`p-3.5 bg-white rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
+              selectedGroup === "SPV_SAM_T2"
+                ? "border-sky-600 ring-2 ring-sky-500/30 shadow-md bg-gradient-to-br from-sky-50/50 to-white"
+                : "border-slate-200/90 shadow-2xs hover:border-sky-300 hover:shadow-xs"
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                  <p className="text-[11px] font-black text-slate-500 uppercase tracking-wider">SPV SAM T2</p>
+                </div>
+                <p className="text-2xl font-black text-sky-700 mt-1">
+                  {spvSamT2Users.length} <span className="text-xs font-semibold text-slate-400">User</span>
+                </p>
+                <p className="text-[10px] text-slate-500 font-medium mt-0.5">Toko SAM Terminal 2</p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center font-bold shrink-0 group-hover:scale-105 transition-transform">
+                <Building2 className="w-4.5 h-4.5" />
+              </div>
+            </div>
+          </div>
+
+          {/* 5. SPV SAM T3 */}
+          <div
+            onClick={() => setSelectedGroup(selectedGroup === "SPV_SAM_T3" ? "ALL" : "SPV_SAM_T3")}
+            className={`p-3.5 bg-white rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
+              selectedGroup === "SPV_SAM_T3"
+                ? "border-indigo-600 ring-2 ring-indigo-500/30 shadow-md bg-gradient-to-br from-indigo-50/50 to-white"
+                : "border-slate-200/90 shadow-2xs hover:border-indigo-300 hover:shadow-xs"
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                  <p className="text-[11px] font-black text-slate-500 uppercase tracking-wider">SPV SAM T3</p>
+                </div>
+                <p className="text-2xl font-black text-indigo-700 mt-1">
+                  {spvSamT3Users.length} <span className="text-xs font-semibold text-slate-400">User</span>
+                </p>
+                <p className="text-[10px] text-slate-500 font-medium mt-0.5">Toko SAM Terminal 3</p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold shrink-0 group-hover:scale-105 transition-transform">
+                <Building2 className="w-4.5 h-4.5" />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Filter Section */}
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-sm space-y-3">
-          {/* Row 1: Segmented Quick Filter Pills */}
+          {/* Row 1: 5 Groups Quick Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1 shrink-0">
               <SlidersHorizontal className="w-3.5 h-3.5 text-purple-600" />
-              Filter Role:
+              Kelompok User:
             </span>
             <button
               type="button"
-              onClick={() => setSelectedRole("")}
+              onClick={() => setSelectedGroup("ALL")}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                selectedRole === ""
+                selectedGroup === "ALL"
                   ? "bg-slate-800 text-white shadow-2xs"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200/80"
               }`}
             >
               Semua User ({usersList.length})
             </button>
-            {[
-              { label: "Admin & MIS IT Support", value: "MIS", dot: "bg-emerald-500" },
-              { label: "SPV Plaza Bali", value: "SPV_PLAZABALI", dot: "bg-teal-500" },
-              { label: "SPV SAM", value: "SPV_SAM", dot: "bg-indigo-500" },
-              { label: "MIS Manager", value: "MANAGER", dot: "bg-amber-500" },
-              { label: "MIS Procurement", value: "IT_PROCUREMENT", dot: "bg-blue-500" },
-            ].map((r) => (
-              <button
-                key={r.value}
-                type="button"
-                onClick={() => setSelectedRole(r.value)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                  selectedRole === r.value
-                    ? "bg-purple-700 text-white shadow-2xs"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200/80"
-                }`}
-              >
-                <span className={`w-2 h-2 rounded-full ${selectedRole === r.value ? "bg-white" : r.dot}`}></span>
-                <span>{r.label}</span>
-              </button>
-            ))}
+            {groupsOrder.map((grpKey) => {
+              const grp = USER_GROUPS[grpKey];
+              const count = usersList.filter((u) => getUserGroup(u) === grpKey).length;
+              const isSelected = selectedGroup === grpKey;
+              return (
+                <button
+                  key={grpKey}
+                  type="button"
+                  onClick={() => setSelectedGroup(isSelected ? "ALL" : grpKey)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                    isSelected
+                      ? "bg-purple-700 text-white shadow-2xs"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200/80"
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${isSelected ? "bg-white" : grp.dotColor}`}></span>
+                  <span>{grp.shortLabel} ({count})</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Row 2: Search Input & Dropdowns */}
@@ -420,7 +633,7 @@ function UsersContent() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Cari NIK / Username (111..., 811..., admin), nama lengkap karyawan, lokasi toko..."
+                placeholder="Cari NIK / Username (111..., 811..., admin), nama karyawan, lokasi toko..."
                 className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none transition-all"
               />
               {searchTerm && (
@@ -440,44 +653,43 @@ function UsersContent() {
                 onChange={(e) => setSelectedLocation(e.target.value)}
                 className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-purple-500/20"
               >
-                <option value="">Semua Lokasi Toko</option>
+                <option value="">Semua Wilayah Penugasan</option>
+                <option value="Terminal 2">Bandara Terminal 2 (T2)</option>
+                <option value="Terminal 3">Bandara Terminal 3 (T3)</option>
                 <option value="Plaza Bali">Plaza Bali</option>
                 <option value="SAM">Toko SAM</option>
-                <option value="Terminal 3">Bandara Terminal 3</option>
-                <option value="Terminal 2">Bandara Terminal 2</option>
-                <option value="Surabaya">Area Surabaya</option>
-                <option value="Semua Toko">Semua Toko (IT & HO)</option>
+                <option value="Semua Toko">Semua Toko / Head Office</option>
               </select>
 
-              {(searchTerm || selectedRole || selectedLocation) && (
+              {(searchTerm || selectedGroup !== "ALL" || selectedLocation) && (
                 <button
                   type="button"
                   onClick={() => {
                     setSearchTerm("");
-                    setSelectedRole("");
+                    setSelectedGroup("ALL");
                     setSelectedLocation("");
                   }}
                   className="px-2.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
                 >
-                  Reset
+                  Reset Filter
                 </button>
               )}
             </div>
           </div>
         </div>
 
-        {/* Master Users Table */}
+        {/* Master Users Table Grouped */}
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
           {isLoading ? (
             <div className="p-12 text-center">
               <div className="inline-block w-7 h-7 border-3 border-purple-700 border-t-transparent rounded-full animate-spin"></div>
               <p className="text-xs text-slate-500 font-bold mt-3">Memuat Data Pengguna Sistem...</p>
             </div>
-          ) : usersList.length === 0 ? (
+          ) : filteredUsers.length === 0 ? (
             <div className="p-12 text-center">
               <Users className="w-12 h-12 text-slate-300 mx-auto mb-2" />
               <p className="text-sm font-bold text-slate-700">Tidak ada pengguna ditemukan</p>
-              <p className="text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian NIK, nama, atau filter role.</p>
+              <p className="text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian NIK, nama, atau filter kelompok.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -494,127 +706,163 @@ function UsersContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {usersList.map((u, index) => {
-                    const isPassVisible = visiblePasswords[u.id!];
-                    const isCopiedPass = copiedKey === `pass-${u.id}`;
-                    const isCopiedUser = copiedKey === `user-${u.id}`;
-                    const isSuperadmin = u.username === "admin";
+                  {groupsOrder
+                    .filter((gk) => selectedGroup === "ALL" || selectedGroup === gk)
+                    .map((gk) => {
+                      const grpConfig = USER_GROUPS[gk];
+                      const grpUsers = filteredUsers.filter((u) => getUserGroup(u) === gk);
 
-                    return (
-                      <tr key={u.id} className="hover:bg-slate-50/80 transition-colors group">
-                        {/* No */}
-                        <td className="py-3.5 px-3 text-center font-mono font-bold text-slate-400 align-middle">
-                          {index + 1}
-                        </td>
+                      if (grpUsers.length === 0 && selectedGroup === "ALL") {
+                        return null;
+                      }
 
-                        {/* Pengguna & NIK */}
-                        <td className="py-3.5 px-3 align-middle">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-700 text-white font-bold text-[11px] flex items-center justify-center shrink-0 shadow-2xs">
-                              {getInitials(u.name)}
-                            </div>
-                            <div>
-                              <div className="font-black text-slate-900 text-xs flex items-center gap-1.5 leading-tight">
-                                <span>{u.name}</span>
-                                {isSuperadmin && (
-                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-purple-100 text-purple-800 border border-purple-200">
-                                    SUPERADMIN
+                      return (
+                        <Fragment key={gk}>
+                          {/* Group Section Header */}
+                          <tr className="bg-slate-50/90 border-y border-slate-200/90">
+                            <td colSpan={7} className="py-2.5 px-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className={`w-2.5 h-2.5 rounded-full ${grpConfig.dotColor}`}></span>
+                                  <span className="text-slate-800 text-xs font-black tracking-wide uppercase">
+                                    {grpConfig.label}
                                   </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-1 mt-0.5">
-                                <span className="font-mono text-[10.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
-                                  {u.username}
+                                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${grpConfig.badgeBg} ${grpConfig.badgeText} border ${grpConfig.badgeBorder}`}>
+                                    {grpUsers.length} User
+                                  </span>
+                                </div>
+                                <span className="text-[10.5px] font-medium text-slate-500 hidden sm:inline">
+                                  {grpConfig.desc}
                                 </span>
-                                <button
-                                  type="button"
-                                  onClick={() => copyToClipboard(u.username, `user-${u.id}`)}
-                                  title="Salin NIK / Username"
-                                  className="p-0.5 text-slate-400 hover:text-slate-700"
-                                >
-                                  {isCopiedUser ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                                </button>
                               </div>
-                            </div>
-                          </div>
-                        </td>
+                            </td>
+                          </tr>
 
-                        {/* Role & Wewenang */}
-                        <td className="py-3.5 px-3 align-middle whitespace-nowrap">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-extrabold border ${getRoleBadgeStyle(u.role)}`}>
-                            <Shield className="w-3 h-3 shrink-0" />
-                            <span>{getRoleLabel(u.role)}</span>
-                          </span>
-                        </td>
+                          {/* Group User Rows */}
+                          {grpUsers.map((u, index) => {
+                            const isPassVisible = visiblePasswords[u.id!];
+                            const isCopiedPass = copiedKey === `pass-${u.id}`;
+                            const isCopiedUser = copiedKey === `user-${u.id}`;
+                            const isSuperadmin = u.username === "admin";
 
-                        {/* Lokasi Toko */}
-                        <td className="py-3.5 px-3 align-middle whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 text-slate-800 font-semibold text-xs">
-                            <Store className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span>{u.shop_location || "Semua Toko"}</span>
-                          </div>
-                        </td>
+                            return (
+                              <tr key={u.id} className="hover:bg-slate-50/80 transition-colors group">
+                                {/* No */}
+                                <td className="py-3.5 px-3 text-center font-mono font-bold text-slate-400 align-middle">
+                                  {index + 1}
+                                </td>
 
-                        {/* Password / Login */}
-                        <td className="py-3.5 px-3 align-middle whitespace-nowrap">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-900 border border-slate-200 min-w-[75px]">
-                              {isPassVisible ? (u.password || "123") : "••••••••"}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => togglePassword(u.id!)}
-                              title={isPassVisible ? "Sembunyikan password" : "Lihat password"}
-                              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
-                            >
-                              {isPassVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => copyToClipboard(u.password || "123", `pass-${u.id}`)}
-                              title="Salin password"
-                              className="p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                            >
-                              {isCopiedPass ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                            </button>
-                          </div>
-                        </td>
+                                {/* Pengguna & NIK */}
+                                <td className="py-3.5 px-3 align-middle">
+                                  <div className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-700 text-white font-bold text-[11px] flex items-center justify-center shrink-0 shadow-2xs">
+                                      {getInitials(u.name)}
+                                    </div>
+                                    <div>
+                                      <div className="font-black text-slate-900 text-xs flex items-center gap-1.5 leading-tight">
+                                        <span>{u.name}</span>
+                                        {isSuperadmin && (
+                                          <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-purple-100 text-purple-800 border border-purple-200">
+                                            SUPERADMIN
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-1 mt-0.5">
+                                        <span className="font-mono text-[10.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
+                                          {u.username}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={() => copyToClipboard(u.username, `user-${u.id}`)}
+                                          title="Salin NIK / Username"
+                                          className="p-0.5 text-slate-400 hover:text-slate-700"
+                                        >
+                                          {isCopiedUser ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
 
-                        {/* Status */}
-                        <td className="py-3.5 px-3 text-center align-middle whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span>AKTIF</span>
-                          </span>
-                        </td>
+                                {/* Role & Wewenang */}
+                                <td className="py-3.5 px-3 align-middle whitespace-nowrap">
+                                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-extrabold border ${getRoleBadgeStyle(u.role)}`}>
+                                    <Shield className="w-3 h-3 shrink-0" />
+                                    <span>{getRoleLabel(u.role)}</span>
+                                  </span>
+                                </td>
 
-                        {/* Aksi */}
-                        <td className="py-3.5 px-3 text-right align-middle whitespace-nowrap">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenEditModal(u)}
-                              title="Edit Data Pengguna"
-                              className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
+                                {/* Lokasi Toko */}
+                                <td className="py-3.5 px-3 align-middle whitespace-nowrap">
+                                  <div className="flex items-center gap-1.5 text-slate-800 font-semibold text-xs">
+                                    <Store className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    <span>{u.shop_location || "Semua Toko"}</span>
+                                  </div>
+                                </td>
 
-                            {!isSuperadmin && (
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteUser(u)}
-                                title="Hapus Pengguna"
-                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                                {/* Password / Login */}
+                                <td className="py-3.5 px-3 align-middle whitespace-nowrap">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-900 border border-slate-200 min-w-[75px]">
+                                      {isPassVisible ? (u.password || "123") : "••••••••"}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => togglePassword(u.id!)}
+                                      title={isPassVisible ? "Sembunyikan password" : "Lihat password"}
+                                      className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
+                                    >
+                                      {isPassVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => copyToClipboard(u.password || "123", `pass-${u.id}`)}
+                                      title="Salin password"
+                                      className="p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                    >
+                                      {isCopiedPass ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                                    </button>
+                                  </div>
+                                </td>
+
+                                {/* Status */}
+                                <td className="py-3.5 px-3 text-center align-middle whitespace-nowrap">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span>AKTIF</span>
+                                  </span>
+                                </td>
+
+                                {/* Aksi */}
+                                <td className="py-3.5 px-3 text-right align-middle whitespace-nowrap">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenEditModal(u)}
+                                      title="Edit Data Pengguna"
+                                      className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                    >
+                                      <Edit2 className="w-4 h-4" />
+                                    </button>
+
+                                    {!isSuperadmin && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteUser(u)}
+                                        title="Hapus Pengguna"
+                                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </Fragment>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
@@ -692,14 +940,52 @@ function UsersContent() {
                 </label>
                 <select
                   value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
+                  onChange={(e) => {
+                    const newRole = e.target.value as UserRole;
+                    const opt = ROLE_OPTIONS.find((r) => r.role === newRole);
+                    setFormData({
+                      ...formData,
+                      role: newRole,
+                      shop_location: opt ? opt.defaultLocation : formData.shop_location,
+                    });
+                  }}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:bg-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none"
                 >
-                  {ROLE_OPTIONS.map((r) => (
-                    <option key={r.role} value={r.role}>
-                      {r.label} — ({r.desc})
-                    </option>
-                  ))}
+                  <optgroup label="1. KELOMPOK MIS (IT OPS, MANAGER, PROCUREMENT, ADMIN)">
+                    {ROLE_OPTIONS.filter((r) => r.groupKey === "MIS").map((r) => (
+                      <option key={r.role} value={r.role}>
+                        {r.label} — ({r.desc})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="2. KELOMPOK SPV PB T2 (PLAZA BALI TERMINAL 2)">
+                    {ROLE_OPTIONS.filter((r) => r.groupKey === "SPV_PB_T2").map((r) => (
+                      <option key={r.role} value={r.role}>
+                        {r.label} — ({r.desc})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="3. KELOMPOK SPV PB T3 (PLAZA BALI TERMINAL 3)">
+                    {ROLE_OPTIONS.filter((r) => r.groupKey === "SPV_PB_T3").map((r) => (
+                      <option key={r.role} value={r.role}>
+                        {r.label} — ({r.desc})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="4. KELOMPOK SPV SAM T2 (TOKO SAM TERMINAL 2)">
+                    {ROLE_OPTIONS.filter((r) => r.groupKey === "SPV_SAM_T2").map((r) => (
+                      <option key={r.role} value={r.role}>
+                        {r.label} — ({r.desc})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="5. KELOMPOK SPV SAM T3 (TOKO SAM TERMINAL 3)">
+                    {ROLE_OPTIONS.filter((r) => r.groupKey === "SPV_SAM_T3").map((r) => (
+                      <option key={r.role} value={r.role}>
+                        {r.label} — ({r.desc})
+                      </option>
+                    ))}
+                  </optgroup>
                 </select>
               </div>
 

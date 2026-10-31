@@ -56,6 +56,42 @@ export async function initDb() {
     `);
   } catch (e) {}
 
+  // Migrasi Pengelompokan User: MIS, SPV PB T2, SPV PB T3, SPV SAM T2, SPV SAM T3
+  try {
+    await db.execute(`
+      INSERT OR IGNORE INTO users (username, name, role, shop_location, password)
+      VALUES 
+        ('spv_pb_t2', 'SPV Plaza Bali T2', 'SPV_PLAZABALI_T2', 'Plaza Bali (Terminal 2)', '123'),
+        ('spv_pb_t3', 'SPV Plaza Bali T3', 'SPV_PLAZABALI_T3', 'Plaza Bali (Terminal 3)', '123'),
+        ('spv_sam_t2', 'SPV SAM T2', 'SPV_SAM_T2', 'SAM (Terminal 2)', '123'),
+        ('spv_sam_t3', 'SPV SAM T3', 'SPV_SAM_T3', 'SAM (Terminal 3)', '123')
+    `);
+
+    const spvPbRes = await db.execute("SELECT id FROM users WHERE role = 'SPV_PLAZABALI' AND username NOT LIKE 'spv%' ORDER BY id ASC");
+    if (spvPbRes.rows.length > 0) {
+      const half = Math.floor(spvPbRes.rows.length / 2);
+      for (let i = 0; i < spvPbRes.rows.length; i++) {
+        const uid = spvPbRes.rows[i].id;
+        if (i < half) {
+          await db.execute({
+            sql: "UPDATE users SET role = 'SPV_PLAZABALI_T2', shop_location = 'Plaza Bali (Terminal 2)' WHERE id = ?",
+            args: [uid]
+          });
+        } else {
+          await db.execute({
+            sql: "UPDATE users SET role = 'SPV_PLAZABALI_T3', shop_location = 'Plaza Bali (Terminal 3)' WHERE id = ?",
+            args: [uid]
+          });
+        }
+      }
+    }
+
+    await db.execute("UPDATE users SET role = 'SPV_SAM_T3', shop_location = 'SAM (Terminal 3)' WHERE username = 'spv_sam'");
+    await db.execute("UPDATE users SET role = 'SPV_PLAZABALI_T3', shop_location = 'Plaza Bali (Terminal 3)' WHERE username = 'spv_plazabali'");
+  } catch (e) {
+    console.error("Error migrating user groups:", e);
+  }
+
   // Kolom integrasi Pembelian & Penggantian Hardware POS
   try {
     await db.execute("ALTER TABLE purchases ADD COLUMN component_type TEXT DEFAULT '-';");
