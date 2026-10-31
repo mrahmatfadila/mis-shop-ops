@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
-import { pingHost, pingPool } from "@/lib/ping";
+import { pingHost, pingPool, checkVpnStatus } from "@/lib/ping";
 import { jsonError } from "@/lib/api";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
@@ -9,9 +11,11 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const { asset_code, ip_address, asset_codes, location, all } = body;
 
+    const vpn = await checkVpnStatus();
+
     // Case 1: Single target ping (instant)
     if (asset_code && ip_address) {
-      const pingResult = await pingHost(ip_address, 1000);
+      const pingResult = await pingHost(ip_address, 500);
       const nowIso = new Date().toISOString().replace("T", " ").substring(0, 19);
 
       await db.execute({
@@ -29,6 +33,7 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         success: true,
+        vpn,
         result: {
           asset_code,
           ip_address,
@@ -74,12 +79,44 @@ export async function POST(req: Request) {
     const devicesToPing = queryRes.rows as any[];
 
     if (devicesToPing.length === 0) {
-      return NextResponse.json({ success: true, count: 0, results: [] });
+      return NextResponse.json({ success: true, count: 0, vpn, results: [] });
     }
 
-    // Execute concurrent pool ping (15 workers, 800ms timeout per host)
-    const pingResults = await pingPool(devicesToPing, 15, 800);
     const nowIso = new Date().toISOString().replace("T", " ").substring(0, 19);
+    let pingResults: any[] = [];
+
+    if (!vpn.connected) {
+      // Jika VPN terputus, perangkat private VPN (172.x / 10.x) pasti OFFLINE
+      // Hanya ping perangkat local non-VPN jika ada
+      const nonVpnDevices: any[] = [];
+      const offlineVpnDevices: any[] = [];
+
+      for (const d of devicesToPing) {
+        const ip = String(d.ip_address || "").trim();
+        const isVpnIp =
+          ip.startsWith("10.") ||
+          (ip.startsWith("172.") &&
+            parseInt(ip.split(".")[1] || "0", 10) >= 16 &&
+            parseInt(ip.split(".")[1] || "0", 10) <= 31);
+
+        if (isVpnIp) {
+          offlineVpnDevices.push({
+            ...d,
+            ip,
+            status: "OFFLINE",
+            latency: null,
+          });
+        } else {
+          nonVpnDevices.push(d);
+        }
+      }
+
+      const testedNonVpn = nonVpnDevices.length > 0 ? await pingPool(nonVpnDevices, 15, 300) : [];
+      pingResults = [...offlineVpnDevices, ...testedNonVpn];
+    } else {
+      // Jika VPN aktif, jalankan pingPool berkecepatan tinggi dengan 25 concurrent worker & 400ms timeout
+      pingResults = await pingPool(devicesToPing, 25, 400);
+    }
 
     // Batch update SQLite database
     for (const res of pingResults) {
@@ -90,30 +127,26 @@ export async function POST(req: Request) {
                 WHERE asset_code = ?`,
           args: [res.status, res.latency || 0, nowIso, res.asset_code],
         });
-      } catch (e) {
-        // Continue loop if one update fails
-      }
+      } catch (e) {}
     }
 
     const updatedData = pingResults.map((item) => ({
       ...item,
       status: item.status,
+      latency: item.latency,
       response_time_ms: item.latency || 0,
       last_heartbeat: nowIso,
     }));
 
-    const onlineCount = pingResults.filter((r) => r.status === "ONLINE").length;
-
     return NextResponse.json({
       success: true,
+      vpn,
       count: pingResults.length,
-      onlineCount,
-      offlineCount: pingResults.length - onlineCount,
+      onlineCount: updatedData.filter((r) => r.status === "ONLINE").length,
+      offlineCount: updatedData.filter((r) => r.status === "OFFLINE").length,
       results: updatedData,
     });
   } catch (error) {
-    console.error("Monitoring ping error:", error);
     return jsonError(error);
   }
 }
-

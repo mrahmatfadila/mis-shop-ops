@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
 import { jsonError, parseFilters } from "@/lib/api";
-import { pingPool } from "@/lib/ping";
+import { pingPool, checkVpnStatus } from "@/lib/ping";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   try {
@@ -12,6 +14,8 @@ export async function GET(req: Request) {
       allowed: ["location"],
       ignoreByKey: { location: ["Semua"] },
     });
+
+    const vpn = await checkVpnStatus();
 
     // Ambil data monitoring beserta nama device dan lokasi dari tabel assets & dvr_assets
     let sql = `
@@ -44,7 +48,7 @@ export async function GET(req: Request) {
 
     // If live ping requested via GET query parameter
     if (shouldPing && rows.length > 0) {
-      const pingResults = await pingPool(rows, 15, 800);
+      const pingResults = await pingPool(rows, 25, 400);
       const nowIso = new Date().toISOString().replace("T", " ").substring(0, 19);
 
       for (const res of pingResults) {
@@ -64,10 +68,30 @@ export async function GET(req: Request) {
         response_time_ms: item.latency || 0,
         last_heartbeat: nowIso,
       }));
+    } else if (!vpn.connected) {
+      // Jika VPN tidak aktif di host Windows ini, tandai perangkat VPN private (172.x / 10.x) sebagai OFFLINE
+      rows = rows.map((item) => {
+        const ip = String(item.ip_address || "").trim();
+        const isPrivateVpnIp =
+          ip.startsWith("10.") ||
+          (ip.startsWith("172.") &&
+            parseInt(ip.split(".")[1] || "0", 10) >= 16 &&
+            parseInt(ip.split(".")[1] || "0", 10) <= 31);
+
+        if (isPrivateVpnIp) {
+          return {
+            ...item,
+            status: "OFFLINE",
+            response_time_ms: 0,
+          };
+        }
+        return item;
+      });
     }
 
     return NextResponse.json({
       success: true,
+      vpn,
       data: rows,
       totalCount: rows.length,
       onlineCount: rows.filter((r) => r.status === "ONLINE").length,

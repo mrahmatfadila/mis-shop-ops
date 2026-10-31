@@ -8,12 +8,73 @@ export interface PingResult {
   raw?: string;
 }
 
+export interface VpnStatus {
+  connected: boolean;
+  vpnName: string | null;
+  vpnIp: string | null;
+  testedAt: string;
+}
+
+/**
+ * Checks whether this Windows host currently has an active VPN connection
+ * (via rasdial, L2TP, OpenVPN, WireGuard, or VPN interface IP)
+ */
+export function checkVpnStatus(): Promise<VpnStatus> {
+  return new Promise((resolve) => {
+    exec("rasdial", { timeout: 2000 }, (err, stdout) => {
+      const output = stdout || "";
+      const isRasdialConnected = output.includes("Connected to") && !output.includes("No connections");
+      let vpnName: string | null = null;
+      if (isRasdialConnected) {
+        const m = output.match(/Connected to\s*\r?\n\s*([^\r\n]+)/i);
+        if (m) vpnName = m[1].trim();
+      }
+
+      const ifaces = os.networkInterfaces();
+      let vpnIface: string | null = null;
+      let vpnIp: string | null = null;
+
+      for (const [name, addrs] of Object.entries(ifaces)) {
+        const lname = name.toLowerCase();
+        for (const a of addrs || []) {
+          if (a.family === "IPv4" && !a.internal) {
+            const isVpnSubnet =
+              lname.includes("vpn") ||
+              lname.includes("ppp") ||
+              lname.includes("wireguard") ||
+              lname.includes("tap") ||
+              lname.includes("tun") ||
+              a.address.startsWith("10.") ||
+              (a.address.startsWith("172.") &&
+                parseInt(a.address.split(".")[1], 10) >= 16 &&
+                parseInt(a.address.split(".")[1], 10) <= 31);
+
+            if (isVpnSubnet) {
+              vpnIface = name;
+              vpnIp = a.address;
+              break;
+            }
+          }
+        }
+      }
+
+      const connected = isRasdialConnected || !!vpnIface;
+      resolve({
+        connected,
+        vpnName: vpnName || vpnIface,
+        vpnIp,
+        testedAt: new Date().toISOString(),
+      });
+    });
+  });
+}
+
 /**
  * Pings an IP address or hostname using system ping.
  * Windows: ping -n 1 -w <timeoutMs> <ip>
  * Linux/macOS: ping -c 1 -W 1 <ip>
  */
-export function pingHost(ip: string, timeoutMs = 800): Promise<PingResult> {
+export function pingHost(ip: string, timeoutMs = 400): Promise<PingResult> {
   return new Promise((resolve) => {
     // Sanitize IP/hostname to prevent shell injection
     const cleanIp = ip.trim();
@@ -78,8 +139,8 @@ export function pingHost(ip: string, timeoutMs = 800): Promise<PingResult> {
  */
 export async function pingPool<T extends { ip_address?: string | null }>(
   items: T[],
-  concurrency = 15,
-  timeoutMs = 800
+  concurrency = 25,
+  timeoutMs = 400
 ): Promise<(T & PingResult)[]> {
   const results: (T & PingResult)[] = [];
   let index = 0;
@@ -110,4 +171,3 @@ export async function pingPool<T extends { ip_address?: string | null }>(
   await Promise.all(workers);
   return results;
 }
-

@@ -4,13 +4,6 @@ import { fail, jsonError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-// Deterministic realistic latency for Head Office Gigabit LAN (1ms - 5ms) based on IP
-function getDeterministicLatency(ip: string): number {
-  const parts = ip.split(".");
-  const last = parseInt(parts[parts.length - 1] || "1", 10);
-  return 1 + (last % 5);
-}
-
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
@@ -19,39 +12,26 @@ export async function POST(req: Request) {
     // 1. Single IP Ping
     if (ip && typeof ip === "string") {
       const cleanIp = ip.trim();
-      const realRes = await pingHost(cleanIp, 400);
+      const realRes = await pingHost(cleanIp, 500);
 
       if (realRes.status === "ONLINE") {
         return NextResponse.json({
           success: true,
           ip: cleanIp,
           status: "ONLINE",
-          latency: realRes.latency || getDeterministicLatency(cleanIp),
+          latency: realRes.latency || 2,
           source: "real_network",
           tested_at: new Date().toISOString(),
         });
       }
 
-      // Standby / Non-operasional check
-      const isStandby = status && (status === "CADANGAN" || status === "RUSAK" || status === "N");
-      if (isStandby) {
-        return NextResponse.json({
-          success: true,
-          ip: cleanIp,
-          status: "OFFLINE",
-          latency: null,
-          source: "device_standby",
-          tested_at: new Date().toISOString(),
-        });
-      }
-
-      // Local dev / outside office LAN simulation fallback
+      // Device is unreachable / offline / VPN disconnected
       return NextResponse.json({
         success: true,
         ip: cleanIp,
-        status: "ONLINE",
-        latency: getDeterministicLatency(cleanIp),
-        source: "simulated_lan",
+        status: "OFFLINE",
+        latency: null,
+        source: "real_network",
         tested_at: new Date().toISOString(),
       });
     }
@@ -80,30 +60,24 @@ export async function POST(req: Request) {
       > = {};
       const nowIso = new Date().toISOString();
 
-      const chunkSize = 15;
+      const chunkSize = 25;
       for (let i = 0; i < targetsList.length; i += chunkSize) {
         const chunk = targetsList.slice(i, i + chunkSize);
         await Promise.all(
           chunk.map(async (item) => {
             const clean = item.ip;
-            const realRes = await pingHost(clean, 350);
+            const realRes = await pingHost(clean, 400);
 
             if (realRes.status === "ONLINE") {
               resultsMap[clean] = {
                 status: "ONLINE",
-                latency: realRes.latency || getDeterministicLatency(clean),
-                tested_at: nowIso,
-              };
-            } else if (item.status === "CADANGAN" || item.status === "RUSAK" || item.status === "N") {
-              resultsMap[clean] = {
-                status: "OFFLINE",
-                latency: null,
+                latency: realRes.latency || 2,
                 tested_at: nowIso,
               };
             } else {
               resultsMap[clean] = {
-                status: "ONLINE",
-                latency: getDeterministicLatency(clean),
+                status: "OFFLINE",
+                latency: null,
                 tested_at: nowIso,
               };
             }
@@ -128,4 +102,3 @@ export async function POST(req: Request) {
     return jsonError(error, "Gagal melakukan ping perangkat office");
   }
 }
-

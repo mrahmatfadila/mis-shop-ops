@@ -4,13 +4,6 @@ import { fail, jsonError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-// Deterministic realistic latency for LAN EDC (2ms - 8ms) based on IP
-function getDeterministicLatency(ip: string): number {
-  const parts = ip.split(".");
-  const last = parseInt(parts[parts.length - 1] || "1", 10);
-  return 2 + (last % 6);
-}
-
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
@@ -19,39 +12,26 @@ export async function POST(req: Request) {
     // 1. Single IP Ping
     if (ip && typeof ip === "string") {
       const cleanIp = ip.trim();
-      const realRes = await pingHost(cleanIp, 400);
+      const realRes = await pingHost(cleanIp, 500);
 
       if (realRes.status === "ONLINE") {
         return NextResponse.json({
           success: true,
           ip: cleanIp,
           status: "ONLINE",
-          latency: realRes.latency || getDeterministicLatency(cleanIp),
+          latency: realRes.latency || 2,
           source: "real_network",
           tested_at: new Date().toISOString(),
         });
       }
 
-      // Fallback: If device is specifically inactive, report OFFLINE
-      if (is_active === "N") {
-        return NextResponse.json({
-          success: true,
-          ip: cleanIp,
-          status: "OFFLINE",
-          latency: null,
-          source: "device_standby",
-          tested_at: new Date().toISOString(),
-        });
-      }
-
-      // In local development / non-airport network, simulate realistic response so UI is fully functional
-      const simLatency = getDeterministicLatency(cleanIp);
+      // Device is unreachable / offline / VPN disconnected
       return NextResponse.json({
         success: true,
         ip: cleanIp,
-        status: "ONLINE",
-        latency: simLatency,
-        source: "simulated_lan",
+        status: "OFFLINE",
+        latency: null,
+        source: "real_network",
         tested_at: new Date().toISOString(),
       });
     }
@@ -61,11 +41,15 @@ export async function POST(req: Request) {
 
     if (Array.isArray(targets) && targets.length > 0) {
       targets.forEach((t) => {
-        if (t && t.ip) targetsList.push({ ip: String(t.ip).trim(), is_active: t.is_active });
+        if (t && t.ip && t.ip !== "-") {
+          targetsList.push({ ip: String(t.ip).trim(), is_active: t.is_active });
+        }
       });
     } else if (Array.isArray(ips) && ips.length > 0) {
       ips.forEach((targetIp) => {
-        if (targetIp) targetsList.push({ ip: String(targetIp).trim() });
+        if (targetIp && targetIp !== "-") {
+          targetsList.push({ ip: String(targetIp).trim() });
+        }
       });
     }
 
@@ -76,31 +60,24 @@ export async function POST(req: Request) {
       > = {};
       const nowIso = new Date().toISOString();
 
-      const chunkSize = 15;
+      const chunkSize = 25;
       for (let i = 0; i < targetsList.length; i += chunkSize) {
         const chunk = targetsList.slice(i, i + chunkSize);
         await Promise.all(
           chunk.map(async (item) => {
             const clean = item.ip;
-            const realRes = await pingHost(clean, 350);
+            const realRes = await pingHost(clean, 400);
 
             if (realRes.status === "ONLINE") {
               resultsMap[clean] = {
                 status: "ONLINE",
-                latency: realRes.latency || getDeterministicLatency(clean),
-                tested_at: nowIso,
-              };
-            } else if (item.is_active === "N") {
-              resultsMap[clean] = {
-                status: "OFFLINE",
-                latency: null,
+                latency: realRes.latency || 2,
                 tested_at: nowIso,
               };
             } else {
-              // Simulated active EDC on airport LAN
               resultsMap[clean] = {
-                status: "ONLINE",
-                latency: getDeterministicLatency(clean),
+                status: "OFFLINE",
+                latency: null,
                 tested_at: nowIso,
               };
             }

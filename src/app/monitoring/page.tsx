@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
 import ScannerModal from "@/components/ScannerModal";
 import StatCard from "@/components/common/StatCard";
@@ -67,6 +67,10 @@ export default function MonitoringPage() {
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const [lastScannedTime, setLastScannedTime] = useState<string | null>(null);
 
+  // Live VPN Detection State
+  const [vpnInfo, setVpnInfo] = useState<{ connected: boolean; vpnName: string | null; vpnIp: string | null } | null>(null);
+  const prevVpnConnected = useRef<boolean | null>(null);
+
   // Custom IP Ping Tool
   const [customIp, setCustomIp] = useState("172.16.45.10");
   const [customPingResult, setCustomPingResult] = useState<any>(null);
@@ -80,7 +84,10 @@ export default function MonitoringPage() {
   } = useApiData<MonitoringItem[]>("/api/monitoring", {
     cacheKey: "monitoring_devices_live",
     transform: (json) => {
-      const res = json as { success?: boolean; data?: MonitoringItem[] };
+      const res = json as { success?: boolean; data?: MonitoringItem[]; vpn?: any };
+      if (res.vpn) {
+        setVpnInfo(res.vpn);
+      }
       return res.success && Array.isArray(res.data) ? res.data : [];
     },
   });
@@ -91,6 +98,54 @@ export default function MonitoringPage() {
     setDevices(liveDevices);
     setLastScannedTime(new Date().toLocaleTimeString("id-ID"));
   }, [liveDevices]);
+
+  // Periodic VPN Connection Check (Setiap 4 detik)
+  useEffect(() => {
+    let isMounted = true;
+    const checkVpnLive = async () => {
+      try {
+        const res = await fetch("/api/monitoring/vpn");
+        const json = await res.json();
+        if (isMounted && json.success && json.vpn) {
+          const currentConnected = json.vpn.connected;
+          setVpnInfo(json.vpn);
+
+          // Deteksi Transisi Status VPN:
+          // 1. Dari OFF -> ON (User baru saja menyalakan VPN): Otomatis scan seluruh perangkat!
+          if (prevVpnConnected.current === false && currentConnected === true) {
+            handleScanAll();
+          }
+          // 2. Dari ON -> OFF (User mematikan VPN): Otomatis update status perangkat private VPN menjadi OFFLINE!
+          else if (prevVpnConnected.current === true && currentConnected === false) {
+            setDevices((prev) =>
+              prev.map((d) => {
+                const ip = String(d.ip_address || "").trim();
+                const isPrivate =
+                  ip.startsWith("10.") ||
+                  (ip.startsWith("172.") &&
+                    parseInt(ip.split(".")[1] || "0", 10) >= 16 &&
+                    parseInt(ip.split(".")[1] || "0", 10) <= 31);
+                if (isPrivate) {
+                  return { ...d, status: "OFFLINE", response_time_ms: 0 };
+                }
+                return d;
+              })
+            );
+            setLastScannedTime(new Date().toLocaleTimeString("id-ID"));
+          }
+
+          prevVpnConnected.current = currentConnected;
+        }
+      } catch (err) {}
+    };
+
+    checkVpnLive();
+    const timer = setInterval(checkVpnLive, 4000);
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+    };
+  }, []);
 
   // Bulk scan all devices via VPN
   const handleScanAll = async () => {
@@ -106,9 +161,12 @@ export default function MonitoringPage() {
         setDevices(json.results);
         setClientCache("monitoring_devices_live", json.results);
         setLastScannedTime(new Date().toLocaleTimeString("id-ID"));
+        if (json.vpn) {
+          setVpnInfo(json.vpn);
+        }
       }
     } catch (err) {
-      alert("Gagal melakukan scan jaringan. Pastikan VPN kantor telah aktif.");
+      alert("Gagal melakukan scan jaringan. Pastikan koneksi jaringan server aktif.");
     } finally {
       setIsScanningAll(false);
     }
@@ -155,8 +213,8 @@ export default function MonitoringPage() {
       });
       const json = await res.json();
       if (json.success && json.result) {
-        setDevices((prev) =>
-          prev.map((dev) =>
+        setDevices((prev) => {
+          const next = prev.map((dev) =>
             dev.asset_code === asset_code
               ? {
                   ...dev,
@@ -165,8 +223,13 @@ export default function MonitoringPage() {
                   last_heartbeat: json.result.last_heartbeat,
                 }
               : dev
-          )
-        );
+          );
+          setClientCache("monitoring_devices_live", next);
+          return next;
+        });
+        if (json.vpn) {
+          setVpnInfo(json.vpn);
+        }
       }
     } catch (e) {
       console.error("Single ping error", e);
@@ -300,16 +363,16 @@ Invoke-RestMethod -Uri "http://$ipServerIT:3000/api/pos/heartbeat" -Method POST 
                 Monitoring Ping Jaringan & Perangkat POS
               </h1>
 
-              {/* Dynamic Live VPN Badge */}
-              {metrics.online > 0 ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100/80 text-emerald-800 border border-emerald-300/80 shadow-2xs">
+              {/* Dynamic Real-time VPN Connection Badge */}
+              {vpnInfo?.connected ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Koneksi VPN Aktif ({metrics.online} Perangkat Merespon)
+                  Koneksi VPN Aktif: {vpnInfo.vpnName || "vpn-t3"} {vpnInfo.vpnIp ? `(${vpnInfo.vpnIp})` : ""}
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                  VPN Belum Terbaca (0 Online)
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-300 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                  VPN Terputus (vpn-t3 / Vpnt3-neuvis)
                 </span>
               )}
             </div>
@@ -348,20 +411,47 @@ Invoke-RestMethod -Uri "http://$ipServerIT:3000/api/pos/heartbeat" -Method POST 
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#006622] hover:bg-[#00521b] text-white text-xs font-extrabold transition-all shadow-md shadow-emerald-900/10 active:scale-95 disabled:opacity-50"
             >
               <Zap className={`w-4 h-4 text-amber-300 ${isScanningAll ? "animate-bounce" : ""}`} />
-              <span>{isScanningAll ? "Scanning 166 IP via VPN..." : "Scan Ulang Semua (Live Ping)"}</span>
+              <span>{isScanningAll ? "Scanning 167 IP via VPN..." : "Scan Ulang Semua (Live Ping)"}</span>
             </button>
 
             <button
               type="button"
-              onClick={fetchMonitoring}
+              onClick={handleScanAll}
               disabled={isLoading || isScanningAll}
               className="p-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 shadow-2xs transition-all active:scale-95"
-              title="Refresh Data dari Server"
+              title="Refresh Data & Scan dari Server"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-[#006622]" : ""}`} />
+              <RefreshCw className={`w-4 h-4 ${isLoading || isScanningAll ? "animate-spin text-[#006622]" : ""}`} />
             </button>
           </div>
         </div>
+
+        {/* VPN Disconnected Notice Banner */}
+        {vpnInfo && !vpnInfo.connected && (
+          <div className="bg-rose-50/80 border border-rose-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0 mt-0.5 font-bold">
+                <AlertTriangle className="w-4 h-4 text-rose-600" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-rose-900 flex items-center gap-1.5">
+                  <span>Koneksi VPN Kantor (vpn-t3 / Vpnt3-neuvis) Sedang Terputus di Windows</span>
+                </h4>
+                <p className="text-[11.5px] text-rose-700 mt-0.5 leading-relaxed">
+                  Perangkat Kasir POS, PC Office, DVR CCTV, dan Switch toko (IP 172.16 / 172.19) berada di jaringan privat bandara. Silakan hubungkan VPN di Windows. Sistem ini akan <b>secara otomatis mendeteksi status aktif</b> dan memperbarui sinyal ping.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleScanAll}
+              disabled={isScanningAll}
+              className="shrink-0 px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-2xs transition-all cursor-pointer"
+            >
+              {isScanningAll ? "Mengecek..." : "Cek Ulang Sinyal VPN"}
+            </button>
+          </div>
+        )}
 
         {/* 2. Four Modern Metric KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -396,7 +486,7 @@ Invoke-RestMethod -Uri "http://$ipServerIT:3000/api/pos/heartbeat" -Method POST 
               </>
             }
             valueClassName="text-xl sm:text-2xl text-emerald-700 mt-0.5"
-            hint="Merespon sinyal VPN"
+            hint={vpnInfo?.connected ? "Merespon sinyal VPN" : "VPN nonaktif (0 respon)"}
             hintClassName="text-[10px] text-emerald-600/80 mt-0.5"
             icon={CheckCircle2}
             iconWrapperClassName="p-3 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100"
@@ -414,7 +504,7 @@ Invoke-RestMethod -Uri "http://$ipServerIT:3000/api/pos/heartbeat" -Method POST 
               </>
             }
             valueClassName="text-xl sm:text-2xl text-rose-600 mt-0.5"
-            hint="RTO / Mati daya"
+            hint={vpnInfo?.connected ? "RTO / Mati daya" : "Terputus karena VPN off"}
             hintClassName="text-[10px] text-rose-500/80 mt-0.5"
             icon={XCircle}
             iconWrapperClassName="p-3 bg-rose-50 text-rose-600 rounded-xl border border-rose-100"

@@ -4,16 +4,10 @@ import { fail, jsonError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-function getDeterministicLatency(ip: string): number {
-  const parts = ip.split(".");
-  const last = parseInt(parts[parts.length - 1] || "1", 10);
-  return 1 + (last % 4);
-}
-
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { ip, ips, status } = body;
+    const { ip, ips } = body;
 
     // 1. Single IP Ping
     if (ip && typeof ip === "string") {
@@ -25,32 +19,18 @@ export async function POST(req: Request) {
           success: true,
           ip: cleanIp,
           status: "ONLINE",
-          latency: realRes.latency || getDeterministicLatency(cleanIp),
+          latency: realRes.latency || 2,
           source: "real_network",
           tested_at: new Date().toISOString(),
         });
       }
 
-      // Standby / Non-operasional check
-      const isStandby = status && (status === "CADANGAN" || status === "RUSAK" || status === "PERBAIKAN");
-      if (isStandby) {
-        return NextResponse.json({
-          success: true,
-          ip: cleanIp,
-          status: "OFFLINE",
-          latency: null,
-          source: "device_standby",
-          tested_at: new Date().toISOString(),
-        });
-      }
-
-      // Local dev simulation fallback
       return NextResponse.json({
         success: true,
         ip: cleanIp,
-        status: "ONLINE",
-        latency: getDeterministicLatency(cleanIp),
-        source: "simulated_lan",
+        status: "OFFLINE",
+        latency: null,
+        source: "real_network",
         tested_at: new Date().toISOString(),
       });
     }
@@ -58,12 +38,19 @@ export async function POST(req: Request) {
     // 2. Batch Ping
     if (Array.isArray(ips) && ips.length > 0) {
       const results: Record<string, { status: "ONLINE" | "OFFLINE"; latency: number | null }> = {};
-      for (const targetIp of ips) {
-        if (!targetIp || targetIp === "-") continue;
-        results[targetIp] = {
-          status: "ONLINE",
-          latency: getDeterministicLatency(targetIp),
-        };
+      const chunkSize = 25;
+      for (let i = 0; i < ips.length; i += chunkSize) {
+        const chunk = ips.slice(i, i + chunkSize);
+        await Promise.all(
+          chunk.map(async (targetIp) => {
+            if (!targetIp || targetIp === "-") return;
+            const res = await pingHost(targetIp, 400);
+            results[targetIp] = {
+              status: res.status,
+              latency: res.latency,
+            };
+          })
+        );
       }
       return NextResponse.json({
         success: true,
