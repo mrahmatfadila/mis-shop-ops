@@ -122,6 +122,14 @@ export async function PUT(
       notes,
       anydesk_id = "",
       anydesk_password = "",
+      bca_tid,
+      bca_mid,
+      bni_tid,
+      bni_mid,
+      mandiri_tid,
+      mandiri_mid,
+      bri_tid,
+      bri_mid,
     } = body;
 
     await db.execute({
@@ -153,26 +161,102 @@ export async function PUT(
               anydesk_id = ?,
               anydesk_password = ?,
               updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?`,
+            WHERE id = ? OR pos_code = ?`,
       args: [
         pos_code, shop_name, terminal, counter_zone, store_alias,
         ip_address, pos_brand, pos_sn, processor, ram, ssd, tsigunta_version,
         passport_scanner, barcode_scanner, printer, fingerprint_scanner,
         keyboard, mouse, cash_drawer, monitor, os_version, ups, status, notes,
         anydesk_id, anydesk_password,
-        id
+        id, id
       ],
     });
 
+    // 1. Sync ke monitoring_devices
     if (ip_address && ip_address !== "-") {
+      const pingStatus = status === "OPERASIONAL" ? "ONLINE" : "OFFLINE";
       await db.execute({
         sql: `INSERT OR REPLACE INTO monitoring_devices (asset_code, ip_address, status, details)
-              VALUES (?, ?, 'ONLINE', ?)`,
-        args: [pos_code, ip_address, `Kasir ${pos_code} (${pos_brand}) - ${terminal}`],
+              VALUES (?, ?, ?, ?)`,
+        args: [pos_code, ip_address, pingStatus, `Kasir ${pos_code} (${pos_brand}) - ${terminal}`],
       });
     }
 
-    return NextResponse.json({ success: true, message: "Data perangkat POS berhasil diupdate!" });
+    // 2. Sync ke tabel assets master
+    await db.execute({
+      sql: `UPDATE assets SET
+              brand_model = ?,
+              serial_number = ?,
+              ip_address = ?,
+              status = ?,
+              shop_location = ?,
+              notes = ?,
+              updated_at = CURRENT_TIMESTAMP
+            WHERE asset_code = ?`,
+      args: [pos_brand, pos_sn, ip_address, status, shop_name, notes, pos_code],
+    });
+
+    // 3. Sync ke edc_assets jika ada perubahan data EDC Bank
+    if (bca_tid !== undefined || bni_tid !== undefined || mandiri_tid !== undefined || bri_tid !== undefined) {
+      const edcExists = await db.execute({
+        sql: `SELECT id FROM edc_assets WHERE UPPER(TRIM(pos_location)) = UPPER(TRIM(?))`,
+        args: [pos_code],
+      });
+
+      if (edcExists.rows.length > 0) {
+        await db.execute({
+          sql: `UPDATE edc_assets SET
+                  bca_tid = COALESCE(?, bca_tid),
+                  bca_mid = COALESCE(?, bca_mid),
+                  bni_tid = COALESCE(?, bni_tid),
+                  bni_mid = COALESCE(?, bni_mid),
+                  mandiri_tid = COALESCE(?, mandiri_tid),
+                  mandiri_mid = COALESCE(?, mandiri_mid),
+                  bri_tid = COALESCE(?, bri_tid),
+                  bri_mid = COALESCE(?, bri_mid),
+                  shop_name = COALESCE(?, shop_name),
+                  updated_at = CURRENT_TIMESTAMP
+                WHERE UPPER(TRIM(pos_location)) = UPPER(TRIM(?))`,
+          args: [
+            bca_tid !== undefined ? bca_tid : null,
+            bca_mid !== undefined ? bca_mid : null,
+            bni_tid !== undefined ? bni_tid : null,
+            bni_mid !== undefined ? bni_mid : null,
+            mandiri_tid !== undefined ? mandiri_tid : null,
+            mandiri_mid !== undefined ? mandiri_mid : null,
+            bri_tid !== undefined ? bri_tid : null,
+            bri_mid !== undefined ? bri_mid : null,
+            shop_name || null,
+            pos_code,
+          ],
+        });
+      } else if (bca_tid || bni_tid || mandiri_tid || bri_tid) {
+        await db.execute({
+          sql: `INSERT INTO edc_assets (
+                  pos_location, shop_name, is_active,
+                  bca_tid, bca_mid, bca_credit, bca_debit, bca_qr,
+                  bni_tid, bni_mid, bni_credit, bni_debit, bni_qr,
+                  mandiri_tid, mandiri_mid, mandiri_credit, mandiri_debit, mandiri_qr,
+                  bri_tid, bri_mid, bri_credit, bri_debit, bri_qr
+                ) VALUES (
+                  ?, ?, 'Y',
+                  ?, ?, 'Y', 'Y', 'Y',
+                  ?, ?, 'Y', 'Y', 'Y',
+                  ?, ?, 'Y', 'Y', 'Y',
+                  ?, ?, 'Y', 'Y', 'Y'
+                )`,
+          args: [
+            pos_code, shop_name,
+            bca_tid || "-", bca_mid || "-",
+            bni_tid || "-", bni_mid || "-",
+            mandiri_tid || "-", mandiri_mid || "-",
+            bri_tid || "-", bri_mid || "-"
+          ],
+        });
+      }
+    }
+
+    return NextResponse.json({ success: true, message: "Data perangkat POS berhasil diupdate dan tersinkronisasi ke seluruh sistem!" });
   } catch (error) {
     return jsonError(error);
   }

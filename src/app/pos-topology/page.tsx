@@ -36,6 +36,12 @@ import {
   WifiOff,
   Activity,
   RefreshCw,
+  Edit3,
+  Save,
+  Radio,
+  Tv,
+  CheckCheck,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import AccessDenied from "@/components/AccessDenied";
@@ -783,8 +789,49 @@ function PosMachineIllustration({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LEVEL 3 MODAL: DETAIL SUPER LENGKAP 1 SET KASIR POS + TOPOLOGI + EDC
+// LEVEL 3 MODAL: DETAIL SUPER LENGKAP 1 SET KASIR POS + TOPOLOGI + EDC + EDIT SATU DATA
 // ─────────────────────────────────────────────────────────────────────────────
+
+function getEffectiveSpecs(pos: PosHardwareAsset) {
+  const brandUpper = (pos.pos_brand || "").toUpperCase();
+  const isNcr = brandUpper.includes("NCR");
+  const isToshiba = brandUpper.includes("TOSHIBA");
+  const isKassen = brandUpper.includes("KASSEN");
+  const isIware = brandUpper.includes("IWARE");
+
+  const defaultProc = isNcr
+    ? "Intel Core i3-4130 @ 3.40 GHz"
+    : isToshiba
+    ? "Intel Celeron 3965U @ 2.20 GHz"
+    : isKassen || isIware
+    ? "Intel Celeron J1900 Quad-Core"
+    : "Intel Core i3 Dual-Core";
+
+  const defaultRam = isToshiba || isKassen ? "8 GB DDR4" : "4 GB DDR3";
+  const defaultSsd = isToshiba ? "256 GB SSD NVMe" : "128 GB SSD SATA";
+  const defaultPatch = isToshiba
+    ? "Tsigunta POS v4.14"
+    : isKassen
+    ? "Tsigunta POS v4.15"
+    : "Tsigunta POS v4.12";
+  const defaultOs = isNcr
+    ? "WINDOWS 7 EMBEDDED STANDARD SP1 64BIT"
+    : isToshiba
+    ? "WINDOWS 10 IOT ENTERPRISE LTSC"
+    : "WINDOWS 10 PRO 64BIT";
+  const defaultMonitor = hasVal(pos.monitor)
+    ? pos.monitor!
+    : `Touchscreen 15" Integrated ${pos.pos_brand || "POS"}`;
+
+  return {
+    processor: hasVal(pos.processor) ? pos.processor! : defaultProc,
+    ram: hasVal(pos.ram) ? pos.ram! : defaultRam,
+    ssd: hasVal(pos.ssd) ? pos.ssd! : defaultSsd,
+    tsigunta_version: hasVal(pos.tsigunta_version) ? pos.tsigunta_version! : defaultPatch,
+    os_version: hasVal(pos.os_version) ? pos.os_version! : defaultOs,
+    monitor: defaultMonitor,
+  };
+}
 
 function PosCompleteSetModal({
   pos,
@@ -792,24 +839,175 @@ function PosCompleteSetModal({
   storePosList,
   onSelectPos,
   onClose,
+  onUpdatePos,
 }: {
   pos: PosHardwareAsset;
   store: StoreNode;
   storePosList: PosHardwareAsset[];
   onSelectPos: (p: PosHardwareAsset) => void;
   onClose: () => void;
+  onUpdatePos?: (updated: PosHardwareAsset) => void;
 }) {
+  const { isAdmin, isMIS } = useAuth();
+  const canEdit = isAdmin || isMIS;
+
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Quick Ping Testing State
+  const [pingState, setPingState] = useState<{
+    testing: boolean;
+    result: { status: string; latency?: number } | null;
+  }>({ testing: false, result: null });
+
+  const effective = useMemo(() => getEffectiveSpecs(pos), [pos]);
   const edcList = getEdcList(pos);
   const activeEdcs = edcList.filter((e) => hasVal(e.tid));
 
   const currentIndex = storePosList.findIndex((item) => item.pos_code === pos.pos_code);
   const gatewayIp = deriveGateway(pos.ip_address);
 
+  // Form State for In-Modal Editing
+  const [formData, setFormData] = useState({
+    pos_brand: pos.pos_brand || "NCR",
+    pos_sn: hasVal(pos.pos_sn) ? pos.pos_sn! : "",
+    ip_address: pos.ip_address || "",
+    os_version: effective.os_version,
+    processor: effective.processor,
+    ram: effective.ram,
+    ssd: effective.ssd,
+    tsigunta_version: effective.tsigunta_version,
+    status: pos.status || "OPERASIONAL",
+    passport_scanner: hasVal(pos.passport_scanner) ? pos.passport_scanner! : "3M",
+    barcode_scanner: hasVal(pos.barcode_scanner) ? pos.barcode_scanner! : "HONEYWELL",
+    printer: hasVal(pos.printer) ? pos.printer! : "EPSON TM-U220D",
+    cash_drawer: hasVal(pos.cash_drawer) ? pos.cash_drawer! : "PANDA",
+    fingerprint_scanner: hasVal(pos.fingerprint_scanner) ? pos.fingerprint_scanner! : "OK",
+    keyboard: hasVal(pos.keyboard) ? pos.keyboard! : "LOGITECH (PS2)",
+    mouse: hasVal(pos.mouse) ? pos.mouse! : "LOGITECH",
+    monitor: effective.monitor,
+    notes: pos.notes || "",
+    anydesk_id: (pos as any).anydesk_id || "",
+    anydesk_password: (pos as any).anydesk_password || "",
+    // EDC Bank Fields
+    bca_tid: hasVal((pos as any).bca_tid) ? (pos as any).bca_tid : "",
+    bca_mid: hasVal((pos as any).bca_mid) ? (pos as any).bca_mid : "",
+    mandiri_tid: hasVal((pos as any).mandiri_tid) ? (pos as any).mandiri_tid : "",
+    mandiri_mid: hasVal((pos as any).mandiri_mid) ? (pos as any).mandiri_mid : "",
+    bni_tid: hasVal((pos as any).bni_tid) ? (pos as any).bni_tid : "",
+    bni_mid: hasVal((pos as any).bni_mid) ? (pos as any).bni_mid : "",
+    bri_tid: hasVal((pos as any).bri_tid) ? (pos as any).bri_tid : "",
+    bri_mid: hasVal((pos as any).bri_mid) ? (pos as any).bri_mid : "",
+  });
+
+  // Reset form when switching POS
+  useEffect(() => {
+    setIsEditing(false);
+    setSaveSuccess(false);
+    setSaveError(null);
+    setPingState({ testing: false, result: null });
+
+    const eff = getEffectiveSpecs(pos);
+    setFormData({
+      pos_brand: pos.pos_brand || "NCR",
+      pos_sn: hasVal(pos.pos_sn) ? pos.pos_sn! : "",
+      ip_address: pos.ip_address || "",
+      os_version: eff.os_version,
+      processor: eff.processor,
+      ram: eff.ram,
+      ssd: eff.ssd,
+      tsigunta_version: eff.tsigunta_version,
+      status: pos.status || "OPERASIONAL",
+      passport_scanner: hasVal(pos.passport_scanner) ? pos.passport_scanner! : "3M",
+      barcode_scanner: hasVal(pos.barcode_scanner) ? pos.barcode_scanner! : "HONEYWELL",
+      printer: hasVal(pos.printer) ? pos.printer! : "EPSON TM-U220D",
+      cash_drawer: hasVal(pos.cash_drawer) ? pos.cash_drawer! : "PANDA",
+      fingerprint_scanner: hasVal(pos.fingerprint_scanner) ? pos.fingerprint_scanner! : "OK",
+      keyboard: hasVal(pos.keyboard) ? pos.keyboard! : "LOGITECH (PS2)",
+      mouse: hasVal(pos.mouse) ? pos.mouse! : "LOGITECH",
+      monitor: eff.monitor,
+      notes: pos.notes || "",
+      anydesk_id: (pos as any).anydesk_id || "",
+      anydesk_password: (pos as any).anydesk_password || "",
+      bca_tid: hasVal((pos as any).bca_tid) ? (pos as any).bca_tid : "",
+      bca_mid: hasVal((pos as any).bca_mid) ? (pos as any).bca_mid : "",
+      mandiri_tid: hasVal((pos as any).mandiri_tid) ? (pos as any).mandiri_tid : "",
+      mandiri_mid: hasVal((pos as any).mandiri_mid) ? (pos as any).mandiri_mid : "",
+      bni_tid: hasVal((pos as any).bni_tid) ? (pos as any).bni_tid : "",
+      bni_mid: hasVal((pos as any).bni_mid) ? (pos as any).bni_mid : "",
+      bri_tid: hasVal((pos as any).bri_tid) ? (pos as any).bri_tid : "",
+      bri_mid: hasVal((pos as any).bri_mid) ? (pos as any).bri_mid : "",
+    });
+  }, [pos.pos_code]);
+
   const handleCopy = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
     setTimeout(() => setCopiedKey(null), 1800);
+  };
+
+  const runQuickPing = async () => {
+    setPingState({ testing: true, result: null });
+    try {
+      const res = await fetch("/api/monitoring/ping", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ip_address: pos.ip_address, asset_code: pos.pos_code }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setPingState({ testing: false, result: data.data });
+      } else {
+        setPingState({ testing: false, result: { status: "OFFLINE", latency: 0 } });
+      }
+    } catch {
+      setPingState({ testing: false, result: { status: "OFFLINE", latency: 0 } });
+    }
+  };
+
+  const handleSaveForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      const targetId = pos.id || pos.pos_code;
+      const payload = {
+        ...pos,
+        ...formData,
+      };
+
+      const res = await fetch(`/api/pos-hardware/${targetId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const resJson = await res.json();
+      if (resJson.success) {
+        setSaveSuccess(true);
+        const updatedPos: PosHardwareAsset = {
+          ...pos,
+          ...formData,
+        };
+        if (onUpdatePos) {
+          onUpdatePos(updatedPos);
+        }
+        setTimeout(() => {
+          setIsEditing(false);
+          setSaveSuccess(false);
+        }, 1200);
+      } else {
+        setSaveError(resJson.message || "Gagal menyimpan perubahan.");
+      }
+    } catch (err: any) {
+      setSaveError(err?.message || "Terjadi kendala koneksi ke server saat menyimpan.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCopyFullReport = () => {
@@ -822,26 +1020,27 @@ function PosCompleteSetModal({
       `=== DETAIL 1 SET KASIR POS (${pos.pos_code}) ===`,
       `Toko / Lokasi : ${pos.shop_name} — ${store.fullName} (${store.gateLabel})`,
       `Terminal / Zona: ${pos.terminal} / Counter ${pos.counter_zone} (Meja #${pos.pos_number})`,
-      `Status Unit   : ${pos.status}`,
+      `Status Unit   : ${formData.status}`,
       ``,
       `[SPESIFIKASI UNIT & JARINGAN]`,
-      `- Brand Unit POS : ${pos.pos_brand} (SN: ${pos.pos_sn || "-"})`,
-      `- IP Address LAN : ${pos.ip_address} (Gateway: ${gatewayIp})`,
-      `- Sistem Operasi : ${pos.os_version || "-"}`,
-      `- Processor (Proc): ${hasVal(pos.processor) ? pos.processor : "-"}`,
-      `- RAM / Storage  : ${hasVal(pos.ram) ? pos.ram : "-"} / ${hasVal(pos.ssd) ? pos.ssd : "-"}`,
-      `- Patch Tsigunta : ${hasVal(pos.tsigunta_version) ? pos.tsigunta_version : "-"}`,
-      `- Monitor        : ${hasVal(pos.monitor) ? pos.monitor : `Touchscreen ${pos.pos_brand}`}`,
+      `- Brand Unit POS : ${formData.pos_brand} (SN: ${formData.pos_sn || "-"})`,
+      `- IP Address LAN : ${formData.ip_address} (Gateway: ${gatewayIp})`,
+      `- Sistem Operasi : ${formData.os_version}`,
+      `- Processor (Proc): ${formData.processor}`,
+      `- RAM / Storage  : ${formData.ram} / ${formData.ssd}`,
+      `- Patch Tsigunta : ${formData.tsigunta_version}`,
+      `- Monitor        : ${formData.monitor}`,
+      `- AnyDesk ID     : ${formData.anydesk_id || "-"}`,
       ``,
       `[PERIFERAL KASIR TERPASANG]`,
-      `- Passport Reader: ${pos.passport_scanner || "-"}`,
-      `- Barcode Scanner: ${pos.barcode_scanner || "-"}`,
-      `- Printer Struk  : ${pos.printer || "-"}`,
-      `- Laci Kasir     : ${pos.cash_drawer || "-"}`,
-      `- Fingerprint    : ${pos.fingerprint_scanner || "-"}`,
-      `- Keyboard/Mouse : ${pos.keyboard || "-"} / ${pos.mouse || "-"}`,
+      `- Passport Reader: ${formData.passport_scanner || "-"}`,
+      `- Barcode Scanner: ${formData.barcode_scanner || "-"}`,
+      `- Printer Struk  : ${formData.printer || "-"}`,
+      `- Laci Kasir     : ${formData.cash_drawer || "-"}`,
+      `- Fingerprint    : ${formData.fingerprint_scanner || "-"}`,
+      `- Keyboard/Mouse : ${formData.keyboard || "-"} / ${formData.mouse || "-"}`,
       ``,
-      `[MESIN EDC BANK TERHUBUNG (${activeEdcs.length} BANK)]`,
+      `[MESIN EDC BANK TERHUBUNG]`,
       edcSummary,
     ].join("\n");
 
@@ -852,8 +1051,8 @@ function PosCompleteSetModal({
     {
       id: "passport",
       name: "Passport Scanner",
-      model: pos.passport_scanner || "Tidak Terpasang",
-      installed: hasVal(pos.passport_scanner),
+      model: hasVal(formData.passport_scanner) ? formData.passport_scanner : "Tidak Terpasang",
+      installed: hasVal(formData.passport_scanner),
       port: "USB 2.0 High-Speed Optical",
       desc: "Pembaca MRZ Paspor & Boarding Pass Penumpang",
       icon: <Scan className="w-4 h-4" />,
@@ -861,8 +1060,8 @@ function PosCompleteSetModal({
     {
       id: "barcode",
       name: "Barcode Scanner",
-      model: pos.barcode_scanner || "Tidak Terpasang",
-      installed: hasVal(pos.barcode_scanner),
+      model: hasVal(formData.barcode_scanner) ? formData.barcode_scanner : "Tidak Terpasang",
+      installed: hasVal(formData.barcode_scanner),
       port: "USB HID 1D/2D Imager",
       desc: "Pemindai Barcode SKU Produk Duty Free",
       icon: <Scan className="w-4 h-4" />,
@@ -870,8 +1069,8 @@ function PosCompleteSetModal({
     {
       id: "printer",
       name: "Receipt Printer Struk",
-      model: pos.printer || "Tidak Terpasang",
-      installed: hasVal(pos.printer),
+      model: hasVal(formData.printer) ? formData.printer : "Tidak Terpasang",
+      installed: hasVal(formData.printer),
       port: "USB / Serial Virtual COM",
       desc: "Pencetak Struk Transaksi & Bukti Kasir",
       icon: <Printer className="w-4 h-4" />,
@@ -879,8 +1078,8 @@ function PosCompleteSetModal({
     {
       id: "drawer",
       name: "Cash Drawer (Laci Uang)",
-      model: pos.cash_drawer || "Tidak Terpasang",
-      installed: hasVal(pos.cash_drawer),
+      model: hasVal(formData.cash_drawer) ? formData.cash_drawer : "Tidak Terpasang",
+      installed: hasVal(formData.cash_drawer),
       port: "RJ11 Solenoid Kick (via Printer)",
       desc: "Laci Penyimpanan Uang Tunai Multi-Mata Uang",
       icon: <ShoppingCart className="w-4 h-4" />,
@@ -888,8 +1087,8 @@ function PosCompleteSetModal({
     {
       id: "fingerprint",
       name: "Fingerprint Scanner",
-      model: pos.fingerprint_scanner || "Tidak Terpasang",
-      installed: hasVal(pos.fingerprint_scanner),
+      model: hasVal(formData.fingerprint_scanner) ? formData.fingerprint_scanner : "Tidak Terpasang",
+      installed: hasVal(formData.fingerprint_scanner),
       port: "USB Biometric Auth",
       desc: "Otentikasi Sidik Jari Kasir & Otorisasi Void/Diskon SPV",
       icon: <Fingerprint className="w-4 h-4" />,
@@ -897,8 +1096,8 @@ function PosCompleteSetModal({
     {
       id: "keyboard",
       name: "Keyboard Kasir",
-      model: pos.keyboard || "Tidak Terpasang",
-      installed: hasVal(pos.keyboard),
+      model: hasVal(formData.keyboard) ? formData.keyboard : "Tidak Terpasang",
+      installed: hasVal(formData.keyboard),
       port: "USB / PS2 StandardPort",
       desc: "Papan Ketik Input Manual Kasir",
       icon: <Keyboard className="w-4 h-4" />,
@@ -906,8 +1105,8 @@ function PosCompleteSetModal({
     {
       id: "mouse",
       name: "Mouse Optical",
-      model: pos.mouse || "Tidak Terpasang",
-      installed: hasVal(pos.mouse),
+      model: hasVal(formData.mouse) ? formData.mouse : "Tidak Terpasang",
+      installed: hasVal(formData.mouse),
       port: "USB Optical Sensor",
       desc: "Navigasi Kursor Pendamping Layar Sentuh",
       icon: <Mouse className="w-4 h-4" />,
@@ -915,7 +1114,7 @@ function PosCompleteSetModal({
     {
       id: "monitor",
       name: "Layar Monitor Utama",
-      model: hasVal(pos.monitor) ? pos.monitor! : `Integrated Touch ${pos.pos_brand}`,
+      model: formData.monitor || `Integrated Touch ${formData.pos_brand}`,
       installed: true,
       port: "LVDS / VGA / HDMI Display",
       desc: "Layar Utama Aplikasi Kasir POS",
@@ -927,10 +1126,10 @@ function PosCompleteSetModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-2.5 sm:p-5 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-xs p-2.5 sm:p-5 overflow-y-auto"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
+      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-150">
         {/* ── 1. HEADER UTAMA MODAL + NAVIGASI ANTAR POS ── */}
         <div className="bg-slate-900 text-white px-5 py-4 border-b border-slate-800">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -944,23 +1143,27 @@ function PosCompleteSetModal({
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-black uppercase tracking-wider">
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-emerald-400" />
                     SPESIFIKASI LENGKAP 1 SET KASIR POS
                   </span>
                   <span className="px-2 py-0.5 rounded bg-white/10 text-slate-200 text-[10px] font-bold">
                     📍 {store.gateLabel} • {store.fullName}
                   </span>
+                  <span className="px-2 py-0.5 rounded bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[10px] font-bold">
+                    🔄 Satu Data Terpusat
+                  </span>
                 </div>
                 <div className="flex items-center gap-2.5 mt-1 flex-wrap">
-                  <h2 className="text-lg sm:text-xl font-black tracking-tight text-white">
+                  <h2 className="text-lg sm:text-xl font-black tracking-tight text-white font-mono">
                     {pos.pos_code}
                   </h2>
                   <span className="px-2.5 py-0.5 rounded-lg bg-slate-800 border border-slate-700 text-emerald-300 text-xs font-mono font-bold flex items-center gap-1.5">
                     <Wifi className="w-3.5 h-3.5 text-emerald-400" />
-                    {pos.ip_address}
+                    {formData.ip_address}
                     <button
                       type="button"
-                      onClick={() => handleCopy(pos.ip_address, "HEADER_IP")}
+                      onClick={() => handleCopy(formData.ip_address, "HEADER_IP")}
                       className="text-slate-400 hover:text-white ml-0.5"
                       title="Salin IP Address"
                     >
@@ -973,23 +1176,40 @@ function PosCompleteSetModal({
                   </span>
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border ${
-                      pos.status === "OPERASIONAL"
+                      formData.status === "OPERASIONAL"
                         ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/40"
                         : "bg-rose-500/20 text-rose-300 border-rose-400/40"
                     }`}
                   >
-                    ● {pos.status}
+                    ● {formData.status}
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Tombol Aksi Cepat di Kanan Atas */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {canEdit && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(!isEditing)}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs ${
+                    isEditing
+                      ? "bg-amber-500 hover:bg-amber-600 text-slate-950 font-black"
+                      : "bg-indigo-600 hover:bg-indigo-500 text-white"
+                  }`}
+                  title={isEditing ? "Batalkan Edit" : "Edit Spesifikasi & Periferal 1 Set POS"}
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>{isEditing ? "Tutup Mode Edit" : "✏️ Edit 1 Set Kasir"}</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={handleCopyFullReport}
                 className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs"
+                title="Salin Seluruh Ringkasan Spesifikasi"
               >
                 {copiedKey === "FULL_REPORT" ? (
                   <>
@@ -999,7 +1219,7 @@ function PosCompleteSetModal({
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5" />
-                    <span>Salin Ringkasan 1 Set</span>
+                    <span className="hidden sm:inline">Salin Ringkasan</span>
                   </>
                 )}
               </button>
@@ -1007,6 +1227,7 @@ function PosCompleteSetModal({
               <Link
                 href={`/assets?search=${encodeURIComponent(pos.pos_code)}`}
                 className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-colors flex items-center gap-1.5"
+                title="Buka pada Master Data Kasir POS"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Buka di Master POS</span>
@@ -1075,670 +1296,1246 @@ function PosCompleteSetModal({
           )}
         </div>
 
-        {/* ── 2. BODY MODAL ── */}
+        {/* ── 2. BODY MODAL (MODE EDIT ATAU MODE DETAIL LENGKAP) ── */}
         <div className="p-4 sm:p-6 space-y-5 max-h-[78vh] overflow-y-auto bg-slate-50">
-          {/* BAGIAN A: RINGKASAN 4 KARTU INDIKATOR UTAMA */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center flex-shrink-0">
-                <Cpu className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase text-slate-400">Model Unit POS</p>
-                <p className="text-sm font-black text-slate-900 truncate">{pos.pos_brand}</p>
-                <p className="text-[10px] text-slate-500 truncate">
-                  SN: {hasVal(pos.pos_sn) ? pos.pos_sn : "Terdaftar"}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-[#006622] flex items-center justify-center flex-shrink-0">
-                <Wifi className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase text-slate-400">IP Address & GW</p>
-                <p className="text-sm font-mono font-black text-slate-900 truncate">
-                  {pos.ip_address}
-                </p>
-                <p className="text-[10px] font-mono text-slate-500 truncate">GW: {gatewayIp}</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center flex-shrink-0">
-                <Cable className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase text-slate-400">Periferal Terpasang</p>
-                <p className="text-sm font-black text-slate-900">
-                  {installedPeripheralsCount} / 8 Perangkat
-                </p>
-                <p className="text-[10px] text-emerald-700 font-semibold">
-                  Passport • Printer • Drawer
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center flex-shrink-0">
-                <CreditCard className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase text-slate-400">Koneksi Mesin EDC</p>
-                <p className="text-sm font-black text-slate-900">
-                  {activeEdcs.length} dari 4 Bank
-                </p>
-                <p className="text-[10px] text-blue-700 font-semibold truncate">
-                  {activeEdcs.length > 0
-                    ? activeEdcs.map((e) => e.bank).join(", ")
-                    : "Tanpa EDC Bank"}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* BAGIAN B: SKEMA VISUAL ARSITEKTUR 1 SET MEJA KASIR + SPESIFIKASI INTI */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            {/* Kiri (7 Col): Ilustrasi Blueprint Meja Kasir 1 Set Lengkap */}
-            <div className="lg:col-span-7 bg-slate-900 rounded-2xl p-4 sm:p-5 text-white border border-slate-800 flex flex-col justify-between">
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-emerald-400" />
-                  <h3 className="text-xs font-black uppercase tracking-wider text-emerald-300">
-                    Blueprint Topologi Meja Kasir ({pos.pos_code})
-                  </h3>
+          {/* JIKA DALAM MODE EDIT: FORM INPUT SATU DATA TERINTEGRASI */}
+          {isEditing ? (
+            <form onSubmit={handleSaveForm} className="space-y-5">
+              {/* Notifikasi Sistem Satu Data */}
+              <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-950 flex items-start gap-3 shadow-xs">
+                <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Save className="w-4 h-4" />
                 </div>
-                <span className="text-[10px] text-slate-400 font-mono">
-                  Counter {pos.counter_zone} • Meja #{pos.pos_number}
-                </span>
-              </div>
-
-              {/* SVG Diagram Interaktif 1 Set Meja Kasir */}
-              <svg viewBox="0 0 600 230" className="w-full h-auto select-none my-auto">
-                {/* Garis Kabel Koneksi dari Main POS ke semua periferal */}
-                <g stroke="#10b981" strokeWidth="1.8" strokeDasharray="4 3" fill="none" opacity="0.7">
-                  {/* Ke Passport Reader (Kiri Atas) */}
-                  <path d="M 235 95 L 145 52" />
-                  {/* Ke Barcode Scanner (Kiri Tengah) */}
-                  <path d="M 235 112 L 145 115" />
-                  {/* Ke Fingerprint (Kiri Bawah) */}
-                  <path d="M 235 130 L 145 178" />
-                  {/* Ke Printer Struk (Kanan Atas) */}
-                  <path d="M 365 95 L 455 52" />
-                  {/* Ke Cash Drawer (Kanan Tengah) */}
-                  <path d="M 365 112 L 455 115" />
-                  {/* Ke Keyboard & Mouse (Kanan Bawah) */}
-                  <path d="M 365 130 L 455 178" />
-                </g>
-
-                {/* NODE KIRI 1: PASSPORT READER */}
-                <g>
-                  <rect
-                    x="12"
-                    y="24"
-                    width="135"
-                    height="50"
-                    rx="9"
-                    fill="#1e293b"
-                    stroke={hasVal(pos.passport_scanner) ? "#10b981" : "#475569"}
-                    strokeWidth="1.8"
-                  />
-                  <circle
-                    cx="26"
-                    cy="38"
-                    r="4"
-                    fill={hasVal(pos.passport_scanner) ? "#4ade80" : "#64748b"}
-                  />
-                  <text x="36" y="41" fill="#94a3b8" fontSize="8.5" fontWeight="800">
-                    PASSPORT READER
-                  </text>
-                  <text x="24" y="58" fill="#ffffff" fontSize="10.5" fontWeight="900">
-                    {hasVal(pos.passport_scanner) ? pos.passport_scanner : "TIDAK ADA"}
-                  </text>
-                </g>
-
-                {/* NODE KIRI 2: BARCODE SCANNER */}
-                <g>
-                  <rect
-                    x="12"
-                    y="88"
-                    width="135"
-                    height="50"
-                    rx="9"
-                    fill="#1e293b"
-                    stroke={hasVal(pos.barcode_scanner) ? "#10b981" : "#475569"}
-                    strokeWidth="1.8"
-                  />
-                  <circle
-                    cx="26"
-                    cy="102"
-                    r="4"
-                    fill={hasVal(pos.barcode_scanner) ? "#4ade80" : "#64748b"}
-                  />
-                  <text x="36" y="105" fill="#94a3b8" fontSize="8.5" fontWeight="800">
-                    BARCODE SCANNER
-                  </text>
-                  <text x="24" y="122" fill="#ffffff" fontSize="10.5" fontWeight="900">
-                    {hasVal(pos.barcode_scanner) ? pos.barcode_scanner : "TIDAK ADA"}
-                  </text>
-                </g>
-
-                {/* NODE KIRI 3: FINGERPRINT */}
-                <g>
-                  <rect
-                    x="12"
-                    y="152"
-                    width="135"
-                    height="50"
-                    rx="9"
-                    fill="#1e293b"
-                    stroke={hasVal(pos.fingerprint_scanner) ? "#10b981" : "#475569"}
-                    strokeWidth="1.8"
-                  />
-                  <circle
-                    cx="26"
-                    cy="166"
-                    r="4"
-                    fill={hasVal(pos.fingerprint_scanner) ? "#4ade80" : "#64748b"}
-                  />
-                  <text x="36" y="169" fill="#94a3b8" fontSize="8.5" fontWeight="800">
-                    FINGERPRINT AUTH
-                  </text>
-                  <text x="24" y="186" fill="#ffffff" fontSize="10.5" fontWeight="900">
-                    {hasVal(pos.fingerprint_scanner) ? pos.fingerprint_scanner : "STANDAR / -"}
-                  </text>
-                </g>
-
-                {/* CENTER NODE: MAIN POS TERMINAL WORKSTATION */}
-                <g>
-                  <rect
-                    x="212"
-                    y="32"
-                    width="176"
-                    height="162"
-                    rx="16"
-                    fill="#064e3b"
-                    stroke="#34d399"
-                    strokeWidth="2.5"
-                  />
-                  <rect x="232" y="44" width="136" height="18" rx="5" fill="#10b981" />
-                  <text
-                    x="300"
-                    y="56"
-                    textAnchor="middle"
-                    fill="#022c22"
-                    fontSize="9"
-                    fontWeight="900"
-                  >
-                    UNIT UTAMA KASIR POS
-                  </text>
-
-                  {/* Layar Monitor Tengah */}
-                  <rect
-                    x="236"
-                    y="70"
-                    width="128"
-                    height="66"
-                    rx="7"
-                    fill="#0f172a"
-                    stroke="#6ee7b7"
-                    strokeWidth="1.5"
-                  />
-                  <text
-                    x="300"
-                    y="92"
-                    textAnchor="middle"
-                    fill="#ffffff"
-                    fontSize="14"
-                    fontWeight="900"
-                  >
-                    {pos.pos_brand}
-                  </text>
-                  <text
-                    x="300"
-                    y="108"
-                    textAnchor="middle"
-                    fill="#34d399"
-                    fontSize="9.5"
-                    fontWeight="800"
-                    fontFamily="monospace"
-                  >
-                    {pos.pos_code}
-                  </text>
-                  <text
-                    x="300"
-                    y="124"
-                    textAnchor="middle"
-                    fill="#94a3b8"
-                    fontSize="8.5"
-                    fontFamily="monospace"
-                  >
-                    IP: {pos.ip_address}
-                  </text>
-
-                  {/* Base / Stand */}
-                  <rect x="244" y="146" width="112" height="34" rx="5" fill="#022c22" />
-                  <text
-                    x="300"
-                    y="160"
-                    textAnchor="middle"
-                    fill="#a7f3d0"
-                    fontSize="8"
-                    fontWeight="800"
-                  >
-                    RAM {hasVal(pos.ram) ? pos.ram : "4GB"} • SSD {hasVal(pos.ssd) ? pos.ssd : "128GB"}
-                  </text>
-                  <text
-                    x="300"
-                    y="172"
-                    textAnchor="middle"
-                    fill="#6ee7b7"
-                    fontSize="7.5"
-                    fontWeight="700"
-                  >
-                    {activeEdcs.length} EDC Bank Terhubung
-                  </text>
-                </g>
-
-                {/* NODE KANAN 1: RECEIPT PRINTER */}
-                <g>
-                  <rect
-                    x="453"
-                    y="24"
-                    width="135"
-                    height="50"
-                    rx="9"
-                    fill="#1e293b"
-                    stroke={hasVal(pos.printer) ? "#10b981" : "#475569"}
-                    strokeWidth="1.8"
-                  />
-                  <circle
-                    cx="467"
-                    cy="38"
-                    r="4"
-                    fill={hasVal(pos.printer) ? "#4ade80" : "#64748b"}
-                  />
-                  <text x="477" y="41" fill="#94a3b8" fontSize="8.5" fontWeight="800">
-                    PRINTER STRUK
-                  </text>
-                  <text x="465" y="58" fill="#ffffff" fontSize="9.5" fontWeight="900">
-                    {hasVal(pos.printer) ? pos.printer!.slice(0, 17) : "TIDAK ADA"}
-                  </text>
-                </g>
-
-                {/* NODE KANAN 2: CASH DRAWER */}
-                <g>
-                  <rect
-                    x="453"
-                    y="88"
-                    width="135"
-                    height="50"
-                    rx="9"
-                    fill="#1e293b"
-                    stroke={hasVal(pos.cash_drawer) ? "#10b981" : "#475569"}
-                    strokeWidth="1.8"
-                  />
-                  <circle
-                    cx="467"
-                    cy="102"
-                    r="4"
-                    fill={hasVal(pos.cash_drawer) ? "#4ade80" : "#64748b"}
-                  />
-                  <text x="477" y="105" fill="#94a3b8" fontSize="8.5" fontWeight="800">
-                    CASH DRAWER (LACI)
-                  </text>
-                  <text x="465" y="122" fill="#ffffff" fontSize="10.5" fontWeight="900">
-                    {hasVal(pos.cash_drawer) ? pos.cash_drawer : "TIDAK ADA"}
-                  </text>
-                </g>
-
-                {/* NODE KANAN 3: KEYBOARD & MOUSE */}
-                <g>
-                  <rect
-                    x="453"
-                    y="152"
-                    width="135"
-                    height="50"
-                    rx="9"
-                    fill="#1e293b"
-                    stroke={hasVal(pos.keyboard) ? "#10b981" : "#475569"}
-                    strokeWidth="1.8"
-                  />
-                  <circle
-                    cx="467"
-                    cy="166"
-                    r="4"
-                    fill={hasVal(pos.keyboard) ? "#4ade80" : "#64748b"}
-                  />
-                  <text x="477" y="169" fill="#94a3b8" fontSize="8.5" fontWeight="800">
-                    KEYBOARD & MOUSE
-                  </text>
-                  <text x="465" y="186" fill="#ffffff" fontSize="9.5" fontWeight="900">
-                    {pos.keyboard || "LOGITECH"} / {pos.mouse || "LOGITECH"}
-                  </text>
-                </g>
-              </svg>
-
-              <div className="mt-2 pt-2.5 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-                <span>OS: <strong className="text-slate-200">{pos.os_version || "Windows POS Embedded"}</strong></span>
-                <span className="text-emerald-400 font-semibold">● Seluruh Port Aktif</span>
-              </div>
-            </div>
-
-            {/* Kanan (5 Col): Spesifikasi Detail Hardware & Konfigurasi Jaringan */}
-            <div className="lg:col-span-5 bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 flex flex-col justify-between space-y-4">
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Server className="w-4 h-4 text-[#006622]" />
-                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                    Identitas Sistem & Jaringan Kasir
-                  </h3>
-                </div>
-
-                <div className="divide-y divide-slate-100 text-xs">
-                  <div className="py-2 flex items-center justify-between gap-2">
-                    <span className="text-slate-500">Kode Titik Kasir</span>
-                    <span className="font-mono font-black text-slate-900">{pos.pos_code}</span>
-                  </div>
-                  <div className="py-2 flex items-center justify-between gap-2">
-                    <span className="text-slate-500">Toko & Terminal</span>
-                    <span className="font-bold text-slate-800">
-                      {pos.shop_name} • {pos.terminal}
-                    </span>
-                  </div>
-                  <div className="py-2 flex items-center justify-between gap-2">
-                    <span className="text-slate-500">Area Counter / Gate</span>
-                    <span className="font-bold text-[#006622]">
-                      {store.dfdLabel} ({store.gateLabel})
-                    </span>
-                  </div>
-                  <div className="py-2 flex items-center justify-between gap-2">
-                    <span className="text-slate-500">Alamat IP Statis</span>
-                    <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                      {pos.ip_address}
-                    </span>
-                  </div>
-                  <div className="py-2 flex items-center justify-between gap-2">
-                    <span className="text-slate-500">Gateway / Subnet</span>
-                    <span className="font-mono text-slate-700 font-semibold">
-                      {gatewayIp} / 24
-                    </span>
-                  </div>
-                  <div className="py-1.5 flex items-center justify-between gap-2">
-                    <span className="text-slate-500">Merek / Tipe PC POS</span>
-                    <span className="font-black text-slate-900">{pos.pos_brand}</span>
-                  </div>
-                  <div className="py-1.5 flex items-center justify-between gap-2">
-                    <span className="text-slate-500">Sistem Operasi (OS)</span>
-                    <span className="font-mono font-semibold text-slate-800 text-right max-w-[210px] truncate" title={pos.os_version}>
-                      {pos.os_version || "-"}
-                    </span>
-                  </div>
-                  <div className="py-1.5 flex items-center justify-between gap-2">
-                    <span className="text-slate-500">Processor (Proc)</span>
-                    <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                      {hasVal(pos.processor) ? pos.processor : "-"}
-                    </span>
-                  </div>
-                  <div className="py-1.5 flex items-center justify-between gap-2">
-                    <span className="text-slate-500">RAM</span>
-                    <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                      {hasVal(pos.ram) ? pos.ram : "-"}
-                    </span>
-                  </div>
-                  <div className="py-1.5 flex items-center justify-between gap-2">
-                    <span className="text-slate-500">Storage (SSD/HDD)</span>
-                    <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                      {hasVal(pos.ssd) ? pos.ssd : "-"}
-                    </span>
-                  </div>
-                  <div className="py-1.5 flex items-center justify-between gap-2">
-                    <span className="text-slate-500">Patch</span>
-                    <span className="font-mono font-bold text-[#006622] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                      {hasVal(pos.tsigunta_version) ? pos.tsigunta_version : "-"}
-                    </span>
-                  </div>
-                  <div className="py-1.5 flex items-center justify-between gap-2">
-                    <span className="text-slate-500">Keyboard Kasir</span>
-                    <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                      {hasVal(pos.keyboard) ? pos.keyboard : "LOGITECH"}
-                    </span>
-                  </div>
-                  <div className="py-1.5 flex items-center justify-between gap-2">
-                    <span className="text-slate-500">Mouse Kasir</span>
-                    <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                      {hasVal(pos.mouse) ? pos.mouse : "LOGITECH"}
-                    </span>
-                  </div>
+                <div className="text-xs">
+                  <h4 className="font-black text-indigo-900 text-sm">
+                    Mode Pengeditan 1 Set POS — Sinkronisasi Sistem Satu Data
+                  </h4>
+                  <p className="text-indigo-700 mt-0.5 leading-relaxed">
+                    Setiap perubahan spesifikasi hardware, IP address, periferal, atau EDC bank yang Anda simpan di sini akan otomatis terupdate di <strong>Database Master</strong>, <strong>Topologi Denah Toko</strong>, <strong>Monitoring Ping Jaringan</strong>, dan <strong>Master EDC Bank</strong> secara real-time.
+                  </p>
                 </div>
               </div>
 
-              {hasVal(pos.notes) && (
-                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
-                  <span className="font-black uppercase text-[10px] text-amber-700 block mb-0.5">
-                    Catatan Teknisi MIS:
-                  </span>
-                  {pos.notes}
+              {saveSuccess && (
+                <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+                  <CheckCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                  <span>Data 1 Set Kasir & EDC berhasil disimpan dan tersinkronisasi ke seluruh sistem!</span>
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* BAGIAN C: DAFTAR LENGKAP 8 PERIFERAL 1 SET KASIR */}
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200">
-            <div className="flex items-center justify-between flex-wrap gap-2 mb-3.5">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 text-[#006622] flex items-center justify-center">
-                  <ShieldCheck className="w-4 h-4" />
+              {saveError && (
+                <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-300 text-rose-800 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+                  <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+                  <span>{saveError}</span>
                 </div>
-                <div>
-                  <h3 className="text-sm font-black text-slate-900">
-                    Rincian Periferal 1 Set Kasir ({installedPeripheralsCount} dari 8 Komponen Terpasang)
+              )}
+
+              {/* CARD 1: IDENTITAS HARDWARE PC & JARINGAN */}
+              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs space-y-4">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                  <Cpu className="w-4 h-4 text-indigo-600" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                    1. Identitas Hardware PC Kasir & Konfigurasi Jaringan
                   </h3>
-                  <p className="text-[11px] text-slate-500">
-                    Daftar perangkat keras pendamping yang menempel langsung pada unit kasir {pos.pos_code}
-                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 text-xs">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Merek / Brand Unit POS:
+                    </label>
+                    <select
+                      value={formData.pos_brand}
+                      onChange={(e) => setFormData({ ...formData, pos_brand: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="NCR">NCR RealPOS</option>
+                      <option value="TOSHIBA">TOSHIBA TCxWave</option>
+                      <option value="KASSEN">KASSEN All-in-One</option>
+                      <option value="IWARE">IWARE Touchscreen</option>
+                      <option value="NEW POS">NEW POS Terminal</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Nomor Seri (Serial Number):
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.pos_sn}
+                      onChange={(e) => setFormData({ ...formData, pos_sn: e.target.value })}
+                      placeholder="Contoh: NCR-7842-88912"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Status Operasional Unit:
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="OPERASIONAL">● OPERASIONAL (Aktif di Meja Kasir)</option>
+                      <option value="PERBAIKAN">● PERBAIKAN (Sedang Ditangani MIS)</option>
+                      <option value="RUSAK">● RUSAK (Kendala Hardware / Butuh Sparepart)</option>
+                      <option value="CADANGAN">● CADANGAN (Ready Standby di Gudang)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Alamat IP Statis (LAN Kasir):
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.ip_address}
+                      onChange={(e) => setFormData({ ...formData, ip_address: e.target.value })}
+                      placeholder="Contoh: 172.19.20.11"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono font-bold text-blue-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Sistem Operasi (OS):
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.os_version}
+                      onChange={(e) => setFormData({ ...formData, os_version: e.target.value })}
+                      placeholder="Contoh: WINDOWS 7 EMBEDDED STANDARD SP1 64BIT"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Processor (CPU):
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.processor}
+                      onChange={(e) => setFormData({ ...formData, processor: e.target.value })}
+                      placeholder="Contoh: Intel Core i3-4130 @ 3.40 GHz"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Kapasitas RAM:
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.ram}
+                      onChange={(e) => setFormData({ ...formData, ram: e.target.value })}
+                      placeholder="Contoh: 4 GB DDR3 / 8 GB DDR4"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Penyimpanan (Storage SSD/HDD):
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.ssd}
+                      onChange={(e) => setFormData({ ...formData, ssd: e.target.value })}
+                      placeholder="Contoh: 128 GB SSD SATA"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Versi Patch Tsigunta:
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.tsigunta_version}
+                      onChange={(e) => setFormData({ ...formData, tsigunta_version: e.target.value })}
+                      placeholder="Contoh: Tsigunta POS v4.12"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-emerald-700 font-bold focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      AnyDesk ID Remote Kasir:
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.anydesk_id}
+                      onChange={(e) => setFormData({ ...formData, anydesk_id: e.target.value })}
+                      placeholder="Contoh: 1 458 920 112"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Layar Monitor Utama:
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.monitor}
+                      onChange={(e) => setFormData({ ...formData, monitor: e.target.value })}
+                      placeholder="Contoh: Touchscreen 15 inch Integrated NCR"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {peripheralItems.map((item) => (
-                <div
-                  key={item.id}
-                  className={`rounded-2xl p-3.5 border transition-all flex flex-col justify-between ${
-                    item.installed
-                      ? "bg-slate-50/70 border-slate-200/90"
-                      : "bg-slate-50/30 border-slate-200/50 opacity-55"
-                  }`}
-                >
+              {/* CARD 2: PERIFERAL KASIR LENGKAP (8 PERANGKAT) */}
+              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs space-y-4">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                    2. Rincian 8 Periferal Terpasang di Meja Kasir
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                   <div>
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <div
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                          item.installed
-                            ? "bg-emerald-100/80 text-[#006622]"
-                            : "bg-slate-200 text-slate-500"
-                        }`}
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Passport Scanner:
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.passport_scanner}
+                      onChange={(e) => setFormData({ ...formData, passport_scanner: e.target.value })}
+                      placeholder="3M / GEMALTO / -"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Barcode Scanner:
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.barcode_scanner}
+                      onChange={(e) => setFormData({ ...formData, barcode_scanner: e.target.value })}
+                      placeholder="HONEYWELL / DATALOGIC / -"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Printer Struk Kasir:
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.printer}
+                      onChange={(e) => setFormData({ ...formData, printer: e.target.value })}
+                      placeholder="EPSON TM-U220D / TM-T82 / -"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Cash Drawer (Laci Uang):
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.cash_drawer}
+                      onChange={(e) => setFormData({ ...formData, cash_drawer: e.target.value })}
+                      placeholder="PANDA / NCR / -"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Fingerprint Scanner:
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.fingerprint_scanner}
+                      onChange={(e) => setFormData({ ...formData, fingerprint_scanner: e.target.value })}
+                      placeholder="OK / DIGITAL PERSONA / -"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Keyboard Kasir:
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.keyboard}
+                      onChange={(e) => setFormData({ ...formData, keyboard: e.target.value })}
+                      placeholder="LOGITECH (PS2) / USB / -"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Mouse Kasir:
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.mouse}
+                      onChange={(e) => setFormData({ ...formData, mouse: e.target.value })}
+                      placeholder="LOGITECH / -"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Perangkat Lain / UPS:
+                    </label>
+                    <input
+                      type="text"
+                      defaultValue={(pos as any).ups || "ICA 1200VA Online"}
+                      placeholder="UPS / Stabilizer"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* CARD 3: MESIN EDC BANK TERHUBUNG */}
+              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs space-y-4">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                  <CreditCard className="w-4 h-4 text-blue-600" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                    3. Integrasi Mesin EDC Bank (TID & MID)
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                  {/* BCA */}
+                  <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-200 space-y-2">
+                    <span className="font-black text-blue-900 block text-xs">EDC Bank BCA</span>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-0.5">TID BCA:</label>
+                      <input
+                        type="text"
+                        value={formData.bca_tid}
+                        onChange={(e) => setFormData({ ...formData, bca_tid: e.target.value })}
+                        placeholder="Contoh: C2356748"
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-800"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-0.5">MID BCA:</label>
+                      <input
+                        type="text"
+                        value={formData.bca_mid}
+                        onChange={(e) => setFormData({ ...formData, bca_mid: e.target.value })}
+                        placeholder="00049170"
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-800"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Mandiri */}
+                  <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-2">
+                    <span className="font-black text-amber-900 block text-xs">EDC Bank Mandiri</span>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-0.5">TID Mandiri:</label>
+                      <input
+                        type="text"
+                        value={formData.mandiri_tid}
+                        onChange={(e) => setFormData({ ...formData, mandiri_tid: e.target.value })}
+                        placeholder="Contoh: 14088514"
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-800"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-0.5">MID Mandiri:</label>
+                      <input
+                        type="text"
+                        value={formData.mandiri_mid}
+                        onChange={(e) => setFormData({ ...formData, mandiri_mid: e.target.value })}
+                        placeholder="01921869"
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-800"
+                      />
+                    </div>
+                  </div>
+
+                  {/* BNI */}
+                  <div className="p-3.5 rounded-2xl bg-teal-50/60 border border-teal-200 space-y-2">
+                    <span className="font-black text-teal-900 block text-xs">EDC Bank BNI</span>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-0.5">TID BNI:</label>
+                      <input
+                        type="text"
+                        value={formData.bni_tid}
+                        onChange={(e) => setFormData({ ...formData, bni_tid: e.target.value })}
+                        placeholder="Contoh: 10447371"
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-800"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-0.5">MID BNI:</label>
+                      <input
+                        type="text"
+                        value={formData.bni_mid}
+                        onChange={(e) => setFormData({ ...formData, bni_mid: e.target.value })}
+                        placeholder="BNI-MID-01"
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-800"
+                      />
+                    </div>
+                  </div>
+
+                  {/* BRI */}
+                  <div className="p-3.5 rounded-2xl bg-indigo-50/60 border border-indigo-200 space-y-2">
+                    <span className="font-black text-indigo-900 block text-xs">EDC Bank BRI</span>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-0.5">TID BRI:</label>
+                      <input
+                        type="text"
+                        value={formData.bri_tid}
+                        onChange={(e) => setFormData({ ...formData, bri_tid: e.target.value })}
+                        placeholder="Contoh: 15301686"
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-800"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-0.5">MID BRI:</label>
+                      <input
+                        type="text"
+                        value={formData.bri_mid}
+                        onChange={(e) => setFormData({ ...formData, bri_mid: e.target.value })}
+                        placeholder="BRI-MID-01"
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-800"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CARD 4: CATATAN TEKNISI MIS */}
+              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs space-y-2">
+                <label className="block text-xs font-black uppercase text-slate-700">
+                  Catatan Khusus Teknisi MIS (Troubleshoot, Port Switch, History Servis):
+                </label>
+                <textarea
+                  rows={2}
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Catatan kondisi perangkat, histori penggantian sparepart, atau port switch..."
+                  className="w-full p-3 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              {/* ACTION BAR SIMPAN / BATAL */}
+              <div className="flex items-center justify-between gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="px-5 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-colors"
+                >
+                  Batal
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-black transition-all flex items-center gap-2 shadow-md shadow-emerald-600/20"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Menyimpan & Mensinkronisasi...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        <span>Simpan Perubahan (Satu Data Terintegrasi)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </form>
+          ) : (
+            /* MODE DETAIL DAN BLUEPRINT LENGKAP */
+            <>
+              {/* BAGIAN A: RINGKASAN 4 KARTU INDIKATOR UTAMA */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center flex-shrink-0">
+                    <Cpu className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase text-slate-400">Model Unit POS</p>
+                    <p className="text-sm font-black text-slate-900 truncate">{formData.pos_brand}</p>
+                    <p className="text-[10px] text-slate-500 truncate">
+                      SN: {hasVal(formData.pos_sn) ? formData.pos_sn : "Terdaftar Resmi"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-[#006622] flex items-center justify-center flex-shrink-0">
+                    <Wifi className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-1">
+                      <p className="text-[10px] font-bold uppercase text-slate-400">IP Address & GW</p>
+                      <button
+                        type="button"
+                        onClick={runQuickPing}
+                        disabled={pingState.testing}
+                        className="text-[9px] font-bold text-emerald-700 hover:text-emerald-900 underline flex items-center gap-0.5"
+                        title="Uji Ping ke IP Kasir Ini"
                       >
-                        {item.icon}
-                      </div>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${
-                          item.installed
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : "bg-slate-100 text-slate-500 border-slate-200"
-                        }`}
+                        {pingState.testing ? (
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                        ) : (
+                          <Radio className="w-2.5 h-2.5" />
+                        )}
+                        <span>{pingState.testing ? "Ping..." : "Test Ping"}</span>
+                      </button>
+                    </div>
+                    <p className="text-sm font-mono font-black text-slate-900 truncate">
+                      {formData.ip_address}
+                    </p>
+                    <div className="flex items-center gap-1.5 text-[10px] truncate">
+                      <span className="font-mono text-slate-500">GW: {gatewayIp}</span>
+                      {pingState.result && (
+                        <span
+                          className={`px-1 rounded text-[9px] font-bold ${
+                            pingState.result.status === "ONLINE"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-rose-100 text-rose-800"
+                          }`}
+                        >
+                          {pingState.result.status} {pingState.result.latency ? `(${pingState.result.latency}ms)` : ""}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center flex-shrink-0">
+                    <Cable className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase text-slate-400">Periferal Terpasang</p>
+                    <p className="text-sm font-black text-slate-900">
+                      {installedPeripheralsCount} / 8 Perangkat
+                    </p>
+                    <p className="text-[10px] text-emerald-700 font-semibold truncate">
+                      Passport • Printer • Drawer
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center flex-shrink-0">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase text-slate-400">Koneksi Mesin EDC</p>
+                    <p className="text-sm font-black text-slate-900">
+                      {activeEdcs.length} dari 4 Bank
+                    </p>
+                    <p className="text-[10px] text-blue-700 font-semibold truncate">
+                      {activeEdcs.length > 0
+                        ? activeEdcs.map((e) => e.bank).join(", ")
+                        : "Tanpa EDC Bank"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* BAGIAN B: SKEMA VISUAL ARSITEKTUR 1 SET MEJA KASIR + SPESIFIKASI INTI */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                {/* Kiri (7 Col): Ilustrasi Blueprint Meja Kasir 1 Set Lengkap */}
+                <div className="lg:col-span-7 bg-slate-900 rounded-2xl p-4 sm:p-5 text-white border border-slate-800 flex flex-col justify-between">
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-emerald-400" />
+                      <h3 className="text-xs font-black uppercase tracking-wider text-emerald-300">
+                        Blueprint Topologi Meja Kasir ({pos.pos_code})
+                      </h3>
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      Counter {pos.counter_zone} • Meja #{pos.pos_number}
+                    </span>
+                  </div>
+
+                  {/* SVG Diagram Interaktif 1 Set Meja Kasir */}
+                  <svg viewBox="0 0 600 230" className="w-full h-auto select-none my-auto">
+                    {/* Garis Kabel Koneksi dari Main POS ke semua periferal */}
+                    <g stroke="#10b981" strokeWidth="1.8" strokeDasharray="4 3" fill="none" opacity="0.75">
+                      {/* Ke Passport Reader (Kiri Atas) */}
+                      <path d="M 235 95 L 145 52" />
+                      {/* Ke Barcode Scanner (Kiri Tengah) */}
+                      <path d="M 235 112 L 145 115" />
+                      {/* Ke Fingerprint (Kiri Bawah) */}
+                      <path d="M 235 130 L 145 178" />
+                      {/* Ke Printer Struk (Kanan Atas) */}
+                      <path d="M 365 95 L 455 52" />
+                      {/* Ke Cash Drawer (Kanan Tengah) */}
+                      <path d="M 365 112 L 455 115" />
+                      {/* Ke Keyboard & Mouse (Kanan Bawah) */}
+                      <path d="M 365 130 L 455 178" />
+                    </g>
+
+                    {/* NODE KIRI 1: PASSPORT READER */}
+                    <g>
+                      <rect
+                        x="12"
+                        y="24"
+                        width="135"
+                        height="50"
+                        rx="9"
+                        fill="#1e293b"
+                        stroke={hasVal(formData.passport_scanner) ? "#10b981" : "#475569"}
+                        strokeWidth="1.8"
+                      />
+                      <circle
+                        cx="26"
+                        cy="38"
+                        r="4"
+                        fill={hasVal(formData.passport_scanner) ? "#4ade80" : "#64748b"}
+                      />
+                      <text x="36" y="41" fill="#94a3b8" fontSize="8.5" fontWeight="800">
+                        PASSPORT READER
+                      </text>
+                      <text x="24" y="58" fill="#ffffff" fontSize="10.5" fontWeight="900">
+                        {hasVal(formData.passport_scanner) ? formData.passport_scanner : "TIDAK ADA"}
+                      </text>
+                    </g>
+
+                    {/* NODE KIRI 2: BARCODE SCANNER */}
+                    <g>
+                      <rect
+                        x="12"
+                        y="88"
+                        width="135"
+                        height="50"
+                        rx="9"
+                        fill="#1e293b"
+                        stroke={hasVal(formData.barcode_scanner) ? "#10b981" : "#475569"}
+                        strokeWidth="1.8"
+                      />
+                      <circle
+                        cx="26"
+                        cy="102"
+                        r="4"
+                        fill={hasVal(formData.barcode_scanner) ? "#4ade80" : "#64748b"}
+                      />
+                      <text x="36" y="105" fill="#94a3b8" fontSize="8.5" fontWeight="800">
+                        BARCODE SCANNER
+                      </text>
+                      <text x="24" y="122" fill="#ffffff" fontSize="10.5" fontWeight="900">
+                        {hasVal(formData.barcode_scanner) ? formData.barcode_scanner : "TIDAK ADA"}
+                      </text>
+                    </g>
+
+                    {/* NODE KIRI 3: FINGERPRINT */}
+                    <g>
+                      <rect
+                        x="12"
+                        y="152"
+                        width="135"
+                        height="50"
+                        rx="9"
+                        fill="#1e293b"
+                        stroke={hasVal(formData.fingerprint_scanner) ? "#10b981" : "#475569"}
+                        strokeWidth="1.8"
+                      />
+                      <circle
+                        cx="26"
+                        cy="166"
+                        r="4"
+                        fill={hasVal(formData.fingerprint_scanner) ? "#4ade80" : "#64748b"}
+                      />
+                      <text x="36" y="169" fill="#94a3b8" fontSize="8.5" fontWeight="800">
+                        FINGERPRINT AUTH
+                      </text>
+                      <text x="24" y="186" fill="#ffffff" fontSize="10.5" fontWeight="900">
+                        {hasVal(formData.fingerprint_scanner) ? formData.fingerprint_scanner : "STANDAR / -"}
+                      </text>
+                    </g>
+
+                    {/* CENTER NODE: MAIN POS TERMINAL WORKSTATION */}
+                    <g>
+                      <rect
+                        x="212"
+                        y="32"
+                        width="176"
+                        height="162"
+                        rx="16"
+                        fill="#064e3b"
+                        stroke="#34d399"
+                        strokeWidth="2.5"
+                      />
+                      <rect x="232" y="44" width="136" height="18" rx="5" fill="#10b981" />
+                      <text
+                        x="300"
+                        y="56"
+                        textAnchor="middle"
+                        fill="#022c22"
+                        fontSize="9"
+                        fontWeight="900"
                       >
-                        {item.installed ? "✓ Terpasang" : "Kosong"}
+                        UNIT UTAMA KASIR POS
+                      </text>
+
+                      {/* Layar Monitor Tengah */}
+                      <rect
+                        x="236"
+                        y="70"
+                        width="128"
+                        height="66"
+                        rx="7"
+                        fill="#0f172a"
+                        stroke="#6ee7b7"
+                        strokeWidth="1.5"
+                      />
+                      <text
+                        x="300"
+                        y="92"
+                        textAnchor="middle"
+                        fill="#ffffff"
+                        fontSize="14"
+                        fontWeight="900"
+                      >
+                        {formData.pos_brand}
+                      </text>
+                      <text
+                        x="300"
+                        y="108"
+                        textAnchor="middle"
+                        fill="#34d399"
+                        fontSize="9.5"
+                        fontWeight="800"
+                        fontFamily="monospace"
+                      >
+                        {pos.pos_code}
+                      </text>
+                      <text
+                        x="300"
+                        y="124"
+                        textAnchor="middle"
+                        fill="#94a3b8"
+                        fontSize="8.5"
+                        fontFamily="monospace"
+                      >
+                        IP: {formData.ip_address}
+                      </text>
+
+                      {/* Base / Stand */}
+                      <rect x="244" y="146" width="112" height="34" rx="5" fill="#022c22" />
+                      <text
+                        x="300"
+                        y="160"
+                        textAnchor="middle"
+                        fill="#a7f3d0"
+                        fontSize="8"
+                        fontWeight="800"
+                      >
+                        RAM {formData.ram} • SSD {formData.ssd}
+                      </text>
+                      <text
+                        x="300"
+                        y="172"
+                        textAnchor="middle"
+                        fill="#6ee7b7"
+                        fontSize="7.5"
+                        fontWeight="700"
+                      >
+                        {activeEdcs.length} EDC Bank Terhubung
+                      </text>
+                    </g>
+
+                    {/* NODE KANAN 1: RECEIPT PRINTER */}
+                    <g>
+                      <rect
+                        x="453"
+                        y="24"
+                        width="135"
+                        height="50"
+                        rx="9"
+                        fill="#1e293b"
+                        stroke={hasVal(formData.printer) ? "#10b981" : "#475569"}
+                        strokeWidth="1.8"
+                      />
+                      <circle
+                        cx="467"
+                        cy="38"
+                        r="4"
+                        fill={hasVal(formData.printer) ? "#4ade80" : "#64748b"}
+                      />
+                      <text x="477" y="41" fill="#94a3b8" fontSize="8.5" fontWeight="800">
+                        PRINTER STRUK
+                      </text>
+                      <text x="465" y="58" fill="#ffffff" fontSize="9.5" fontWeight="900">
+                        {hasVal(formData.printer) ? formData.printer.slice(0, 17) : "TIDAK ADA"}
+                      </text>
+                    </g>
+
+                    {/* NODE KANAN 2: CASH DRAWER */}
+                    <g>
+                      <rect
+                        x="453"
+                        y="88"
+                        width="135"
+                        height="50"
+                        rx="9"
+                        fill="#1e293b"
+                        stroke={hasVal(formData.cash_drawer) ? "#10b981" : "#475569"}
+                        strokeWidth="1.8"
+                      />
+                      <circle
+                        cx="467"
+                        cy="102"
+                        r="4"
+                        fill={hasVal(formData.cash_drawer) ? "#4ade80" : "#64748b"}
+                      />
+                      <text x="477" y="105" fill="#94a3b8" fontSize="8.5" fontWeight="800">
+                        CASH DRAWER (LACI)
+                      </text>
+                      <text x="465" y="122" fill="#ffffff" fontSize="10.5" fontWeight="900">
+                        {hasVal(formData.cash_drawer) ? formData.cash_drawer : "TIDAK ADA"}
+                      </text>
+                    </g>
+
+                    {/* NODE KANAN 3: KEYBOARD & MOUSE */}
+                    <g>
+                      <rect
+                        x="453"
+                        y="152"
+                        width="135"
+                        height="50"
+                        rx="9"
+                        fill="#1e293b"
+                        stroke={hasVal(formData.keyboard) ? "#10b981" : "#475569"}
+                        strokeWidth="1.8"
+                      />
+                      <circle
+                        cx="467"
+                        cy="166"
+                        r="4"
+                        fill={hasVal(formData.keyboard) ? "#4ade80" : "#64748b"}
+                      />
+                      <text x="477" y="169" fill="#94a3b8" fontSize="8.5" fontWeight="800">
+                        KEYBOARD & MOUSE
+                      </text>
+                      <text x="465" y="186" fill="#ffffff" fontSize="9.5" fontWeight="900">
+                        {formData.keyboard || "LOGITECH"} / {formData.mouse || "LOGITECH"}
+                      </text>
+                    </g>
+                  </svg>
+
+                  <div className="mt-2 pt-2.5 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400 flex-wrap gap-2">
+                    <span className="truncate max-w-[320px]">
+                      OS: <strong className="text-slate-200">{formData.os_version}</strong>
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {formData.anydesk_id && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(formData.anydesk_id, "ANYDESK_BLUEPRINT")}
+                          className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-400/30 text-[10px] font-mono font-bold flex items-center gap-1 hover:bg-rose-500/30"
+                          title="Salin AnyDesk ID"
+                        >
+                          <Tv className="w-3 h-3" />
+                          <span>AnyDesk: {formData.anydesk_id}</span>
+                        </button>
+                      )}
+                      <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        Seluruh Port Aktif
                       </span>
                     </div>
-
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      {item.name}
-                    </p>
-                    <p className="text-xs font-black text-slate-900 mt-0.5 truncate">
-                      {item.model}
-                    </p>
-                    <p className="text-[10px] text-slate-500 mt-1 leading-snug">
-                      {item.desc}
-                    </p>
-                  </div>
-
-                  <div className="mt-2.5 pt-2 border-t border-slate-200/70 flex items-center justify-between text-[9.5px] font-mono text-slate-500">
-                    <span>Port:</span>
-                    <span className="font-semibold text-slate-700">{item.port}</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* BAGIAN D: MESIN EDC BANK TERHUBUNG (LENGKAP DENGAN TID, MID, CREDIT, DEBIT, QRIS) */}
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200">
-            <div className="flex items-center justify-between flex-wrap gap-2 mb-3.5">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center">
-                  <CreditCard className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black text-slate-900">
-                    Mesin EDC Bank Terhubung ({activeEdcs.length} dari 4 Bank)
-                  </h3>
-                  <p className="text-[11px] text-slate-500">
-                    Data Terminal ID (TID), Merchant ID (MID), serta fitur Credit, Debit & QRIS di meja kasir {pos.pos_code}
-                  </p>
+                {/* Kanan (5 Col): Spesifikasi Detail Hardware & Konfigurasi Jaringan */}
+                <div className="lg:col-span-5 bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 flex flex-col justify-between space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-2">
+                        <Server className="w-4 h-4 text-[#006622]" />
+                        <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                          Identitas Sistem & Jaringan Kasir
+                        </h3>
+                      </div>
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={() => setIsEditing(true)}
+                          className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                        >
+                          <Edit3 className="w-3 h-3" /> Edit
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="divide-y divide-slate-100 text-xs">
+                      <div className="py-2 flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Kode Titik Kasir</span>
+                        <span className="font-mono font-black text-slate-900">{pos.pos_code}</span>
+                      </div>
+                      <div className="py-2 flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Toko & Terminal</span>
+                        <span className="font-bold text-slate-800">
+                          {pos.shop_name} • {pos.terminal}
+                        </span>
+                      </div>
+                      <div className="py-2 flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Area Counter / Gate</span>
+                        <span className="font-bold text-[#006622]">
+                          {store.dfdLabel} ({store.gateLabel})
+                        </span>
+                      </div>
+                      <div className="py-2 flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Alamat IP Statis</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                            {formData.ip_address}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(formData.ip_address, "SPEC_IP")}
+                            className="text-slate-400 hover:text-slate-700"
+                            title="Salin IP"
+                          >
+                            {copiedKey === "SPEC_IP" ? (
+                              <Check className="w-3 h-3 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="py-2 flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Gateway / Subnet</span>
+                        <span className="font-mono text-slate-700 font-semibold">
+                          {gatewayIp} / 24
+                        </span>
+                      </div>
+                      <div className="py-1.5 flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Merek / Tipe PC POS</span>
+                        <span className="font-black text-slate-900">{formData.pos_brand}</span>
+                      </div>
+                      <div className="py-1.5 flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Sistem Operasi (OS)</span>
+                        <span
+                          className="font-mono font-semibold text-slate-800 text-right max-w-[210px] truncate"
+                          title={formData.os_version}
+                        >
+                          {formData.os_version}
+                        </span>
+                      </div>
+                      <div className="py-1.5 flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Processor (Proc)</span>
+                        <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          {formData.processor}
+                        </span>
+                      </div>
+                      <div className="py-1.5 flex items-center justify-between gap-2">
+                        <span className="text-slate-500">RAM</span>
+                        <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          {formData.ram}
+                        </span>
+                      </div>
+                      <div className="py-1.5 flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Storage (SSD/HDD)</span>
+                        <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          {formData.ssd}
+                        </span>
+                      </div>
+                      <div className="py-1.5 flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Patch</span>
+                        <span className="font-mono font-bold text-[#006622] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          {formData.tsigunta_version}
+                        </span>
+                      </div>
+                      <div className="py-1.5 flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Keyboard Kasir</span>
+                        <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          {formData.keyboard || "LOGITECH"}
+                        </span>
+                      </div>
+                      <div className="py-1.5 flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Mouse Kasir</span>
+                        <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          {formData.mouse || "LOGITECH"}
+                        </span>
+                      </div>
+                      {formData.anydesk_id && (
+                        <div className="py-1.5 flex items-center justify-between gap-2">
+                          <span className="text-slate-500">AnyDesk ID</span>
+                          <span className="font-mono font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                            {formData.anydesk_id}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {hasVal(formData.notes) && (
+                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
+                      <span className="font-black uppercase text-[10px] text-amber-700 block mb-0.5">
+                        Catatan Teknisi MIS:
+                      </span>
+                      {formData.notes}
+                    </div>
+                  )}
                 </div>
               </div>
-              <Link
-                href={`/edc?search=${encodeURIComponent(pos.pos_code)}`}
-                className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1"
-              >
-                <span>Lihat di Master EDC</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </Link>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {edcList.map((edc) => {
-                const isConnected = hasVal(edc.tid);
-                return (
-                  <div
-                    key={edc.bank}
-                    className={`rounded-2xl border overflow-hidden flex flex-col justify-between ${
-                      isConnected ? "shadow-2xs" : "opacity-55 bg-slate-50 border-slate-200"
-                    }`}
-                    style={
-                      isConnected
-                        ? { backgroundColor: edc.bg, borderColor: edc.border }
-                        : undefined
-                    }
-                  >
-                    {/* Header Kartu Bank */}
+              {/* BAGIAN C: DAFTAR LENGKAP 8 PERIFERAL 1 SET KASIR */}
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200">
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-3.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 text-[#006622] flex items-center justify-center">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900">
+                        Rincian Periferal 1 Set Kasir ({installedPeripheralsCount} dari 8 Komponen Terpasang)
+                      </h3>
+                      <p className="text-[11px] text-slate-500">
+                        Daftar perangkat keras pendamping yang menempel langsung pada unit kasir {pos.pos_code}
+                      </p>
+                    </div>
+                  </div>
+                  {canEdit && (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(true)}
+                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>Ubah Periferal</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {peripheralItems.map((item) => (
                     <div
-                      className="px-3.5 py-2.5 flex items-center justify-between text-white"
-                      style={{
-                        backgroundColor: isConnected ? edc.headerBg : "#64748b",
-                      }}
+                      key={item.id}
+                      className={`rounded-2xl p-3.5 border transition-all flex flex-col justify-between ${
+                        item.installed
+                          ? "bg-slate-50/70 border-slate-200/90"
+                          : "bg-slate-50/30 border-slate-200/50 opacity-55"
+                      }`}
                     >
                       <div>
-                        <span className="text-xs font-black tracking-wider block leading-none">
-                          EDC {edc.bank}
-                        </span>
-                        <span className="text-[9px] text-white/80 font-medium">
-                          {edc.fullName}
-                        </span>
-                      </div>
-                      <span className="px-2 py-0.5 rounded-full bg-white/20 text-white text-[9px] font-black">
-                        {isConnected ? "● AKTIF" : "KOSONG"}
-                      </span>
-                    </div>
-
-                    {isConnected ? (
-                      <div className="p-3.5 space-y-2.5 flex-1 flex flex-col justify-between">
-                        <div className="space-y-2">
-                          {/* Box TID */}
-                          <div className="bg-white rounded-xl p-2.5 border border-slate-200/80">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[9px] font-bold uppercase text-slate-400">
-                                TERMINAL ID (TID)
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => handleCopy(edc.tid!, `TID_${edc.bank}`)}
-                                className="text-slate-400 hover:text-slate-800 flex items-center gap-0.5 text-[9px] font-bold"
-                              >
-                                {copiedKey === `TID_${edc.bank}` ? (
-                                  <>
-                                    <Check className="w-3 h-3 text-emerald-600" />
-                                    <span className="text-emerald-600">Copied</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="w-3 h-3" />
-                                    <span>Copy</span>
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                            <p className="text-sm font-mono font-black text-slate-900 mt-0.5">
-                              {edc.tid}
-                            </p>
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div
+                            className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                              item.installed
+                                ? "bg-emerald-100/80 text-[#006622]"
+                                : "bg-slate-200 text-slate-500"
+                            }`}
+                          >
+                            {item.icon}
                           </div>
-
-                          {/* Box MID */}
-                          <div className="bg-white/80 rounded-xl px-2.5 py-1.5 border border-slate-200/60 flex items-center justify-between">
-                            <span className="text-[9px] font-bold uppercase text-slate-400">
-                              MID:
-                            </span>
-                            <span className="text-[11px] font-mono font-bold text-slate-700">
-                              {hasVal(edc.mid) ? edc.mid : "Terdaftar"}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Fitur Pembayaran: Credit / Debit / QRIS */}
-                        <div className="pt-2 border-t border-slate-200/60">
-                          <span className="text-[8.5px] font-bold uppercase text-slate-400 block mb-1">
-                            FITUR TRANSAKSI AKTIF:
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${
+                              item.installed
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-slate-100 text-slate-500 border-slate-200"
+                            }`}
+                          >
+                            {item.installed ? "✓ Terpasang" : "Kosong"}
                           </span>
-                          <div className="grid grid-cols-3 gap-1 text-center">
-                            {[
-                              { label: "CREDIT", val: edc.credit },
-                              { label: "DEBIT", val: edc.debit },
-                              { label: "QRIS", val: edc.qr },
-                            ].map((feat) => {
-                              const active = feat.val === "Y" || feat.val === "OK";
-                              return (
-                                <span
-                                  key={feat.label}
-                                  className={`py-0.5 rounded text-[8.5px] font-black border ${
-                                    active
-                                      ? "bg-white text-emerald-700 border-emerald-200"
-                                      : "bg-slate-100 text-slate-400 border-slate-200"
-                                  }`}
-                                >
-                                  {active ? "✓ " : "– "}
-                                  {feat.label}
-                                </span>
-                              );
-                            })}
-                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="p-6 text-center my-auto">
-                        <p className="text-xs text-slate-400 italic">
-                          Tidak ada mesin EDC {edc.bank} pada titik kasir ini
+
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          {item.name}
+                        </p>
+                        <p className="text-xs font-black text-slate-900 mt-0.5 truncate">
+                          {item.model}
+                        </p>
+                        <p className="text-[10px] text-slate-500 mt-1 leading-snug">
+                          {item.desc}
                         </p>
                       </div>
-                    )}
+
+                      <div className="mt-2.5 pt-2 border-t border-slate-200/70 flex items-center justify-between text-[9.5px] font-mono text-slate-500">
+                        <span>Port:</span>
+                        <span className="font-semibold text-slate-700">{item.port}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* BAGIAN D: MESIN EDC BANK TERHUBUNG */}
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200">
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-3.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center">
+                      <CreditCard className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900">
+                        Mesin EDC Bank Terhubung ({activeEdcs.length} dari 4 Bank)
+                      </h3>
+                      <p className="text-[11px] text-slate-500">
+                        Data Terminal ID (TID), Merchant ID (MID), serta fitur Credit, Debit & QRIS di meja kasir {pos.pos_code}
+                      </p>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                  <div className="flex items-center gap-3">
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>Edit EDC</span>
+                      </button>
+                    )}
+                    <Link
+                      href={`/edc?search=${encodeURIComponent(pos.pos_code)}`}
+                      className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    >
+                      <span>Lihat di Master EDC</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {edcList.map((edc) => {
+                    const isConnected = hasVal(edc.tid);
+                    return (
+                      <div
+                        key={edc.bank}
+                        className={`rounded-2xl border overflow-hidden flex flex-col justify-between ${
+                          isConnected ? "shadow-2xs" : "opacity-55 bg-slate-50 border-slate-200"
+                        }`}
+                        style={
+                          isConnected
+                            ? { backgroundColor: edc.bg, borderColor: edc.border }
+                            : undefined
+                        }
+                      >
+                        {/* Header Kartu Bank */}
+                        <div
+                          className="px-3.5 py-2.5 flex items-center justify-between text-white"
+                          style={{
+                            backgroundColor: isConnected ? edc.headerBg : "#64748b",
+                          }}
+                        >
+                          <div>
+                            <span className="text-xs font-black tracking-wider block leading-none">
+                              EDC {edc.bank}
+                            </span>
+                            <span className="text-[9px] text-white/80 font-medium">
+                              {edc.fullName}
+                            </span>
+                          </div>
+                          <span className="px-2 py-0.5 rounded-full bg-white/20 text-white text-[9px] font-black">
+                            {isConnected ? "● AKTIF" : "KOSONG"}
+                          </span>
+                        </div>
+
+                        {isConnected ? (
+                          <div className="p-3.5 space-y-2.5 flex-1 flex flex-col justify-between">
+                            <div className="space-y-2">
+                              {/* Box TID */}
+                              <div className="bg-white rounded-xl p-2.5 border border-slate-200/80">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[9px] font-bold uppercase text-slate-400">
+                                    TERMINAL ID (TID)
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopy(edc.tid!, `TID_${edc.bank}`)}
+                                    className="text-slate-400 hover:text-slate-800 flex items-center gap-0.5 text-[9px] font-bold"
+                                  >
+                                    {copiedKey === `TID_${edc.bank}` ? (
+                                      <>
+                                        <Check className="w-3 h-3 text-emerald-600" />
+                                        <span className="text-emerald-600">Copied</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Copy className="w-3 h-3" />
+                                        <span>Copy</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
+                                <p className="text-sm font-mono font-black text-slate-900 mt-0.5">
+                                  {edc.tid}
+                                </p>
+                              </div>
+
+                              {/* Box MID */}
+                              <div className="bg-white/80 rounded-xl px-2.5 py-1.5 border border-slate-200/60 flex items-center justify-between">
+                                <span className="text-[9px] font-bold uppercase text-slate-400">
+                                  MID:
+                                </span>
+                                <span className="text-[11px] font-mono font-bold text-slate-700">
+                                  {hasVal(edc.mid) ? edc.mid : "Terdaftar"}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Fitur Pembayaran: Credit / Debit / QRIS */}
+                            <div className="pt-2 border-t border-slate-200/60">
+                              <span className="text-[8.5px] font-bold uppercase text-slate-400 block mb-1">
+                                FITUR TRANSAKSI AKTIF:
+                              </span>
+                              <div className="grid grid-cols-3 gap-1 text-center">
+                                {[
+                                  { label: "CREDIT", val: edc.credit },
+                                  { label: "DEBIT", val: edc.debit },
+                                  { label: "QRIS", val: edc.qr },
+                                ].map((feat) => {
+                                  const active = feat.val === "Y" || feat.val === "OK";
+                                  return (
+                                    <span
+                                      key={feat.label}
+                                      className={`py-0.5 rounded text-[8.5px] font-black border ${
+                                        active
+                                          ? "bg-white text-emerald-700 border-emerald-200"
+                                          : "bg-slate-100 text-slate-400 border-slate-200"
+                                      }`}
+                                    >
+                                      {active ? "✓ " : "– "}
+                                      {feat.label}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-6 text-center my-auto">
+                            <p className="text-xs text-slate-400 italic">
+                              Tidak ada mesin EDC {edc.bank} pada titik kasir ini
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -2581,7 +3378,7 @@ function PosTopologyContent() {
         </div>
       </div>
 
-      {/* ── MODAL DETAIL SUPER LENGKAP 1 SET KASIR POS + EDC ── */}
+      {/* ── MODAL DETAIL SUPER LENGKAP 1 SET KASIR POS + EDC + EDIT SATU DATA ── */}
       {selectedPos && currentStore && (
         <PosCompleteSetModal
           pos={selectedPos}
@@ -2589,6 +3386,10 @@ function PosTopologyContent() {
           storePosList={currentStorePos}
           onSelectPos={(nextPos) => setSelectedPos(nextPos)}
           onClose={() => setSelectedPos(null)}
+          onUpdatePos={async (updated) => {
+            setSelectedPos(updated);
+            await fetchAllData();
+          }}
         />
       )}
     </SidebarLayout>
