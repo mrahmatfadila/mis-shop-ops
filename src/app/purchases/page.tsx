@@ -862,7 +862,7 @@ function PurchasesContent() {
 
   return (
     <SidebarLayout>
-      <div className="space-y-5 p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="space-y-4 px-2 sm:px-4 py-4 w-full max-w-[1650px] mx-auto">
         {/* 1. Header & Workflow Hero Banner */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-emerald-50/60 via-amber-50/40 to-transparent rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
@@ -1370,120 +1370,144 @@ function PurchasesContent() {
             </div>
           ) : (
             <div className="overflow-x-auto [scrollbar-width:thin]">
-              <table className="w-full text-left border-separate border-spacing-0 text-[10px] min-w-[1780px]">
+              <table className="w-full text-left border-separate border-spacing-0 text-[10px] table-fixed">
+                <colgroup>
+                  {/* Identitas Dokumen & Pemohon (14.9%) */}
+                  <col className="w-[2.2%]" />
+                  <col className="w-[6.5%]" />
+                  <col className="w-[6.2%]" />
+                  {/* Spesifikasi Barang & Kebutuhan (22.0%) */}
+                  <col className="w-[8.0%]" />
+                  <col className="w-[6.0%]" />
+                  <col className="w-[4.8%]" />
+                  <col className="w-[3.2%]" />
+                  {/* Lokasi & Target Kasir (11.5%) */}
+                  <col className="w-[6.0%]" />
+                  <col className="w-[5.5%]" />
+                  {/* Alur Siklus Pipeline (17.0%) */}
+                  <col className="w-[6.0%]" />
+                  <col className="w-[6.5%]" />
+                  <col className="w-[4.5%]" />
+                  {/* Pengadaan CAPEX & Toko (16.2%) */}
+                  <col className="w-[6.0%]" />
+                  <col className="w-[6.0%]" />
+                  <col className="w-[4.2%]" />
+                  {/* Anggaran & Prioritas (11.2%) */}
+                  <col className="w-[5.2%]" />
+                  <col className="w-[6.0%]" />
+                  {/* Aksi Wewenang (7.2%) */}
+                  <col className="w-[7.2%]" />
+                </colgroup>
                 <thead>
                   {/* Tier 1: Kategori Kelompok Kolom (Gaya Kasir POS Modern & Profesional) */}
                   <tr className="text-[10px] font-extrabold tracking-wide whitespace-nowrap h-[28px]">
                     <th
                       colSpan={3}
-                      className="sticky top-0 z-10 px-2 py-1 text-center bg-slate-100 text-slate-800 border-b border-r border-slate-200 select-none shadow-2xs rounded-tl-xl"
+                      className="sticky top-0 z-10 px-1 py-1 text-center bg-slate-100 text-slate-800 border-b border-r border-slate-200 select-none shadow-2xs rounded-tl-xl"
                     >
                       Identitas Dokumen & Pemohon
                     </th>
                     <th
                       colSpan={4}
-                      className="sticky top-0 z-10 px-2 py-1 text-center bg-blue-100 text-blue-900 border-b border-r border-slate-200 select-none shadow-2xs"
+                      className="sticky top-0 z-10 px-1 py-1 text-center bg-blue-100 text-blue-900 border-b border-r border-slate-200 select-none shadow-2xs"
                     >
                       Spesifikasi Barang & Kebutuhan
                     </th>
                     <th
                       colSpan={2}
-                      className="sticky top-0 z-10 px-2 py-1 text-center bg-emerald-100 text-[#006622] border-b border-r border-slate-200 select-none shadow-2xs"
+                      className="sticky top-0 z-10 px-1 py-1 text-center bg-emerald-100 text-[#006622] border-b border-r border-slate-200 select-none shadow-2xs"
                     >
                       Lokasi & Target Kasir
                     </th>
                     <th
                       colSpan={3}
-                      className="sticky top-0 z-10 px-2 py-1 text-center bg-amber-100 text-amber-900 border-b border-r border-slate-200 select-none shadow-2xs"
+                      className="sticky top-0 z-10 px-1 py-1 text-center bg-amber-100 text-amber-900 border-b border-r border-slate-200 select-none shadow-2xs"
                     >
                       Alur Siklus Pipeline (Step 1-6)
                     </th>
                     <th
-                      colSpan={4}
-                      className="sticky top-0 z-10 px-2 py-1 text-center bg-purple-100 text-purple-900 border-b border-r border-slate-200 select-none shadow-2xs"
+                      colSpan={3}
+                      className="sticky top-0 z-10 px-1 py-1 text-center bg-purple-100 text-purple-900 border-b border-r border-slate-200 select-none shadow-2xs"
                     >
                       Pengadaan CAPEX & Toko (MIS Proc)
                     </th>
                     <th
                       colSpan={2}
-                      className="sticky top-0 z-10 px-2 py-1 text-center bg-teal-100 text-teal-900 border-b border-r border-slate-200 select-none shadow-2xs"
+                      className="sticky top-0 z-10 px-1 py-1 text-center bg-teal-100 text-teal-900 border-b border-r border-slate-200 select-none shadow-2xs"
                     >
                       Anggaran & Prioritas
                     </th>
                     <th
                       rowSpan={2}
-                      className="sticky top-0 z-10 px-3 py-1 text-center bg-slate-100 text-slate-800 font-bold align-middle border-b border-slate-200 select-none shadow-2xs rounded-tr-xl w-[220px]"
+                      className="sticky top-0 z-10 px-1 py-1 text-center bg-slate-100 text-slate-800 font-bold align-middle border-b border-slate-200 select-none shadow-2xs rounded-tr-xl"
                     >
-                      Aksi Wewenang
+                      Aksi
                     </th>
                   </tr>
 
                   {/* Tier 2: Sub-Kolom Spesifik Terperinci & Rapi */}
                   <tr className="text-slate-700 font-bold text-[9.5px] tracking-tight whitespace-nowrap h-[28px]">
                     {/* Identitas & Pemohon */}
-                    <th className="sticky top-[28px] z-10 px-1 py-1 text-center font-bold text-slate-400 bg-slate-50 border-b border-r border-slate-200/80 select-none w-[36px]">
+                    <th className="sticky top-[28px] z-10 px-0.5 py-1 text-center font-bold text-slate-400 bg-slate-50 border-b border-r border-slate-200/80 select-none">
                       No
                     </th>
-                    <th className="sticky top-[28px] z-10 px-2 py-1 text-center bg-slate-50 border-b border-r border-slate-200/80 select-none w-[130px]">
+                    <th className="sticky top-[28px] z-10 px-1 py-1 text-center bg-slate-50 border-b border-r border-slate-200/80 select-none">
                       No. Request
                     </th>
-                    <th className="sticky top-[28px] z-10 px-2 py-1 bg-slate-50 border-b border-r border-slate-200/80 select-none w-[130px]">
+                    <th className="sticky top-[28px] z-10 px-1 py-1 bg-slate-50 border-b border-r border-slate-200/80 select-none">
                       Pemohon & Tgl
                     </th>
 
                     {/* Spesifikasi Barang */}
-                    <th className="sticky top-[28px] z-10 px-2 py-1 bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none w-[160px]">
+                    <th className="sticky top-[28px] z-10 px-1 py-1 bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none">
                       Nama Barang
                     </th>
-                    <th className="sticky top-[28px] z-10 px-2 py-1 bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none w-[130px]">
+                    <th className="sticky top-[28px] z-10 px-1 py-1 bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none">
                       Model / Tipe
                     </th>
-                    <th className="sticky top-[28px] z-10 px-1 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none w-[95px]">
+                    <th className="sticky top-[28px] z-10 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none">
                       Kategori
                     </th>
-                    <th className="sticky top-[28px] z-10 px-1 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none w-[70px]">
+                    <th className="sticky top-[28px] z-10 px-0.5 py-1 text-center bg-blue-50 text-blue-900 border-b border-r border-slate-200/80 select-none">
                       Qty
                     </th>
 
                     {/* Lokasi & Target Kasir */}
-                    <th className="sticky top-[28px] z-10 px-2 py-1 bg-emerald-50 text-emerald-950 border-b border-r border-slate-200/80 select-none w-[135px]">
-                      Lokasi Penugasan
+                    <th className="sticky top-[28px] z-10 px-1 py-1 bg-emerald-50 text-emerald-950 border-b border-r border-slate-200/80 select-none">
+                      Lokasi
                     </th>
-                    <th className="sticky top-[28px] z-10 px-2 py-1 text-center bg-emerald-50 text-emerald-950 border-b border-r border-slate-200/80 select-none w-[120px]">
-                      Target Kasir
+                    <th className="sticky top-[28px] z-10 px-1 py-1 text-center bg-emerald-50 text-emerald-950 border-b border-r border-slate-200/80 select-none">
+                      Target POS
                     </th>
 
                     {/* Alur Siklus Pipeline */}
-                    <th className="sticky top-[28px] z-10 px-2 py-1 text-center bg-amber-50 text-amber-950 border-b border-r border-slate-200/80 select-none w-[130px]">
-                      Status Berjalan
+                    <th className="sticky top-[28px] z-10 px-1 py-1 text-center bg-amber-50 text-amber-950 border-b border-r border-slate-200/80 select-none">
+                      Status
                     </th>
-                    <th className="sticky top-[28px] z-10 px-2 py-1 bg-amber-50 text-amber-950 border-b border-r border-slate-200/80 select-none w-[145px]">
-                      Tahap Stepper
+                    <th className="sticky top-[28px] z-10 px-1 py-1 bg-amber-50 text-amber-950 border-b border-r border-slate-200/80 select-none">
+                      Tahap
                     </th>
-                    <th className="sticky top-[28px] z-10 px-1 py-1 text-center bg-amber-50 text-amber-950 border-b border-r border-slate-200/80 select-none w-[95px]">
-                      PIC Tahap
+                    <th className="sticky top-[28px] z-10 px-0.5 py-1 text-center bg-amber-50 text-amber-950 border-b border-r border-slate-200/80 select-none">
+                      PIC
                     </th>
 
                     {/* Pengadaan CAPEX & Toko */}
-                    <th className="sticky top-[28px] z-10 px-2 py-1 text-center bg-purple-50 text-purple-900 border-b border-r border-slate-200/80 select-none w-[125px]">
+                    <th className="sticky top-[28px] z-10 px-1 py-1 text-center bg-purple-50 text-purple-900 border-b border-r border-slate-200/80 select-none">
                       No. CAPEX
                     </th>
-                    <th className="sticky top-[28px] z-10 px-2 py-1 bg-purple-50 text-purple-900 border-b border-r border-slate-200/80 select-none w-[135px]">
+                    <th className="sticky top-[28px] z-10 px-1 py-1 bg-purple-50 text-purple-900 border-b border-r border-slate-200/80 select-none">
                       Toko Pembelian
                     </th>
-                    <th className="sticky top-[28px] z-10 px-1 py-1 text-center bg-purple-50 text-purple-900 border-b border-r border-slate-200/80 select-none w-[75px]">
-                      Link Toko
-                    </th>
-                    <th className="sticky top-[28px] z-10 px-1 py-1 text-center bg-purple-50 text-purple-900 border-b border-r border-slate-200/80 select-none w-[85px]">
-                      Bukti Nota
+                    <th className="sticky top-[28px] z-10 px-0.5 py-1 text-center bg-purple-50 text-purple-900 border-b border-r border-slate-200/80 select-none">
+                      Link / Nota
                     </th>
 
                     {/* Anggaran & Prioritas */}
-                    <th className="sticky top-[28px] z-10 px-2 py-1 text-right bg-teal-50 text-teal-950 border-b border-r border-slate-200/80 select-none w-[110px]">
+                    <th className="sticky top-[28px] z-10 px-1 py-1 text-right bg-teal-50 text-teal-950 border-b border-r border-slate-200/80 select-none">
                       Harga Satuan
                     </th>
-                    <th className="sticky top-[28px] z-10 px-2 py-1 text-right bg-teal-50 text-teal-950 border-b border-r border-slate-200/80 select-none w-[125px]">
-                      Total Anggaran
+                    <th className="sticky top-[28px] z-10 px-1 py-1 text-right bg-teal-50 text-teal-950 border-b border-r border-slate-200/80 select-none">
+                      Total
                     </th>
                   </tr>
                 </thead>
@@ -1503,118 +1527,119 @@ function PurchasesContent() {
                         }`}
                       >
                         {/* 1. No */}
-                        <td className="px-1 py-2 text-center text-slate-400 font-mono text-[9px] border-b border-r border-slate-200/80 align-middle">
+                        <td className="px-0.5 py-1.5 text-center text-slate-400 font-mono text-[9px] border-b border-r border-slate-200/80 align-middle">
                           {idx + 1}
                         </td>
 
                         {/* 2. No. Request */}
-                        <td className="px-2 py-2 border-b border-r border-slate-200/80 align-middle">
-                          <div className="flex items-center justify-between gap-1 font-mono font-bold text-slate-900 text-[10px]">
-                            <span>{item.po_number}</span>
+                        <td className="px-1 py-1.5 border-b border-r border-slate-200/80 align-middle">
+                          <div className="flex items-center justify-between gap-0.5 font-mono font-bold text-slate-900 text-[9.5px]">
+                            <span className="truncate" title={item.po_number}>{item.po_number}</span>
                             <button
                               type="button"
                               onClick={() => copyToClipboard(item.po_number, `po-${item.id}`)}
-                              className="text-slate-400 hover:text-slate-700 p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer"
+                              className="text-slate-400 hover:text-slate-700 p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
                               title="Salin No Request"
                             >
                               {copiedKey === `po-${item.id}` ? (
-                                <Check className="w-3 h-3 text-emerald-600" />
+                                <Check className="w-2.5 h-2.5 text-emerald-600" />
                               ) : (
-                                <Copy className="w-3 h-3" />
+                                <Copy className="w-2.5 h-2.5" />
                               )}
                             </button>
                           </div>
                         </td>
 
                         {/* 3. Pemohon & Tgl */}
-                        <td className="px-2 py-2 border-b border-r border-slate-200/80 align-middle">
-                          <p className="font-bold text-slate-800 text-[10px] truncate max-w-[120px]" title={item.requester}>
+                        <td className="px-1 py-1.5 border-b border-r border-slate-200/80 align-middle">
+                          <p className="font-bold text-slate-800 text-[9.5px] truncate" title={item.requester}>
                             {item.requester}
                           </p>
-                          <p className="text-slate-400 text-[9px] mt-0.5">
+                          <p className="text-slate-400 text-[8.5px] truncate">
                             {item.request_date || "-"}
                           </p>
                         </td>
 
                         {/* 4. Nama Barang */}
-                        <td className="px-2 py-2 border-b border-r border-slate-200/80 align-middle max-w-[160px]">
-                          <p className="font-bold text-slate-900 text-[10.5px] leading-snug truncate" title={item.item_name}>
+                        <td className="px-1.5 py-1.5 border-b border-r border-slate-200/80 align-middle">
+                          <p className="font-bold text-slate-900 text-[10px] leading-tight truncate" title={item.item_name}>
                             {item.item_name}
                           </p>
                           {item.notes && (
-                            <p className="text-[9px] text-slate-500 italic mt-0.5 truncate" title={item.notes}>
+                            <p className="text-[8.5px] text-slate-500 italic truncate" title={item.notes}>
                               "{item.notes}"
                             </p>
                           )}
                         </td>
 
                         {/* 5. Model / Tipe */}
-                        <td className="px-2 py-2 border-b border-r border-slate-200/80 align-middle max-w-[130px]">
+                        <td className="px-1 py-1.5 border-b border-r border-slate-200/80 align-middle">
                           {item.brand_model && item.brand_model !== "-" ? (
-                            <span className="font-semibold text-blue-700 text-[9.5px] truncate block" title={item.brand_model}>
+                            <span className="font-semibold text-blue-700 text-[9px] truncate block" title={item.brand_model}>
                               {item.brand_model}
                             </span>
                           ) : (
-                            <span className="text-slate-400 text-[9px] italic">-</span>
+                            <span className="text-slate-300 text-[9px] italic">-</span>
                           )}
                         </td>
 
                         {/* 6. Kategori */}
-                        <td className="px-1 py-2 text-center border-b border-r border-slate-200/80 align-middle">
-                          <span className="inline-block text-[9px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                        <td className="px-0.5 py-1.5 text-center border-b border-r border-slate-200/80 align-middle">
+                          <span className="inline-block text-[8.5px] font-semibold px-1 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200 truncate max-w-full" title={item.category}>
                             {item.category}
                           </span>
                         </td>
 
                         {/* 7. Qty */}
-                        <td className="px-1 py-2 text-center border-b border-r border-slate-200/80 align-middle">
-                          <span className="font-bold text-slate-800 font-mono text-[10px] bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">
-                            {qty} {item.unit || "Unit"}
+                        <td className="px-0.5 py-1.5 text-center border-b border-r border-slate-200/80 align-middle">
+                          <span className="font-bold text-slate-800 font-mono text-[9px] bg-slate-50 px-1 py-0.2 rounded border border-slate-200">
+                            {qty} {item.unit || "U"}
                           </span>
                         </td>
 
                         {/* 8. Lokasi Penugasan */}
-                        <td className="px-2 py-2 border-b border-r border-slate-200/80 align-middle">
-                          <div className="flex items-center gap-1 font-bold text-slate-800 text-[10px]">
-                            <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
-                            <span className="truncate max-w-[115px]" title={item.target_location}>{item.target_location}</span>
+                        <td className="px-1 py-1.5 border-b border-r border-slate-200/80 align-middle">
+                          <div className="flex items-center gap-0.5 font-bold text-slate-800 text-[9px]">
+                            <Building2 className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                            <span className="truncate" title={item.target_location}>{item.target_location}</span>
                           </div>
                         </td>
 
                         {/* 9. Target Kasir */}
-                        <td className="px-2 py-2 text-center border-b border-r border-slate-200/80 align-middle">
+                        <td className="px-1 py-1.5 text-center border-b border-r border-slate-200/80 align-middle">
                           {item.target_pos_code && item.target_pos_code !== "-" ? (
-                            <span className="inline-block text-[9.5px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 rounded shadow-2xs">
+                            <span className="inline-block text-[9px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1 py-0.2 rounded truncate max-w-full" title={`Target: ${item.target_pos_code}`}>
                               {item.target_pos_code}
                             </span>
                           ) : (
-                            <span className="text-slate-400 text-[9px] italic">-</span>
+                            <span className="text-slate-300 text-[9px] italic">-</span>
                           )}
                           {item.installed_pos_code && item.installed_pos_code !== "-" && (
                             <div className="mt-0.5">
-                              <span className="inline-block text-[9px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-1 py-0.2 rounded">
-                                Pasang: {item.installed_pos_code}
+                              <span className="inline-block text-[8.5px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-1 py-0.2 rounded truncate max-w-full" title={`Pasang: ${item.installed_pos_code}`}>
+                                {item.installed_pos_code}
                               </span>
                             </div>
                           )}
                         </td>
 
                         {/* 10. Status Berjalan */}
-                        <td className="px-2 py-2 text-center border-b border-r border-slate-200/80 align-middle">
+                        <td className="px-1 py-1.5 text-center border-b border-r border-slate-200/80 align-middle">
                           <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold border ${stObj.bg} ${stObj.color} ${stObj.border} shadow-2xs`}
+                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold border ${stObj.bg} ${stObj.color} ${stObj.border} shadow-2xs truncate max-w-full`}
+                            title={stObj.badgeLabel}
                           >
-                            <span className={`w-1.5 h-1.5 rounded-full ${stObj.dot} animate-pulse`} />
-                            {stObj.badgeLabel}
+                            <span className={`w-1.5 h-1.5 rounded-full ${stObj.dot} shrink-0`} />
+                            <span className="truncate">{stObj.badgeLabel}</span>
                           </span>
                         </td>
 
                         {/* 11. Tahap Stepper */}
-                        <td className="px-2 py-2 border-b border-r border-slate-200/80 align-middle">
-                          <div className="p-1.5 bg-slate-50 rounded-lg border border-slate-200/70 space-y-1">
-                            <div className="flex items-center justify-between text-[9px] font-bold">
+                        <td className="px-1 py-1.5 border-b border-r border-slate-200/80 align-middle">
+                          <div className="p-1 bg-slate-50 rounded border border-slate-200/70 space-y-0.5">
+                            <div className="flex items-center justify-between text-[8.5px] font-bold">
                               <span className={itemStep.step > 0 ? itemStep.theme.textColor : "text-rose-600"}>
-                                {itemStep.step > 0 ? `Step ${itemStep.step}/6` : "Ditolak"}
+                                {itemStep.step > 0 ? `S${itemStep.step}/6` : "Tolak"}
                               </span>
                               <span className="font-mono text-slate-500 font-bold">{itemStep.progressPercent}%</span>
                             </div>
@@ -1637,108 +1662,99 @@ function PurchasesContent() {
                                 );
                               })}
                             </div>
-                            <p className="text-[8.5px] font-medium text-slate-600 truncate" title={itemStep.label}>
-                              {itemStep.shortLabel}
-                            </p>
                           </div>
                         </td>
 
                         {/* 12. PIC Tahap */}
-                        <td className="px-1 py-2 text-center border-b border-r border-slate-200/80 align-middle">
-                          <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        <td className="px-0.5 py-1.5 text-center border-b border-r border-slate-200/80 align-middle">
+                          <span className="inline-block px-1 py-0.2 rounded text-[8.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200 truncate max-w-full" title={itemStep.picRole}>
                             {itemStep.picRole}
                           </span>
                         </td>
 
                         {/* 13. No. CAPEX */}
-                        <td className="px-2 py-2 text-center border-b border-r border-slate-200/80 align-middle">
+                        <td className="px-1 py-1.5 text-center border-b border-r border-slate-200/80 align-middle">
                           {item.capex_number && item.capex_number !== "-" ? (
-                            <span className="font-mono font-bold text-purple-700 text-[9.5px] bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200 inline-block shadow-2xs">
+                            <span className="font-mono font-bold text-purple-700 text-[9px] bg-purple-50 px-1 py-0.2 rounded border border-purple-200 inline-block truncate max-w-full" title={item.capex_number}>
                               {item.capex_number}
                             </span>
                           ) : (
-                            <span className="text-[9px] text-slate-400 italic">Belum ada</span>
+                            <span className="text-[8.5px] text-slate-300 italic">-</span>
                           )}
                         </td>
 
                         {/* 14. Toko Pembelian */}
-                        <td className="px-2 py-2 border-b border-r border-slate-200/80 align-middle max-w-[135px]">
+                        <td className="px-1 py-1.5 border-b border-r border-slate-200/80 align-middle">
                           {item.store_name && item.store_name !== "-" ? (
                             <div>
-                              <div className="flex items-center gap-1 font-bold text-slate-800 text-[9.5px]">
-                                <Store className="w-3 h-3 text-slate-400 shrink-0" />
-                                <span className="truncate" title={item.store_name}>{item.store_name}</span>
-                              </div>
-                              <span className="text-[8.5px] font-bold text-slate-500 bg-slate-100 px-1 py-0.2 rounded mt-0.5 inline-block">
-                                {item.store_type === "ONLINE_SHOP" ? "Online Shop" : "Toko Offline"}
+                              <p className="font-bold text-slate-800 text-[9px] truncate" title={item.store_name}>
+                                {item.store_name}
+                              </p>
+                              <span className="text-[8px] font-bold text-slate-500 bg-slate-100 px-1 py-0.2 rounded inline-block truncate max-w-full">
+                                {item.store_type === "ONLINE_SHOP" ? "Online" : "Offline"}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-[9px] text-slate-400 italic">Menunggu MIS Proc</span>
+                            <span className="text-[8.5px] text-slate-300 italic">-</span>
                           )}
                         </td>
 
-                        {/* 15. Link Toko */}
-                        <td className="px-1 py-2 text-center border-b border-r border-slate-200/80 align-middle">
-                          {item.store_link && item.store_link !== "-" ? (
-                            <a
-                              href={item.store_link.startsWith("http") ? item.store_link : `https://${item.store_link}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-0.5 text-[9px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 hover:bg-blue-100 transition-colors"
-                              title="Buka link toko"
-                            >
-                              <ExternalLink className="w-2.5 h-2.5" />
-                              <span>Link</span>
-                            </a>
-                          ) : (
-                            <span className="text-slate-300 text-[9px]">-</span>
-                          )}
+                        {/* 15. Link & Bukti Nota */}
+                        <td className="px-0.5 py-1.5 text-center border-b border-r border-slate-200/80 align-middle">
+                          <div className="flex items-center justify-center gap-1">
+                            {item.store_link && item.store_link !== "-" ? (
+                              <a
+                                href={item.store_link.startsWith("http") ? item.store_link : `https://${item.store_link}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="p-1 rounded bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors"
+                                title="Buka Link Toko"
+                              >
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            ) : null}
+                            {item.invoice_url && item.invoice_url !== "-" ? (
+                              <button
+                                type="button"
+                                onClick={() => setInvoicePreviewUrl(item.invoice_url || null)}
+                                className="p-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 cursor-pointer transition-colors"
+                                title="Lihat Lampiran Bukti Nota / Invoice"
+                              >
+                                <ImageIcon className="w-2.5 h-2.5" />
+                              </button>
+                            ) : null}
+                            {(!item.store_link || item.store_link === "-") && (!item.invoice_url || item.invoice_url === "-") && (
+                              <span className="text-slate-300 text-[9px]">-</span>
+                            )}
+                          </div>
                         </td>
 
-                        {/* 16. Bukti Nota */}
-                        <td className="px-1 py-2 text-center border-b border-r border-slate-200/80 align-middle">
-                          {item.invoice_url && item.invoice_url !== "-" ? (
-                            <button
-                              type="button"
-                              onClick={() => setInvoicePreviewUrl(item.invoice_url || null)}
-                              className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 hover:bg-emerald-100 cursor-pointer transition-colors shadow-2xs"
-                              title="Lihat lampiran bukti nota pembelian"
-                            >
-                              <ImageIcon className="w-2.5 h-2.5" />
-                              <span>Nota</span>
-                            </button>
-                          ) : (
-                            <span className="text-slate-300 text-[9px]">-</span>
-                          )}
-                        </td>
-
-                        {/* 17. Harga Satuan */}
-                        <td className="px-2 py-2 text-right border-b border-r border-slate-200/80 align-middle font-mono">
-                          <p className="font-bold text-slate-800 text-[10px]">
+                        {/* 16. Harga Satuan */}
+                        <td className="px-1 py-1.5 text-right border-b border-r border-slate-200/80 align-middle font-mono">
+                          <p className="font-bold text-slate-800 text-[9px] truncate" title={formatRp(finalPrice)}>
                             {formatRp(finalPrice)}
                           </p>
                         </td>
 
-                        {/* 18. Total Anggaran & Prioritas */}
-                        <td className="px-2 py-2 text-right border-b border-r border-slate-200/80 align-middle font-mono">
-                          <p className="font-extrabold text-slate-900 text-[10.5px]">
+                        {/* 17. Total Anggaran & Prioritas */}
+                        <td className="px-1 py-1.5 text-right border-b border-r border-slate-200/80 align-middle font-mono">
+                          <p className="font-extrabold text-slate-900 text-[9.5px] truncate" title={formatRp(totalPrice)}>
                             {formatRp(totalPrice)}
                           </p>
                           {item.priority === "CRITICAL" ? (
-                            <span className="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[8.5px] font-black bg-rose-100 text-rose-800">
+                            <span className="inline-block mt-0.5 px-1 py-0.2 rounded text-[7.5px] font-black bg-rose-100 text-rose-800">
                               CRITICAL
                             </span>
                           ) : item.priority === "URGENT" ? (
-                            <span className="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[8.5px] font-black bg-amber-100 text-amber-800">
+                            <span className="inline-block mt-0.5 px-1 py-0.2 rounded text-[7.5px] font-black bg-amber-100 text-amber-800">
                               URGENT
                             </span>
                           ) : null}
                         </td>
 
-                        {/* 19. Aksi Wewenang (Gaya Kasir POS: rapi, luas, dan tombol sejajar) */}
-                        <td className="px-2 py-2 border-b border-slate-200/80 align-middle w-[220px]">
-                          <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                        {/* 18. Aksi Wewenang (Gaya Kasir POS: ringkas, rapi, tombol sejajar) */}
+                        <td className="px-1 py-1.5 text-center border-b border-slate-200/80 align-middle">
+                          <div className="flex items-center justify-center gap-1">
                             {/* Action: 1. Manager Review (If PENGAJUAN) */}
                             {item.status === "PENGAJUAN" && (isManager || isAdmin) && (
                               <>
@@ -1750,21 +1766,19 @@ function PurchasesContent() {
                                     setManagerNotes("");
                                     setIsManagerModalOpen(true);
                                   }}
-                                  className="flex items-center gap-1 px-2 py-1 rounded-md text-[9.5px] font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
-                                  title="Buka form review lengkap dan catatan instruksi"
+                                  className="p-1 rounded-md bg-amber-500 hover:bg-amber-600 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                                  title="Review & Putuskan"
                                 >
                                   <CheckSquare className="w-3 h-3" />
-                                  <span>Review</span>
                                 </button>
 
                                 <button
                                   type="button"
                                   onClick={() => handleQuickApprove(item)}
-                                  className="flex items-center gap-1 px-2 py-1 rounded-md text-[9.5px] font-bold bg-[#006622] hover:bg-[#00521b] text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
-                                  title="1-Klik Setujui Cepat & Teruskan ke Procurement"
+                                  className="p-1 rounded-md bg-[#006622] hover:bg-[#00521b] text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                                  title="1-Klik Setuju Cepat Langsung"
                                 >
                                   <Zap className="w-3 h-3 fill-white" />
-                                  <span>Setuju Cepat</span>
                                 </button>
 
                                 <button
@@ -1775,8 +1789,8 @@ function PurchasesContent() {
                                     setManagerNotes("");
                                     setIsManagerModalOpen(true);
                                   }}
-                                  className="p-1 rounded-md text-[9.5px] font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-all active:scale-95 cursor-pointer"
-                                  title="Tolak / Minta Revisi Spesifikasi"
+                                  className="p-1 rounded-md text-rose-600 hover:bg-rose-50 border border-rose-200 transition-all active:scale-95 cursor-pointer"
+                                  title="Tolak Pengajuan"
                                 >
                                   <X className="w-3 h-3" />
                                 </button>
@@ -1785,25 +1799,19 @@ function PurchasesContent() {
 
                             {/* Manager Status Indicator & Re-evaluate if DISETUJUI_MANAGER */}
                             {item.status === "DISETUJUI_MANAGER" && (isManager || isAdmin) && (
-                              <div className="flex items-center gap-1">
-                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                  <CheckCircle2 className="w-2.5 h-2.5 text-[#006622]" />
-                                  <span>Disetujui</span>
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setActiveItem(item);
-                                    setManagerDecision("APPROVE");
-                                    setManagerNotes(item.manager_notes || "");
-                                    setIsManagerModalOpen(true);
-                                  }}
-                                  className="text-[9px] font-bold text-amber-700 hover:text-amber-900 hover:bg-amber-50 px-1 py-0.5 rounded border border-amber-200 cursor-pointer"
-                                  title="Ubah Keputusan atau Perbarui Catatan Manager"
-                                >
-                                  Ubah
-                                </button>
-                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveItem(item);
+                                  setManagerDecision("APPROVE");
+                                  setManagerNotes(item.manager_notes || "");
+                                  setIsManagerModalOpen(true);
+                                }}
+                                className="px-1.5 py-0.5 rounded text-[8.5px] font-bold text-amber-700 hover:text-amber-900 bg-amber-50 border border-amber-200 cursor-pointer"
+                                title="Ubah Keputusan Manager"
+                              >
+                                Ubah
+                              </button>
                             )}
 
                             {/* Action: 2. Proc CAPEX & Order (If DISETUJUI_MANAGER) */}
@@ -1827,10 +1835,11 @@ function PurchasesContent() {
                                   });
                                   setIsProcOrderModalOpen(true);
                                 }}
-                                className="flex items-center gap-1 px-2 py-1 rounded-md text-[9.5px] font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                                className="px-1.5 py-1 rounded text-[8.5px] font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer flex items-center gap-0.5"
+                                title="Input CAPEX & Order"
                               >
-                                <Store className="w-3 h-3" />
-                                <span>Input CAPEX</span>
+                                <Store className="w-2.5 h-2.5" />
+                                <span>CAPEX</span>
                               </button>
                             )}
 
@@ -1847,10 +1856,11 @@ function PurchasesContent() {
                                   });
                                   setIsArrivedModalOpen(true);
                                 }}
-                                className="flex items-center gap-1 px-2 py-1 rounded-md text-[9.5px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                                className="px-1.5 py-1 rounded text-[8.5px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer flex items-center gap-0.5"
+                                title="Konfirmasi Barang Sudah Datang"
                               >
-                                <Package className="w-3 h-3" />
-                                <span>Barang Tiba</span>
+                                <Package className="w-2.5 h-2.5" />
+                                <span>Tiba</span>
                               </button>
                             )}
 
@@ -1867,10 +1877,11 @@ function PurchasesContent() {
                                   });
                                   setIsShipModalOpen(true);
                                 }}
-                                className="flex items-center gap-1 px-2 py-1 rounded-md text-[9.5px] font-bold bg-cyan-600 hover:bg-cyan-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                                className="px-1.5 py-1 rounded text-[8.5px] font-bold bg-cyan-600 hover:bg-cyan-700 text-white shadow-2xs transition-all active:scale-95 cursor-pointer flex items-center gap-0.5"
+                                title="Siap Kirim ke T3"
                               >
-                                <Truck className="w-3 h-3" />
-                                <span>Kirim T3</span>
+                                <Truck className="w-2.5 h-2.5" />
+                                <span>Kirim</span>
                               </button>
                             )}
 
@@ -1887,10 +1898,11 @@ function PurchasesContent() {
                                   });
                                   setIsReceiveModalOpen(true);
                                 }}
-                                className="flex items-center gap-1 px-2 py-1 rounded-md text-[9.5px] font-bold bg-[#006622] hover:bg-[#00521b] text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+                                className="px-1.5 py-1 rounded text-[8.5px] font-bold bg-[#006622] hover:bg-[#00521b] text-white shadow-2xs transition-all active:scale-95 cursor-pointer flex items-center gap-0.5"
+                                title="Terima Barang di T3"
                               >
-                                <CheckCircle2 className="w-3 h-3" />
-                                <span>Terima di T3</span>
+                                <CheckCircle2 className="w-2.5 h-2.5" />
+                                <span>Terima</span>
                               </button>
                             )}
 
@@ -1901,10 +1913,10 @@ function PurchasesContent() {
                                 setActiveItem(item);
                                 setIsDetailModalOpen(true);
                               }}
-                              className="flex items-center gap-1 text-[9.5px] font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-md transition-colors cursor-pointer"
+                              className="p-1 rounded-md text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                              title="Lihat Detail Lengkap"
                             >
                               <Eye className="w-3 h-3 text-slate-500" />
-                              <span>Detail</span>
                             </button>
                           </div>
                         </td>
