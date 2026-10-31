@@ -634,26 +634,26 @@ export default function SidebarLayout({
         }`}
       >
         {/* Brand Header */}
-        <div className="h-16 px-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
-          <Link href="/dashboard" className="flex items-center gap-2.5 group min-w-0">
+        <div className="h-16 px-3.5 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
+          <Link href="/dashboard" className="flex items-center gap-2 group min-w-0 flex-1">
             <img
               src="/logo-plazabali.png"
               alt="Plaza Bali"
-              className="h-8.5 w-auto object-contain transition-transform group-hover:scale-102 flex-shrink-0"
-              style={{ height: "34px", width: "auto", display: "block" }}
+              className="h-6 w-auto object-contain transition-transform group-hover:scale-102 flex-shrink-0"
+              style={{ height: "23px", width: "auto", display: "block" }}
             />
-            <div className="min-w-0">
-              <div className="flex items-center gap-1 leading-none">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1 leading-none whitespace-nowrap">
                 <span className="text-[#006622] font-black tracking-tight text-xs">MIS</span>
                 <span className="tracking-tight text-slate-900 font-extrabold text-xs">SHOP OPS</span>
               </div>
-              <p className="text-[10px] text-slate-400 font-medium tracking-wide mt-0.5 truncate">
+              <p className="text-[10px] text-slate-400 font-medium tracking-wide mt-0.5 truncate whitespace-nowrap">
                 PT Plaza Bali Prima
               </p>
             </div>
           </Link>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-shrink-0 ml-1">
             {/* Desktop Hide Sidebar Button */}
             <button
               type="button"
