@@ -34,7 +34,7 @@ interface BarcodeGeneratorModalProps {
   onClose: () => void;
 }
 
-export type LabelSize = "70x50" | "50x30" | "40x20" | "BATCH";
+export type LabelSize = "70x50" | "40x20";
 
 interface ComponentOption {
   key: string;
@@ -85,7 +85,7 @@ export default function BarcodeGeneratorModal({
           brand: posHardware.printer && posHardware.printer !== "-" ? posHardware.printer : "EPSON TM-U220B",
           serialNumber: `SN-PRN-${posCode}`,
           code: `PRN-${posCode}`,
-          recommendedSize: "50x30",
+          recommendedSize: "70x50",
           icon: Printer,
         },
         {
@@ -105,7 +105,7 @@ export default function BarcodeGeneratorModal({
           brand: posHardware.passport_scanner && posHardware.passport_scanner !== "-" ? posHardware.passport_scanner : "3M AT9000 MK2",
           serialNumber: `SN-PAS-${posCode}`,
           code: `PAS-${posCode}`,
-          recommendedSize: "50x30",
+          recommendedSize: "70x50",
           icon: Scan,
         },
         {
@@ -115,7 +115,7 @@ export default function BarcodeGeneratorModal({
           brand: posHardware.cash_drawer && posHardware.cash_drawer !== "-" ? posHardware.cash_drawer : "PANDA POS RJ11",
           serialNumber: `SN-DRW-${posCode}`,
           code: `DRW-${posCode}`,
-          recommendedSize: "50x30",
+          recommendedSize: "70x50",
           icon: HardDrive,
         },
         {
@@ -159,7 +159,7 @@ export default function BarcodeGeneratorModal({
           brand: `BCA (TID: ${posHardware.bca_tid})`,
           serialNumber: `TID: ${posHardware.bca_tid}`,
           code: `EDC-BCA-${posHardware.bca_tid}`,
-          recommendedSize: "50x30",
+          recommendedSize: "70x50",
           icon: CreditCard,
         });
       }
@@ -171,7 +171,7 @@ export default function BarcodeGeneratorModal({
           brand: `MANDIRI (TID: ${posHardware.mandiri_tid})`,
           serialNumber: `TID: ${posHardware.mandiri_tid}`,
           code: `EDC-MDR-${posHardware.mandiri_tid}`,
-          recommendedSize: "50x30",
+          recommendedSize: "70x50",
           icon: CreditCard,
         });
       }
@@ -183,7 +183,7 @@ export default function BarcodeGeneratorModal({
           brand: `BRI (TID: ${posHardware.bri_tid})`,
           serialNumber: `TID: ${posHardware.bri_tid}`,
           code: `EDC-BRI-${posHardware.bri_tid}`,
-          recommendedSize: "50x30",
+          recommendedSize: "70x50",
           icon: CreditCard,
         });
       }
@@ -213,7 +213,6 @@ export default function BarcodeGeneratorModal({
   const [selectedCompKey, setSelectedCompKey] = useState<string>("POS_MAIN");
   const [selectedSize, setSelectedSize] = useState<LabelSize>("70x50");
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
-  const [batchQrMap, setBatchQrMap] = useState<Record<string, string>>({});
   const [copiedCode, setCopiedCode] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -227,9 +226,7 @@ export default function BarcodeGeneratorModal({
   // Sync size when component changes (auto select recommended size)
   const handleSelectComponent = (comp: ComponentOption) => {
     setSelectedCompKey(comp.key);
-    if (selectedSize !== "BATCH") {
-      setSelectedSize(comp.recommendedSize);
-    }
+    setSelectedSize(comp.recommendedSize);
   };
 
   // Generate QR Code & Barcode for single selected component
@@ -259,7 +256,7 @@ export default function BarcodeGeneratorModal({
           JsBarcode(barcodeSvgRef.current, currentComp.code, {
             format: "CODE128",
             width: selectedSize === "40x20" ? 1.5 : 2,
-            height: selectedSize === "40x20" ? 30 : selectedSize === "50x30" ? 36 : 48,
+            height: selectedSize === "40x20" ? 30 : 48,
             displayValue: true,
             fontSize: selectedSize === "40x20" ? 11 : 13,
             textMargin: 2,
@@ -278,30 +275,6 @@ export default function BarcodeGeneratorModal({
       isMounted = false;
     };
   }, [isOpen, currentComp, selectedSize]);
-
-  // Pre-generate QRs for Batch Sheet
-  useEffect(() => {
-    if (!isOpen || selectedSize !== "BATCH") return;
-
-    const generateBatch = async () => {
-      try {
-        const QRCode = (await import("qrcode")).default;
-        const map: Record<string, string> = {};
-        for (const comp of componentOptions) {
-          map[comp.key] = await QRCode.toDataURL(comp.code, {
-            width: 200,
-            margin: 1,
-            color: { dark: "#0f172a", light: "#ffffff" },
-          });
-        }
-        setBatchQrMap(map);
-      } catch (e) {
-        console.error("Batch QR generation error", e);
-      }
-    };
-
-    generateBatch();
-  }, [isOpen, selectedSize, componentOptions]);
 
   if (!isOpen || !currentComp) return null;
 
@@ -325,8 +298,8 @@ export default function BarcodeGeneratorModal({
 
       // Scale up 4x for crystal clear 300 DPI print quality
       const scale = 4;
-      const width = selectedSize === "70x50" ? 360 : selectedSize === "50x30" ? 300 : 250;
-      const height = selectedSize === "70x50" ? 250 : selectedSize === "50x30" ? 180 : 130;
+      const width = selectedSize === "70x50" ? 360 : 250;
+      const height = selectedSize === "70x50" ? 250 : 130;
 
       canvas.width = width * scale;
       canvas.height = height * scale;
@@ -357,7 +330,7 @@ export default function BarcodeGeneratorModal({
         qrImg.onload = res;
       });
 
-      const qrSize = selectedSize === "70x50" ? 75 : selectedSize === "50x30" ? 60 : 45;
+      const qrSize = selectedSize === "70x50" ? 75 : 45;
       ctx.drawImage(qrImg, 12, 34, qrSize, qrSize);
 
       // Texts
@@ -469,7 +442,7 @@ export default function BarcodeGeneratorModal({
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {componentOptions.map((comp) => {
                   const CompIcon = comp.icon;
-                  const isSelected = selectedCompKey === comp.key && selectedSize !== "BATCH";
+                  const isSelected = selectedCompKey === comp.key;
                   return (
                     <button
                       key={comp.key}
@@ -489,23 +462,6 @@ export default function BarcodeGeneratorModal({
                     </button>
                   );
                 })}
-
-                {/* Batch Option */}
-                <button
-                  type="button"
-                  onClick={() => setSelectedSize("BATCH")}
-                  className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2 ${
-                    selectedSize === "BATCH"
-                      ? "bg-purple-50 border-purple-500 text-purple-950 ring-2 ring-purple-500/20 shadow-xs"
-                      : "bg-white hover:bg-slate-50 border-slate-200 text-slate-700"
-                  }`}
-                >
-                  <Layers className={`w-4 h-4 mt-0.5 shrink-0 ${selectedSize === "BATCH" ? "text-purple-600" : "text-slate-400"}`} />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-bold text-[11px] truncate leading-tight text-purple-900">Cetak 1 Set Lengkap</p>
-                    <p className="text-[9.5px] text-purple-600 truncate mt-0.5">Semua Stiker Kasir</p>
-                  </div>
-                </button>
               </div>
             </div>
           )}
@@ -517,69 +473,37 @@ export default function BarcodeGeneratorModal({
               <span>Sesuaikan Ukuran Stiker dengan Dimensi Alat:</span>
             </label>
 
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setSelectedSize("70x50")}
-                className={`p-2.5 rounded-xl border text-left transition-all ${
+                className={`p-3 rounded-2xl border text-left transition-all ${
                   selectedSize === "70x50"
-                    ? "bg-emerald-50 border-emerald-500 text-emerald-950 ring-2 ring-emerald-500/20 font-bold"
+                    ? "bg-emerald-50 border-emerald-500 text-emerald-950 ring-2 ring-emerald-500/20 font-bold shadow-xs"
                     : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold">Standar Besar</span>
-                  <span className="text-[9.5px] font-mono px-1.5 py-0.2 bg-emerald-100/70 text-emerald-800 rounded">70x50 mm</span>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-emerald-100/70 text-emerald-800 rounded-lg">70x50 mm</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1 leading-tight">Casing CPU, Monitor, Cash Drawer</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedSize("50x30")}
-                className={`p-2.5 rounded-xl border text-left transition-all ${
-                  selectedSize === "50x30"
-                    ? "bg-emerald-50 border-emerald-500 text-emerald-950 ring-2 ring-emerald-500/20 font-bold"
-                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold">Sedang / Medium</span>
-                  <span className="text-[9.5px] font-mono px-1.5 py-0.2 bg-emerald-100/70 text-emerald-800 rounded">50x30 mm</span>
-                </div>
-                <p className="text-[10px] text-slate-400 mt-1 leading-tight">Printer Thermal, Passport, EDC</p>
+                <p className="text-[10.5px] text-slate-400 mt-1 leading-tight">Casing CPU, Monitor, Printer Kasir, Cash Drawer, EDC</p>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectedSize("40x20")}
-                className={`p-2.5 rounded-xl border text-left transition-all ${
+                className={`p-3 rounded-2xl border text-left transition-all ${
                   selectedSize === "40x20"
-                    ? "bg-emerald-50 border-emerald-500 text-emerald-950 ring-2 ring-emerald-500/20 font-bold"
+                    ? "bg-emerald-50 border-emerald-500 text-emerald-950 ring-2 ring-emerald-500/20 font-bold shadow-xs"
                     : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold">Ramping / Slim</span>
-                  <span className="text-[9.5px] font-mono px-1.5 py-0.2 bg-emerald-100/70 text-emerald-800 rounded">40x20 mm</span>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-emerald-100/70 text-emerald-800 rounded-lg">40x20 mm</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1 leading-tight">Scanner Barcode, Mouse, Keyboard</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedSize("BATCH")}
-                className={`p-2.5 rounded-xl border text-left transition-all ${
-                  selectedSize === "BATCH"
-                    ? "bg-purple-50 border-purple-500 text-purple-950 ring-2 ring-purple-500/20 font-bold"
-                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold">Sheet 1 Set POS</span>
-                  <span className="text-[9.5px] font-mono px-1.5 py-0.2 bg-purple-100 text-purple-800 rounded">Batch</span>
-                </div>
-                <p className="text-[10px] text-slate-400 mt-1 leading-tight">Semua Stiker Sekaligus</p>
+                <p className="text-[10.5px] text-slate-400 mt-1 leading-tight">Scanner Barcode, Mouse, Keyboard, Fingerprint</p>
               </button>
             </div>
           </div>
@@ -676,44 +600,6 @@ export default function BarcodeGeneratorModal({
                 </div>
               )}
 
-              {/* VARIANT B: UKURAN SEDANG 50x30 mm (COMPACT HORIZONTAL) */}
-              {selectedSize === "50x30" && (
-                <div
-                  className="w-full max-w-[340px] bg-white border-2 border-slate-900 rounded-xl p-3 shadow-sm text-left relative flex flex-col justify-between"
-                  style={{ minHeight: "190px" }}
-                >
-                  <div className="flex items-center justify-between border-b border-slate-900 pb-1.5 mb-2">
-                    <div className="flex items-center gap-1">
-                      <span className="text-[10px] font-black text-blue-900">PLAZA BALI</span>
-                      <span className="text-[8.5px] text-slate-500 font-bold">• MIS OPS</span>
-                    </div>
-                    <span className="text-[8px] px-1 py-0.2 rounded bg-slate-900 text-white font-mono font-bold">
-                      {currentComp.category.split(" ")[0]}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 mb-2">
-                    {qrDataUrl && (
-                      <img
-                        src={qrDataUrl}
-                        alt="QR Code"
-                        className="w-18 h-18 border border-slate-300 rounded p-0.5 shrink-0"
-                      />
-                    )}
-                    <div className="flex-1 space-y-0.5 leading-tight">
-                      <p className="font-bold text-[11px] text-slate-900 truncate">{currentComp.name}</p>
-                      <p className="text-[9.5px] text-slate-600 font-medium truncate">{currentComp.brand}</p>
-                      <p className="text-[9px] font-mono text-slate-700 font-bold truncate">SN: {currentComp.serialNumber}</p>
-                      <p className="text-[8.5px] text-slate-400">{storeLocationName}</p>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-slate-200 pt-1 flex flex-col items-center">
-                    <svg ref={barcodeSvgRef} className="max-w-full h-auto"></svg>
-                  </div>
-                </div>
-              )}
-
               {/* VARIANT C: UKURAN RAMPING 40x20 mm (ULTRA SLIM FOR SCANNER/MOUSE) */}
               {selectedSize === "40x20" && (
                 <div
@@ -735,44 +621,6 @@ export default function BarcodeGeneratorModal({
                     <p className="font-bold text-[10px] text-slate-900 truncate leading-tight">{currentComp.name}</p>
                     <p className="text-[8.5px] text-slate-600 truncate">{currentComp.brand}</p>
                     <p className="text-[8.5px] font-mono font-bold text-slate-800 truncate">ID: {currentComp.code}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* VARIANT D: BATCH SHEET 1 SET POS LENGKAP */}
-              {selectedSize === "BATCH" && (
-                <div className="w-full bg-white border border-slate-300 rounded-2xl p-4 shadow-sm text-left space-y-3">
-                  <div className="border-b border-slate-200 pb-2 flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-xs text-slate-900">Sheet Label 1 Set Lengkap ({posHardware?.pos_code})</h4>
-                      <p className="text-[10px] text-slate-400">{storeLocationName} — Siap Cetak dan Gunting per Perangkat</p>
-                    </div>
-                    <span className="text-xs font-mono font-bold bg-purple-50 text-purple-700 px-2 py-0.5 rounded-lg border border-purple-200">
-                      {componentOptions.length} Stiker
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                    {componentOptions.map((comp) => (
-                      <div
-                        key={comp.key}
-                        className="border border-slate-900 rounded-lg p-2 bg-white flex items-center gap-2 shadow-2xs"
-                      >
-                        {batchQrMap[comp.key] && (
-                          <img
-                            src={batchQrMap[comp.key]}
-                            alt="QR"
-                            className="w-12 h-12 border border-slate-200 rounded p-0.5 shrink-0"
-                          />
-                        )}
-                        <div className="min-w-0 flex-1 leading-tight space-y-0.5">
-                          <span className="text-[8px] font-black text-blue-900 block uppercase">MIS OPS • PLAZA BALI</span>
-                          <p className="font-bold text-[9.5px] text-slate-900 truncate">{comp.name}</p>
-                          <p className="text-[8.5px] text-slate-500 truncate">{comp.brand}</p>
-                          <p className="text-[8.5px] font-mono font-bold text-slate-800 truncate">{comp.code}</p>
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </div>
               )}
