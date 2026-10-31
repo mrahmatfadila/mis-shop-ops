@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, Fragment, Suspense } from "react";
+import { useEffect, useState, useMemo, useRef, Fragment, Suspense } from "react";
 import SidebarLayout from "@/components/SidebarLayout";
 import ScannerModal from "@/components/ScannerModal";
 import BarcodeGeneratorModal from "@/components/BarcodeGeneratorModal";
@@ -473,10 +473,11 @@ function AssetsContent() {
   };
 
   // Batch Live Ping for all visible POS devices in real-time
-  const handlePingAllPos = async () => {
+  const handlePingAllPos = async (customList?: PosHardwareAsset[]) => {
+    const targetList = customList || posList;
     const ips = Array.from(
       new Set(
-        posList
+        targetList
           .map((p) => p.ip_address)
           .filter((ip): ip is string => !!ip && ip !== "-" && ip.trim() !== "")
       )
@@ -517,10 +518,15 @@ function AssetsContent() {
     }
   };
 
-  // Otomatis jalankan uji ping real-time saat data POS termuat
+  // Logic Ping Hemat Resource & Ultra Ringan:
+  // Otomatis dijalankan HANYA SEKALI saat user refresh halaman atau saat user baru masuk/pindah ke menu ini.
+  // Tidak berjalan berulang-ulang di background agar CPU & network tidak terbebani.
+  const hasAutoPingRunRef = useRef(false);
+
   useEffect(() => {
-    if (posList.length > 0) {
-      handlePingAllPos();
+    if (!hasAutoPingRunRef.current && posList.length > 0) {
+      hasAutoPingRunRef.current = true;
+      handlePingAllPos(posList);
     }
   }, [posList]);
 
@@ -1401,7 +1407,7 @@ function AssetsContent() {
                 {/* Tombol Uji Live Ping Seluruh Kasir Real-Time */}
                 <button
                   type="button"
-                  onClick={handlePingAllPos}
+                  onClick={() => handlePingAllPos()}
                   disabled={isPingingAllPos || isPosLoading}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#006622] border border-emerald-200/80 text-xs font-bold shadow-2xs transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap cursor-pointer"
                   title="Ping seluruh IP kasir POS secara serentak untuk cek status koneksi live"
@@ -1635,7 +1641,6 @@ function AssetsContent() {
                                               title={`Status: Mati (${ping ? "Offline / RTO" : (pos.status || "Tidak Terhubung")}) • IP: ${pos.ip_address || "Belum ada IP"} • Klik untuk uji ping`}
                                               className="relative flex h-2 w-2 shrink-0 cursor-pointer group/dot focus:outline-none"
                                             >
-                                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                                               <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600 shadow-xs shadow-rose-600/50 group-hover/dot:scale-125 transition-transform"></span>
                                             </button>
                                           )}

@@ -21,23 +21,24 @@ export async function POST(req: Request) {
       });
     }
 
-    // Batch IPs Ping
+    // Batch IPs Ping with safe chunking (ringan & tidak membebani CPU/jaringan)
     if (Array.isArray(ips) && ips.length > 0) {
-      const pingPromises = ips.map(async (targetIp: string) => {
-        const clean = String(targetIp).trim();
-        const res = await pingHost(clean, 750);
-        return {
-          ip: clean,
-          status: res.status,
-          latency: res.latency,
-        };
-      });
-
-      const resultsArray = await Promise.all(pingPromises);
+      const cleanIps = ips.map((targetIp: string) => String(targetIp).trim()).filter(Boolean);
       const resultsMap: Record<string, { status: "ONLINE" | "OFFLINE"; latency: number | null }> = {};
-      resultsArray.forEach((r) => {
-        resultsMap[r.ip] = { status: r.status, latency: r.latency };
-      });
+
+      const chunkSize = 10;
+      for (let i = 0; i < cleanIps.length; i += chunkSize) {
+        const chunk = cleanIps.slice(i, i + chunkSize);
+        await Promise.all(
+          chunk.map(async (clean) => {
+            const res = await pingHost(clean, 500);
+            resultsMap[clean] = {
+              status: res.status,
+              latency: res.latency,
+            };
+          })
+        );
+      }
 
       return NextResponse.json({
         success: true,
