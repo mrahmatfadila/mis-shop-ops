@@ -11,7 +11,7 @@ node -v >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] Node.js belum terinstall di komputer ini!
     echo Silakan install Node.js dari https://nodejs.org terlebih dahulu.
-    pause
+    if not "%1"=="--background" pause
     exit /b 1
 )
 
@@ -26,11 +26,11 @@ if not exist "shop_ops.db" (
 
 echo [3/4] Memeriksa build Next.js...
 if not exist ".next" (
-    echo  -> Folder build .next belum ada. Menjalankan kompilasi awal (npm run build)...
+    echo  -> Folder build .next belum ada. Menjalankan kompilasi awal npm run build...
     call npm run build
     if errorlevel 1 (
         echo [ERROR] Gagal melakukan build aplikasi.
-        pause
+        if not "%1"=="--background" pause
         exit /b 1
     )
 )
@@ -45,5 +45,5 @@ call npm run start
 if errorlevel 1 (
     echo.
     echo [WARNING] Server Next.js berhenti tidak terduga pada %date% %time%
-    pause
+    if not "%1"=="--background" pause
 )

@@ -19,3 +19,4 @@ echo Server tidak akan lagi otomatis berjalan saat komputer dihidupkan.
 echo ===================================================
 echo.
 pause
+

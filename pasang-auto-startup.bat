@@ -27,3 +27,4 @@ echo Komputer kantor sekarang otomatis menjalankan server setiap kali dihidupkan
 echo.
 echo ===================================================
 pause
+
