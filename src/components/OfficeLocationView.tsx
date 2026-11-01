@@ -191,7 +191,6 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
     Record<string, { status: "ONLINE" | "OFFLINE" | "TESTING"; latency?: number | null; tested_at?: string }>
   >({});
   const [isPingingAll, setIsPingingAll] = useState(false);
-  const [isPingingDiv, setIsPingingDiv] = useState<Record<string, boolean>>({});
   const [pingNotification, setPingNotification] = useState<string | null>(null);
 
   // Load cached ping state for this office location
@@ -687,63 +686,6 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
         savePingCache(next);
         return next;
       });
-    }
-  };
-
-  // Ping seluruh perangkat dalam satu divisi
-  const handlePingDivision = async (divName: string, items: OfficeHardwareAsset[]) => {
-    const targets = items
-      .filter((item) => item.ip_address && item.ip_address.trim() !== "" && item.ip_address.trim() !== "-")
-      .map((item) => ({ ip: item.ip_address!.trim(), status: item.status }));
-
-    if (targets.length === 0) return;
-
-    setIsPingingDiv((prev) => ({ ...prev, [divName]: true }));
-    setOfficePingState((prev) => {
-      const updated = { ...prev };
-      targets.forEach((t) => {
-        updated[t.ip] = { status: "TESTING" };
-      });
-      return updated;
-    });
-
-    try {
-      const res = await fetch("/api/office/ping", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targets }),
-      });
-      const json = await res.json();
-      if (json.success && json.results) {
-        setOfficePingState((prev) => {
-          const next = {
-            ...prev,
-            ...json.results,
-          };
-          savePingCache(next);
-          return next;
-        });
-      } else {
-        setOfficePingState((prev) => {
-          const updated = { ...prev };
-          targets.forEach((t) => {
-            updated[t.ip] = { status: "OFFLINE", latency: null, tested_at: new Date().toISOString() };
-          });
-          savePingCache(updated);
-          return updated;
-        });
-      }
-    } catch {
-      setOfficePingState((prev) => {
-        const updated = { ...prev };
-        targets.forEach((t) => {
-          updated[t.ip] = { status: "OFFLINE", latency: null, tested_at: new Date().toISOString() };
-        });
-        savePingCache(updated);
-        return updated;
-      });
-    } finally {
-      setIsPingingDiv((prev) => ({ ...prev, [divName]: false }));
     }
   };
 
@@ -1722,18 +1664,6 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
-                              {div.items.some((i) => i.ip_address && i.ip_address.trim() !== "" && i.ip_address.trim() !== "-") && (
-                                <button
-                                  type="button"
-                                  onClick={() => handlePingDivision(div.name, div.items)}
-                                  disabled={isPingingDiv[div.name]}
-                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-[10px] font-bold shadow-2xs transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
-                                  title={`Uji koneksi ping seluruh IP di Divisi ${div.name}`}
-                                >
-                                  <RefreshCw className={`w-2.5 h-2.5 ${isPingingDiv[div.name] ? "animate-spin text-sky-700" : ""}`} />
-                                  <span>{isPingingDiv[div.name] ? "Pinging..." : `Tes Ping Divisi (${div.items.filter((i) => i.ip_address && i.ip_address.trim() !== "" && i.ip_address.trim() !== "-").length} IP)`}</span>
-                                </button>
-                              )}
                               <div className="text-[9.5px] font-mono text-slate-400 hidden sm:inline pr-1 truncate max-w-[450px]">
                                 Pengguna: {div.items.map((i) => i.user_name).join(", ")}
                               </div>
