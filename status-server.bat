@@ -31,14 +31,18 @@ goto selesai
 
 :is_offline
 echo [STATUS: OFFLINE / TIDAK BERJALAN]
-echo Tidak ada aplikasi yang berjalan di Port 3000.
+echo Server saat ini TIDAK sedang berjalan di Port 3000.
 echo.
-echo Cara Menyalakan Server:
-echo 1. Di Background (Tanpa Jendela CMD):
-echo    Klik 2x file "jalankan-background.bat"
-echo.
-echo 2. Normal (Dengan Jendela CMD Terlihat):
-echo    Klik 2x file "jalankan-server.bat"
+if exist "server_background.log" (
+    echo Log Aktivitas Terakhir (server_background.log):
+    echo ---------------------------------------------------
+    powershell -Command "Get-Content server_background.log -Tail 10 -ErrorAction SilentlyContinue"
+    echo ---------------------------------------------------
+    echo.
+)
+echo Untuk Menyalakan Server:
+echo 1. Di Background : Klik 2x file "jalankan-background.bat"
+echo 2. Normal (CMD)  : Klik 2x file "jalankan-server.bat"
 goto selesai
 
 :selesai

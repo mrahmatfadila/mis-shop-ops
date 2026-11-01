@@ -1,21 +1,21 @@
 @echo off
 title MIS SHOP OPS - Production Server
+cd /d "%~dp0"
 echo ===================================================
 echo     MEMULAI SERVER MIS SHOP OPS (LOCAL PC)
 echo ===================================================
 echo.
-cd /d "%~dp0"
 
-echo [1/3] Memeriksa instalasi Node.js...
+echo [1/4] Memeriksa instalasi Node.js...
 node -v >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] Node.js belum terinstall di komputer ini!
     echo Silakan install Node.js dari https://nodejs.org terlebih dahulu.
     pause
-    exit /b
+    exit /b 1
 )
 
-echo [2/3] Memeriksa database lokal...
+echo [2/4] Memeriksa database lokal...
 if not exist "shop_ops.db" (
     if exist "seed_template.db" (
         echo  -> Menyiapkan shop_ops.db dari template awal...
@@ -24,12 +24,26 @@ if not exist "shop_ops.db" (
     )
 )
 
-echo [3/3] Menjalankan Server Produksi di Port 3000...
+echo [3/4] Memeriksa build Next.js...
+if not exist ".next" (
+    echo  -> Folder build .next belum ada. Menjalankan kompilasi awal (npm run build)...
+    call npm run build
+    if errorlevel 1 (
+        echo [ERROR] Gagal melakukan build aplikasi.
+        pause
+        exit /b 1
+    )
+)
+
+echo [4/4] Menjalankan Server Produksi di Port 3000...
 echo Web dapat diakses di:
 echo - Dari PC ini       : http://localhost:3000
-echo - Dari PC Lain (LAN): http://[IP-KOMPUTER-INI]:3000
+echo - Dari PC Lain (LAN): http://0.0.0.0:3000
 echo.
-echo Tekan Ctrl + C untuk menghentikan server.
 echo ===================================================
-npm run start
-pause
+call npm run start
+if errorlevel 1 (
+    echo.
+    echo [WARNING] Server Next.js berhenti tidak terduga pada %date% %time%
+    pause
+)
