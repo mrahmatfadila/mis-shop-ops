@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     // 1. Single IP Ping
     if (ip && typeof ip === "string") {
       const cleanIp = ip.trim();
-      const realRes = await pingHost(cleanIp, 500);
+      const realRes = await pingHost(cleanIp, 800);
 
       if (realRes.status === "ONLINE") {
         return NextResponse.json({
@@ -60,29 +60,38 @@ export async function POST(req: Request) {
       > = {};
       const nowIso = new Date().toISOString();
 
-      const chunkSize = 25;
+      const chunkSize = 20;
       for (let i = 0; i < targetsList.length; i += chunkSize) {
         const chunk = targetsList.slice(i, i + chunkSize);
-        await Promise.all(
+        const settled = await Promise.allSettled(
           chunk.map(async (item) => {
             const clean = item.ip;
-            const realRes = await pingHost(clean, 400);
-
-            if (realRes.status === "ONLINE") {
-              resultsMap[clean] = {
-                status: "ONLINE",
-                latency: realRes.latency || 2,
-                tested_at: nowIso,
-              };
-            } else {
-              resultsMap[clean] = {
-                status: "OFFLINE",
-                latency: null,
-                tested_at: nowIso,
-              };
-            }
+            const realRes = await pingHost(clean, 700);
+            return {
+              ip: clean,
+              status: realRes.status,
+              latency: realRes.latency,
+            };
           })
         );
+
+        for (let j = 0; j < chunk.length; j++) {
+          const clean = chunk[j].ip;
+          const s = settled[j];
+          if (s.status === "fulfilled" && s.value.status === "ONLINE") {
+            resultsMap[clean] = {
+              status: "ONLINE",
+              latency: s.value.latency || 2,
+              tested_at: nowIso,
+            };
+          } else {
+            resultsMap[clean] = {
+              status: "OFFLINE",
+              latency: null,
+              tested_at: nowIso,
+            };
+          }
+        }
       }
 
       const totalCount = targetsList.length;

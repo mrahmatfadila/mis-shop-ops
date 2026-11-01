@@ -199,7 +199,14 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
     try {
       const cached = localStorage.getItem(`mis_office_ping_${locationKey}`);
       if (cached) {
-        setOfficePingState(JSON.parse(cached));
+        const parsed = JSON.parse(cached);
+        const clean: typeof parsed = {};
+        for (const [k, v] of Object.entries(parsed)) {
+          if ((v as any)?.status !== "TESTING") {
+            clean[k] = v;
+          }
+        }
+        setOfficePingState(clean);
       }
     } catch {
       // ignore
@@ -208,7 +215,10 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
 
   const savePingCache = (data: Record<string, { status: "ONLINE" | "OFFLINE" | "TESTING"; latency?: number | null; tested_at?: string }>) => {
     try {
-      localStorage.setItem(`mis_office_ping_${locationKey}`, JSON.stringify(data));
+      const cleanData = Object.fromEntries(
+        Object.entries(data).filter(([_, v]) => v.status !== "TESTING")
+      );
+      localStorage.setItem(`mis_office_ping_${locationKey}`, JSON.stringify(cleanData));
     } catch {
       // ignore
     }
@@ -679,7 +689,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
   // Ping seluruh perangkat dalam satu divisi
   const handlePingDivision = async (divName: string, items: OfficeHardwareAsset[]) => {
     const targets = items
-      .filter((item) => item.ip_address && item.ip_address !== "-")
+      .filter((item) => item.ip_address && item.ip_address.trim() !== "" && item.ip_address.trim() !== "-")
       .map((item) => ({ ip: item.ip_address!.trim(), status: item.status }));
 
     if (targets.length === 0) return;
@@ -709,12 +719,21 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
           savePingCache(next);
           return next;
         });
+      } else {
+        setOfficePingState((prev) => {
+          const updated = { ...prev };
+          targets.forEach((t) => {
+            updated[t.ip] = { status: "OFFLINE", latency: null, tested_at: new Date().toISOString() };
+          });
+          savePingCache(updated);
+          return updated;
+        });
       }
     } catch {
       setOfficePingState((prev) => {
         const updated = { ...prev };
         targets.forEach((t) => {
-          updated[t.ip] = { status: "OFFLINE", latency: null };
+          updated[t.ip] = { status: "OFFLINE", latency: null, tested_at: new Date().toISOString() };
         });
         savePingCache(updated);
         return updated;
@@ -727,7 +746,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
   // Ping seluruh perangkat pada lokasi kantor aktif (misal 47 unit Head Office)
   const handlePingAllOffice = async () => {
     const targets = locationOfficeList
-      .filter((item) => item.ip_address && item.ip_address !== "-")
+      .filter((item) => item.ip_address && item.ip_address.trim() !== "" && item.ip_address.trim() !== "-")
       .map((item) => ({ ip: item.ip_address!.trim(), status: item.status }));
 
     if (targets.length === 0) {
@@ -766,8 +785,27 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
           `Uji Ping Selesai: ${json.onlineCount || 0} Perangkat Online Aktif, ${json.offlineCount || 0} Standby / Offline.`
         );
         setTimeout(() => setPingNotification(null), 5000);
+      } else {
+        setOfficePingState((prev) => {
+          const updated = { ...prev };
+          targets.forEach((t) => {
+            updated[t.ip] = { status: "OFFLINE", latency: null, tested_at: new Date().toISOString() };
+          });
+          savePingCache(updated);
+          return updated;
+        });
+        setPingNotification("Respon uji ping tidak berhasil dimuat dari server.");
+        setTimeout(() => setPingNotification(null), 4000);
       }
     } catch {
+      setOfficePingState((prev) => {
+        const updated = { ...prev };
+        targets.forEach((t) => {
+          updated[t.ip] = { status: "OFFLINE", latency: null, tested_at: new Date().toISOString() };
+        });
+        savePingCache(updated);
+        return updated;
+      });
       setPingNotification("Gagal menghubungi server untuk uji ping massal.");
       setTimeout(() => setPingNotification(null), 4000);
     } finally {
@@ -957,7 +995,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
   // Counts for this location
   const pcCount = locationOfficeList.filter((o) => o.device_type === "PC").length;
   const netCount = locationOfficeList.filter((o) => o.device_type === "ROUTER" || o.device_type === "PABX").length;
-  const ipCount = locationOfficeList.filter((o) => o.ip_address && o.ip_address.startsWith("172.")).length;
+  const ipCount = locationOfficeList.filter((o) => o.ip_address && o.ip_address.trim() !== "" && o.ip_address.trim() !== "-").length;
 
   // Office devices UPS
   const officeUpsList = locationOfficeList.filter(
@@ -1652,7 +1690,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
-                              {div.items.some((i) => i.ip_address && i.ip_address !== "-") && (
+                              {div.items.some((i) => i.ip_address && i.ip_address.trim() !== "" && i.ip_address.trim() !== "-") && (
                                 <button
                                   type="button"
                                   onClick={() => handlePingDivision(div.name, div.items)}
@@ -1661,7 +1699,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                   title={`Uji koneksi ping seluruh IP di Divisi ${div.name}`}
                                 >
                                   <RefreshCw className={`w-2.5 h-2.5 ${isPingingDiv[div.name] ? "animate-spin text-sky-700" : ""}`} />
-                                  <span>{isPingingDiv[div.name] ? "Pinging..." : `Tes Ping Divisi (${div.items.filter((i) => i.ip_address && i.ip_address !== "-").length} IP)`}</span>
+                                  <span>{isPingingDiv[div.name] ? "Pinging..." : `Tes Ping Divisi (${div.items.filter((i) => i.ip_address && i.ip_address.trim() !== "" && i.ip_address.trim() !== "-").length} IP)`}</span>
                                 </button>
                               )}
                               <div className="text-[9.5px] font-mono text-slate-400 hidden sm:inline pr-1 truncate max-w-[450px]">
@@ -1761,7 +1799,10 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                         </button>
                                         <button
                                           type="button"
-                                          onClick={() => copyToClipboard(cleanIp, `ip-${item.id}`)}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            copyToClipboard(cleanIp, `ip-${item.id}`);
+                                          }}
                                           title="Salin IP"
                                           className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-blue-700 p-0.5 shrink-0 transition-opacity cursor-pointer"
                                         >

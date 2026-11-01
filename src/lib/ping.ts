@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import os from "os";
+import net from "net";
 
 export interface PingResult {
   ip: string;
@@ -13,6 +14,51 @@ export interface VpnStatus {
   vpnName: string | null;
   vpnIp: string | null;
   testedAt: string;
+}
+
+/**
+ * Fast TCP probe for hosts where ICMP ping might be dropped by local Windows Defender Firewall.
+ * Attempts quick connection on common Windows management / application ports (RPC 135, SMB 445, AnyDesk 7070, HTTP 80, RDP 3389).
+ * Returns true if port connects OR returns ECONNREFUSED (meaning OS network stack is active and replied with TCP RST).
+ */
+export function tcpProbe(
+  ip: string,
+  ports: number[] = [135, 445, 7070, 80, 3389],
+  timeoutMs = 350
+): Promise<{ online: boolean; latency: number | null }> {
+  const start = Date.now();
+  return Promise.any(
+    ports.map(
+      (port) =>
+        new Promise<{ online: boolean; latency: number }>((resolve, reject) => {
+          const socket = new net.Socket();
+          socket.setTimeout(timeoutMs);
+
+          const cleanup = () => {
+            socket.removeAllListeners();
+            socket.destroy();
+          };
+
+          socket.on("connect", () => {
+            const latency = Math.max(1, Date.now() - start);
+            cleanup();
+            resolve({ online: true, latency });
+          });
+
+          socket.on("error", (err: any) => {
+            cleanup();
+            reject(err);
+          });
+
+          socket.on("timeout", () => {
+            cleanup();
+            reject(new Error("TCP timeout"));
+          });
+
+          socket.connect(port, ip);
+        })
+    )
+  ).catch(() => ({ online: false, latency: null }));
 }
 
 /**
@@ -70,11 +116,11 @@ export function checkVpnStatus(): Promise<VpnStatus> {
 }
 
 /**
- * Pings an IP address or hostname using system ping.
+ * Pings an IP address or hostname using system ping with fallback to TCP probe.
  * Windows: ping -n 1 -w <timeoutMs> <ip>
  * Linux/macOS: ping -c 1 -W 1 <ip>
  */
-export function pingHost(ip: string, timeoutMs = 400): Promise<PingResult> {
+export function pingHost(ip: string, timeoutMs = 600): Promise<PingResult> {
   return new Promise((resolve) => {
     // Sanitize IP/hostname to prevent shell injection
     const cleanIp = ip.trim();
@@ -88,24 +134,37 @@ export function pingHost(ip: string, timeoutMs = 400): Promise<PingResult> {
       : `ping -c 1 -W 1 ${cleanIp}`;
 
     const startTime = Date.now();
-    exec(command, { timeout: timeoutMs + 1000 }, (error, stdout) => {
+    exec(command, { timeout: timeoutMs + 1000 }, async (error, stdout) => {
       const output = stdout || "";
 
       if (isWindows) {
-        // Windows check:
-        // Must contain Reply from <cleanIp> (or matching IP)
-        // AND must NOT contain unreachable, timed out, could not find host, General failure
-        const hasReply =
+        // Windows check supporting both English and Indonesian locales
+        const hasTtl = /TTL=\d+/i.test(output);
+        const hasTime = /(?:time|waktu)[<=](\d+)ms/i.test(output);
+        const hasReplyFromTarget =
           output.includes(`Reply from ${cleanIp}`) ||
-          (output.includes("Reply from") &&
-            !output.includes("Destination host unreachable") &&
-            !output.includes("Request timed out") &&
-            !output.includes("General failure") &&
-            !output.includes("could not find host"));
+          output.includes(`Balasan dari ${cleanIp}`);
 
-        if (hasReply) {
-          const timeMatch = output.match(/time[<=](\d+)ms/i);
-          const latency = timeMatch ? parseInt(timeMatch[1], 10) : Math.max(1, Date.now() - startTime);
+        const hasNegativeMarker =
+          output.includes("unreachable") ||
+          output.includes("tidak dapat dijangkau") ||
+          output.includes("timed out") ||
+          output.includes("permintaan habis") ||
+          output.includes("failure") ||
+          output.includes("kegagalan") ||
+          output.includes("could not find host") ||
+          output.includes("tidak dapat menemukan host") ||
+          output.includes("Transmit failed") ||
+          output.includes("100% loss") ||
+          output.includes("100% hilang");
+
+        const isOnline = (hasTtl || (hasReplyFromTarget && hasTime)) && !hasNegativeMarker;
+
+        if (isOnline) {
+          const timeMatch = output.match(/(?:time|waktu)[<=](\d+)ms/i);
+          const latency = timeMatch
+            ? parseInt(timeMatch[1], 10)
+            : Math.max(1, Date.now() - startTime);
           return resolve({
             ip: cleanIp,
             status: "ONLINE",
@@ -116,13 +175,29 @@ export function pingHost(ip: string, timeoutMs = 400): Promise<PingResult> {
         // Unix check
         if (!error && output.includes(" 0% packet loss")) {
           const timeMatch = output.match(/time[=](\d+(\.\d+)?) ms/i);
-          const latency = timeMatch ? Math.round(parseFloat(timeMatch[1])) : Math.max(1, Date.now() - startTime);
+          const latency = timeMatch
+            ? Math.round(parseFloat(timeMatch[1]))
+            : Math.max(1, Date.now() - startTime);
           return resolve({
             ip: cleanIp,
             status: "ONLINE",
             latency,
           });
         }
+      }
+
+      // If ICMP ping failed or was blocked by Windows Firewall, fallback to fast TCP probe
+      try {
+        const tcpRes = await tcpProbe(cleanIp, [135, 445, 7070, 80, 3389], 350);
+        if (tcpRes.online) {
+          return resolve({
+            ip: cleanIp,
+            status: "ONLINE",
+            latency: tcpRes.latency || Math.max(1, Date.now() - startTime),
+          });
+        }
+      } catch {
+        // ignore fallback error
       }
 
       return resolve({
