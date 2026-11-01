@@ -958,8 +958,9 @@ function PosCompleteSetModal({
         body: JSON.stringify({ ip_address: pos.ip_address, asset_code: pos.pos_code }),
       });
       const data = await res.json();
-      if (data.success && data.data) {
-        setPingState({ testing: false, result: data.data });
+      const pingRes = data.data || data.result;
+      if (data.success && pingRes) {
+        setPingState({ testing: false, result: pingRes });
       } else {
         setPingState({ testing: false, result: { status: "OFFLINE", latency: 0 } });
       }

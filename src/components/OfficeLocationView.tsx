@@ -564,7 +564,7 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
     };
     allOfficeList.forEach((o) => {
       const loc = (o.office_location || "Head Office").toLowerCase();
-      if (loc.includes("warehouse") || loc.includes("whs")) counts.whs++;
+      if (loc.includes("warehouse") || loc.includes("whs") || loc.includes("gudang")) counts.whs++;
       else if (loc.includes("terminal 2") || loc.includes("t2")) counts.t2++;
       else if (loc.includes("terminal 3") || loc.includes("t3")) counts.t3++;
       else if (loc.includes("surabaya") || loc.includes("sby")) counts.sby++;

@@ -31,16 +31,19 @@ export async function POST(req: Request) {
         ],
       });
 
+      const payload = {
+        asset_code,
+        ip_address,
+        status: pingResult.status,
+        latency: pingResult.latency,
+        last_heartbeat: nowIso,
+      };
+
       return NextResponse.json({
         success: true,
         vpn,
-        result: {
-          asset_code,
-          ip_address,
-          status: pingResult.status,
-          latency: pingResult.latency,
-          last_heartbeat: nowIso,
-        },
+        result: payload,
+        data: payload,
       });
     }
 
