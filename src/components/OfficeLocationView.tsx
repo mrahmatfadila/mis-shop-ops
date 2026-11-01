@@ -534,6 +534,8 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
           }
         })
         .catch((err) => console.error("Error loading Head Office UPS:", err));
+    } else {
+      setFixedUpsList([]);
     }
   }, [locationKey]);
 
