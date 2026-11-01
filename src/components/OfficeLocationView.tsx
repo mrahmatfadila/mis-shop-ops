@@ -124,7 +124,7 @@ const LOCATION_TABS = [
 function isLocationMatch(itemLoc: string | undefined | null, targetKey: OfficeLocationKey): boolean {
   const loc = (itemLoc || "Head Office").toLowerCase();
   if (targetKey === "Warehouse (WHS)") {
-    return loc.includes("warehouse") || loc.includes("whs");
+    return loc.includes("warehouse") || loc.includes("whs") || loc.includes("gudang");
   }
   if (targetKey === "Office Terminal 2") {
     return loc.includes("terminal 2") || loc.includes("t2");
@@ -207,9 +207,11 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
           }
         }
         setOfficePingState(clean);
+      } else {
+        setOfficePingState({});
       }
     } catch {
-      // ignore
+      setOfficePingState({});
     }
   }, [locationKey]);
 
@@ -997,6 +999,31 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
   const netCount = locationOfficeList.filter((o) => o.device_type === "ROUTER" || o.device_type === "PABX").length;
   const ipCount = locationOfficeList.filter((o) => o.ip_address && o.ip_address.trim() !== "" && o.ip_address.trim() !== "-").length;
 
+  // Sebaran status ping khusus untuk perangkat di lokasi ini
+  const locationPingStats = useMemo(() => {
+    const validIps = locationOfficeList
+      .filter((o) => o.ip_address && o.ip_address.trim() !== "" && o.ip_address.trim() !== "-")
+      .map((o) => o.ip_address!.trim());
+
+    const uniqueIps = Array.from(new Set(validIps));
+
+    let online = 0;
+    let offline = 0;
+    let testing = 0;
+
+    uniqueIps.forEach((ip) => {
+      const state = officePingState[ip];
+      if (state) {
+        if (state.status === "ONLINE") online++;
+        else if (state.status === "OFFLINE") offline++;
+        else if (state.status === "TESTING") testing++;
+      }
+    });
+
+    const tested = online + offline + testing;
+    return { total: uniqueIps.length, online, offline, testing, tested };
+  }, [locationOfficeList, officePingState]);
+
   // Office devices UPS
   const officeUpsList = locationOfficeList.filter(
     (o) =>
@@ -1240,14 +1267,17 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
             }
             valueClassName="text-2xl text-emerald-600 mt-0.5 font-black"
             hint={
-              Object.keys(officePingState).length > 0
-                ? `${Object.values(officePingState).filter((p) => p.status === "ONLINE").length} Online • ${Object.values(officePingState).filter((p) => p.status === "OFFLINE").length} Off/Standby`
-                : "Terkoneksi Jaringan VPN"
+              locationPingStats.tested > 0
+                ? `${locationPingStats.online} Online • ${locationPingStats.offline} Off/Standby`
+                : "Klik untuk uji live ping"
             }
-            hintClassName="text-[10.5px] text-slate-500 mt-0.5"
+            hintClassName={`text-[10.5px] mt-0.5 font-semibold ${
+              locationPingStats.tested > 0 ? "text-emerald-700" : "text-slate-500"
+            }`}
             icon={Activity}
             iconWrapperClassName="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center font-bold"
-            className="border-slate-200/90 shadow-2xs hover:shadow-xs transition-all"
+            className="border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer hover:border-emerald-300"
+            onClick={handlePingAllOffice}
           />
         </div>
 
