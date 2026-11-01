@@ -1,12 +1,19 @@
 @echo off
 title MIS SHOP OPS - Update Otomatis dari Rumah (GitHub)
+cd /d "%~dp0"
 echo ===================================================
 echo     UPDATE SISTEM MIS SHOP OPS DARI GITHUB
 echo ===================================================
 echo.
-cd /d "%~dp0"
 
-echo [1/4] Mengamankan backup database lokal...
+echo [1/5] Menghentikan server lama yang sedang berjalan...
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":3000" ^| findstr "LISTENING"') do (
+    echo  -> Mematikan proses lama (PID %%a)...
+    taskkill /f /pid %%a >nul 2>&1
+)
+
+echo.
+echo [2/5] Mengamankan backup database lokal...
 if not exist "backups" mkdir backups
 for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value 2^>nul') do set datetime=%%I
 if defined datetime (
@@ -23,35 +30,36 @@ if exist "shop_ops.db" (
 )
 
 echo.
-echo [2/4] Mengambil kode kodingan terbaru dari GitHub...
+echo [3/5] Mengambil kode kodingan terbaru dari GitHub...
 git pull origin main
 if errorlevel 1 (
     echo.
     echo [ERROR] Gagal menarik update dari GitHub!
     echo Periksa koneksi internet kantor Anda.
     pause
-    exit /b
+    exit /b 1
 )
 
 echo.
-echo [3/4] Menginstall dependensi paket (jika ada)...
-call npm install --prefer-offline
-
-echo.
-echo [4/4] Membangun ulang (Build) aplikasi versi terbaru...
+echo [4/5] Membangun ulang (Build) aplikasi versi terbaru...
 call npm run build
 if errorlevel 1 (
     echo.
     echo [ERROR] Build gagal! Silakan periksa log di atas.
     pause
-    exit /b
+    exit /b 1
 )
+
+echo.
+echo [5/5] Menyalakan kembali server terbaru di background...
+wscript.exe "%~dp0jalankan-silent-background.vbs"
+timeout /t 5 >nul
 
 echo.
 echo ===================================================
 echo [SUKSES] Aplikasi MIS SHOP OPS telah berhasil diupdate!
+echo Server versi terbaru sekarang SUDAH AKTIF di background!
 echo Database dan data operasional Anda tetap aman terjaga.
-echo.
-echo Silakan jalankan kembali file "jalankan-server.bat"
 echo ===================================================
-pause
+echo.
+call "%~dp0status-server.bat"
