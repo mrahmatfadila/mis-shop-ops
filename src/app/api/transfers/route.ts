@@ -32,9 +32,112 @@ function getPosColumn(compType: string): string | null {
   }
 }
 
+async function ensureTransfersTable() {
+  try {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS asset_transfers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        transfer_code TEXT UNIQUE NOT NULL,
+        transfer_type TEXT NOT NULL,
+        component_type TEXT NOT NULL,
+        item_name TEXT NOT NULL,
+
+        source_type TEXT NOT NULL,
+        source_asset_code TEXT,
+        source_location TEXT NOT NULL,
+        source_shop TEXT DEFAULT 'Plaza Bali',
+        source_item_model TEXT,
+        source_item_sn TEXT,
+
+        dest_type TEXT NOT NULL,
+        dest_asset_code TEXT,
+        dest_location TEXT NOT NULL,
+        dest_shop TEXT DEFAULT 'Plaza Bali',
+
+        new_item_model TEXT,
+        new_item_sn TEXT,
+        new_item_source TEXT,
+
+        performed_by TEXT NOT NULL,
+        transfer_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+        reason TEXT NOT NULL,
+        reference_no TEXT,
+        status TEXT DEFAULT 'COMPLETED',
+        notes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    const countTrf = await db.execute("SELECT count(*) as count FROM asset_transfers");
+    if (Number(countTrf.rows[0]?.count || 0) === 0) {
+      await db.execute(`
+        INSERT INTO asset_transfers (
+          transfer_code, transfer_type, component_type, item_name,
+          source_type, source_asset_code, source_location, source_shop, source_item_model, source_item_sn,
+          dest_type, dest_asset_code, dest_location, dest_shop,
+          new_item_model, new_item_sn, new_item_source,
+          performed_by, transfer_date, reason, reference_no, status, notes
+        ) VALUES 
+        (
+          'TRF-20261101-001',
+          'REPLACE_AND_TRANSFER',
+          'BARCODE_SCANNER',
+          'Barcode Scanner Kasir',
+          'POS',
+          'CGKT3DFD06-P01',
+          'Terminal 3 - Counter DFD06 (P01)',
+          'Plaza Bali',
+          'Honeywell Voyager 1400g (Lama)',
+          'SN-HON-1400-9821',
+          'POS',
+          'CGKT3DFD07-P02',
+          'Terminal 3 - Counter DFD07 (P02)',
+          'Plaza Bali',
+          'Honeywell Xenon 1950g 2D (Baru)',
+          'SN-HON-1950-4412',
+          'MIS PROC (Pengadaan Baru PO-2026-08)',
+          'IT Support',
+          '2026-11-01 10:30:00',
+          'Replace scanner barcode di P01 DF6 dengan unit baru kiriman MIS PROC, dan scanner lama yang masih berfungsi dialihkan ke P02 DF7 untuk menggantikan scanner DF7 yang bermasalah.',
+          'BA-MUT-2026-004',
+          'COMPLETED',
+          'Pemasangan unit baru di DF6 P01 selesai & unit lama berhasil dipindahkan ke DF7 P02. Hasil uji pembacaan barcode boarding pass & produk normal.'
+        ),
+        (
+          'TRF-20261028-002',
+          'DIRECT_TRANSFER',
+          'PRINTER',
+          'Printer Thermal Kasir Epson TM-U220D',
+          'POS',
+          'CGKT2DFD05-P04',
+          'Terminal 2 - Counter DFD05 (P04)',
+          'Plaza Bali',
+          'Epson TM-U220D Serial',
+          'SN-EPS-220-4109',
+          'POS',
+          'CGKT3DFD01-P04',
+          'Terminal 3 - Counter DFD01 (P04)',
+          'Plaza Bali',
+          NULL, NULL, NULL,
+          'MIS OPS',
+          '2026-10-28 14:15:00',
+          'Relokasi printer thermal kasir cadangan Terminal 2 ke Terminal 3 untuk mengantisipasi lonjakan transaksi penerbangan internasional.',
+          'BA-MUT-2026-003',
+          'COMPLETED',
+          'Printer telah dipasang di Terminal 3 Counter DFD01-P04, tes cetak receipt kasir POS lancar.'
+        );
+      `);
+    }
+  } catch (e) {
+    console.error("ensureTransfersTable error:", e);
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     await initDb();
+    await ensureTransfersTable();
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const type = searchParams.get("type") || "";
@@ -121,6 +224,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await initDb();
+    await ensureTransfersTable();
     const body = await request.json();
 
     const {
@@ -307,3 +411,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

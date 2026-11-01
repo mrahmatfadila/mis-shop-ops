@@ -25,7 +25,7 @@ export const db = createClient({
 let initPromise: Promise<void> | null = null;
 
 export async function initDb() {
-  if ((globalThis as any).__db_initialized_v3) return;
+  if ((globalThis as any).__db_initialized_v4) return;
   if (initPromise) return initPromise;
 
   initPromise = (async () => {
@@ -1077,6 +1077,7 @@ Memastikan seluruh keluhan teknis di toko Terminal 2, Terminal 3, dan Surabaya t
       (globalThis as any).__db_initialized = true;
       (globalThis as any).__db_initialized_v2 = true;
       (globalThis as any).__db_initialized_v3 = true;
+      (globalThis as any).__db_initialized_v4 = true;
     }
   })();
 
