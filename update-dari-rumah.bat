@@ -6,7 +6,7 @@ echo       UPDATE SISTEM MIS SHOP OPS DARI GITHUB
 echo ===================================================
 echo.
 
-echo [1/3] Menarik kodingan terbaru dari GitHub...
+echo [1/4] Menarik kodingan terbaru dari GitHub...
 git pull origin main
 if errorlevel 1 (
     echo.
@@ -17,13 +17,19 @@ if errorlevel 1 (
 )
 
 echo.
-echo [2/3] Memeriksa dan memulihkan database lokal...
+echo [2/4] Memeriksa database...
 if exist "shop_ops.db-wal" del /f /q "shop_ops.db-wal" >nul 2>&1
 if exist "shop_ops.db-shm" del /f /q "shop_ops.db-shm" >nul 2>&1
-node -e "const { createClient } = require('@libsql/client'); const fs = require('fs'); async function check() { try { if (!fs.existsSync('shop_ops.db') || fs.statSync('shop_ops.db').size < 10000) throw new Error('empty'); const c = createClient({ url: 'file:shop_ops.db' }); const r = await c.execute('PRAGMA quick_check;'); const val = Object.values(r.rows[0]||{})[0]; if (val !== 'ok') throw new Error('corrupt: ' + val); console.log('  -> Database sehat dan siap digunakan.'); } catch(e) { console.log('  -> Database rusak/korup atau kosong (' + e.message + ').'); console.log('  -> Memulihkan dari seed_template.db...'); try{fs.unlinkSync('shop_ops.db-wal')}catch(_){} try{fs.unlinkSync('shop_ops.db-shm')}catch(_){} fs.copyFileSync('seed_template.db', 'shop_ops.db'); console.log('  -> Database BERHASIL dipulihkan!'); } } check();"
+if not exist "shop_ops.db" (
+    if exist "seed_template.db" copy /y "seed_template.db" "shop_ops.db" >nul
+)
 
 echo.
-echo [3/3] Melakukan kompilasi (Build)...
+echo [3/4] Membersihkan cache lama (.next)...
+if exist ".next" rmdir /s /q ".next"
+
+echo.
+echo [4/4] Membangun ulang (Build) aplikasi bersih...
 call npm run build
 if errorlevel 1 (
     echo.
@@ -34,7 +40,7 @@ if errorlevel 1 (
 
 echo.
 echo ===================================================
-echo [SUKSES] Update aplikasi telah selesai 100%!
+echo [SUKSES] Update & Build berhasil 100%!
 echo.
 echo Silakan jalankan server dengan membuka file:
 echo "jalankan-server.bat"
