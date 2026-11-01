@@ -891,6 +891,150 @@ Memastikan seluruh keluhan teknis di toko Terminal 2, Terminal 3, dan Surabaya t
     console.error("Error creating network_assets table or seeding:", e);
   }
 
+  // TABEL TRACKING PEMINDAHAN BARANG & MUTASI PERANGKAT (ASSET TRANSFERS)
+  try {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS asset_transfers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        transfer_code TEXT UNIQUE NOT NULL,
+        transfer_type TEXT NOT NULL,
+        component_type TEXT NOT NULL,
+        item_name TEXT NOT NULL,
+
+        source_type TEXT NOT NULL,
+        source_asset_code TEXT,
+        source_location TEXT NOT NULL,
+        source_shop TEXT DEFAULT 'Plaza Bali',
+        source_item_model TEXT,
+        source_item_sn TEXT,
+
+        dest_type TEXT NOT NULL,
+        dest_asset_code TEXT,
+        dest_location TEXT NOT NULL,
+        dest_shop TEXT DEFAULT 'Plaza Bali',
+
+        new_item_model TEXT,
+        new_item_sn TEXT,
+        new_item_source TEXT,
+
+        performed_by TEXT NOT NULL,
+        transfer_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+        reason TEXT NOT NULL,
+        reference_no TEXT,
+        status TEXT DEFAULT 'COMPLETED',
+        notes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Pastikan unit POS DFD06 dan DFD07 tersedia di pos_hardware_assets untuk kemudahan tracking
+    await db.execute(`
+      INSERT OR IGNORE INTO pos_hardware_assets (
+        pos_number, counter_no, pos_code, shop_name, terminal, counter_zone,
+        ip_address, pos_brand, pos_sn, ram, ssd, passport_scanner, barcode_scanner,
+        printer, fingerprint_scanner, keyboard, mouse, cash_drawer, monitor,
+        os_version, status, notes
+      ) VALUES 
+      (28, 1, 'CGKT3DFD06-P01', 'Plaza Bali', 'Terminal 3', 'DFD06', '172.19.20.61', 'NCR', 'NCR-T3-601', '8 GB', 'SSD 256 GB', 'GEMALTO', 'HONEYWELL XENON 1950G (KIRIMAN MIS PROC)', 'EPSON TM-U220D', '-', 'LOGITECH', 'LOGITECH', 'PANDA', 'NCR 15 INCH', 'WINDOWS 7 PRO SP1 64BIT', 'OPERASIONAL', '[MUTASI: Scanner di-replace dg unit baru MIS PROC, unit lama dipindah ke CGKT3DFD07-P02]'),
+      (29, 2, 'CGKT3DFD06-P02', 'Plaza Bali', 'Terminal 3', 'DFD06', '172.19.20.62', 'NCR', 'NCR-T3-602', '8 GB', 'SSD 256 GB', 'GEMALTO', 'HONEYWELL 1400G', 'EPSON TM-U220D', '-', 'LOGITECH', 'LOGITECH', 'PANDA', 'NCR 15 INCH', 'WINDOWS 7 PRO SP1 64BIT', 'OPERASIONAL', '-'),
+      (30, 3, 'CGKT3DFD06-P03', 'Plaza Bali', 'Terminal 3', 'DFD06', '172.19.20.63', 'NCR', 'NCR-T3-603', '8 GB', 'SSD 256 GB', 'GEMALTO', 'HONEYWELL 1400G', 'EPSON TM-U220D', '-', 'LOGITECH', 'LOGITECH', 'PANDA', 'NCR 15 INCH', 'WINDOWS 7 PRO SP1 64BIT', 'OPERASIONAL', '-'),
+      (31, 1, 'CGKT3DFD07-P01', 'Plaza Bali', 'Terminal 3', 'DFD07', '172.19.20.71', 'NCR', 'NCR-T3-701', '8 GB', 'SSD 256 GB', '3M', 'HONEYWELL 1400G', 'EPSON TM-U220D', '-', 'LOGITECH', 'LOGITECH', 'PANDA', 'NCR 15 INCH', 'WINDOWS 7 PRO SP1 64BIT', 'OPERASIONAL', '-'),
+      (32, 2, 'CGKT3DFD07-P02', 'Plaza Bali', 'Terminal 3', 'DFD07', '172.19.20.72', 'NCR', 'NCR-T3-702', '8 GB', 'SSD 256 GB', '3M', 'HONEYWELL VOYAGER 1400G (PINDAHAN DARI CGKT3DFD06-P01)', 'EPSON TM-U220D', '-', 'LOGITECH', 'LOGITECH', 'PANDA', 'NCR 15 INCH', 'WINDOWS 7 PRO SP1 64BIT', 'OPERASIONAL', '[MUTASI: Menerima pemindahan barcode scanner dari CGKT3DFD06-P01]');
+    `);
+
+    // Seed riwayat mutasi awal jika tabel transfer masih kosong
+    const countTrf = await db.execute("SELECT count(*) as count FROM asset_transfers");
+    if (Number(countTrf.rows[0]?.count || 0) === 0) {
+      await db.execute(`
+        INSERT INTO asset_transfers (
+          transfer_code, transfer_type, component_type, item_name,
+          source_type, source_asset_code, source_location, source_shop, source_item_model, source_item_sn,
+          dest_type, dest_asset_code, dest_location, dest_shop,
+          new_item_model, new_item_sn, new_item_source,
+          performed_by, transfer_date, reason, reference_no, status, notes
+        ) VALUES 
+        (
+          'TRF-20261101-001',
+          'REPLACE_AND_TRANSFER',
+          'BARCODE_SCANNER',
+          'Barcode Scanner Barcode Kasir',
+          'POS',
+          'CGKT3DFD06-P01',
+          'Terminal 3 - Counter DFD06 (P01)',
+          'Plaza Bali',
+          'Honeywell Voyager 1400g (Lama)',
+          'SN-HON-1400-9821',
+          'POS',
+          'CGKT3DFD07-P02',
+          'Terminal 3 - Counter DFD07 (P02)',
+          'Plaza Bali',
+          'Honeywell Xenon 1950g 2D (Baru)',
+          'SN-HON-1950-4412',
+          'MIS PROC (Pengadaan Baru PO-2026-08)',
+          'IT Support',
+          '2026-11-01 10:30:00',
+          'Replace scanner barcode di P01 DF6 dengan unit baru kiriman MIS PROC, dan scanner lama yang masih berfungsi dialihkan ke P02 DF7 untuk menggantikan scanner DF7 yang bermasalah.',
+          'BA-MUT-2026-004',
+          'COMPLETED',
+          'Pemasangan unit baru di DF6 P01 selesai & unit lama berhasil dipindahkan ke DF7 P02. Hasil uji pembacaan barcode boarding pass & produk normal.'
+        ),
+        (
+          'TRF-20261028-002',
+          'DIRECT_TRANSFER',
+          'PRINTER',
+          'Printer Thermal Kasir Epson TM-U220D',
+          'POS',
+          'CGKT2DFD05-P04',
+          'Terminal 2 - Counter DFD05 (P04)',
+          'Plaza Bali',
+          'Epson TM-U220D Serial',
+          'SN-EPS-220-4109',
+          'POS',
+          'CGKT3DFD01-P04',
+          'Terminal 3 - Counter DFD01 (P04)',
+          'Plaza Bali',
+          NULL,
+          NULL,
+          NULL,
+          'MIS OPS',
+          '2026-10-28 14:15:00',
+          'Relokasi printer thermal kasir cadangan Terminal 2 ke Terminal 3 untuk mengantisipasi lonjakan transaksi penerbangan internasional.',
+          'BA-MUT-2026-003',
+          'COMPLETED',
+          'Printer telah dipasang di Terminal 3 Counter DFD01-P04, tes cetak receipt kasir POS lancar.'
+        ),
+        (
+          'TRF-20261025-003',
+          'NEW_INSTALL',
+          'PASSPORT_SCANNER',
+          'Passport Reader Gemalto QS1000',
+          'PROCUREMENT',
+          'MIS-PROC',
+          'MIS Procurement (Pusat)',
+          'MIS OPS',
+          NULL,
+          NULL,
+          'POS',
+          'CGKT3DFD02-P04',
+          'Terminal 3 - Counter DFD02 (P04)',
+          'Plaza Bali',
+          'Gemalto QS1000 Full-Page Reader',
+          'SN-GEM-QS1-0082',
+          'Pengadaan Baru Q4 2026 (PO-PROC-092)',
+          'IT Support',
+          '2026-10-25 11:00:00',
+          'Pemasangan unit baru Passport Reader dari MIS Procurement untuk meningkatkan kecepatan verifikasi paspor turis asing.',
+          'PO-PROC-092',
+          'COMPLETED',
+          'Driver terpasang & OCR paspor berhasil terintegrasi dengan POS Tsigunta.'
+        );
+      `);
+    }
+  } catch (e) {
+    console.error("Error creating asset_transfers table or seeding:", e);
+  }
+
   // Index aditif untuk kolom filter panas halaman/API (F8).
   // Aman diulang (IF NOT EXISTS) dan tidak mengubah data/skema destruktif.
   const hotFilterIndexes = [
@@ -916,6 +1060,10 @@ Memastikan seluruh keluhan teknis di toko Terminal 2, Terminal 3, dan Surabaya t
     "CREATE INDEX IF NOT EXISTS idx_network_loc ON network_assets(location)",
     "CREATE INDEX IF NOT EXISTS idx_network_type ON network_assets(device_type)",
     "CREATE INDEX IF NOT EXISTS idx_network_ip ON network_assets(ip_address)",
+    "CREATE INDEX IF NOT EXISTS idx_transfers_code ON asset_transfers(transfer_code)",
+    "CREATE INDEX IF NOT EXISTS idx_transfers_src ON asset_transfers(source_asset_code)",
+    "CREATE INDEX IF NOT EXISTS idx_transfers_dest ON asset_transfers(dest_asset_code)",
+    "CREATE INDEX IF NOT EXISTS idx_transfers_type ON asset_transfers(transfer_type)",
   ];
   for (const sql of hotFilterIndexes) {
     try {

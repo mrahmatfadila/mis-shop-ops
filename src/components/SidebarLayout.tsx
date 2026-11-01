@@ -44,7 +44,8 @@ import {
   Boxes,
   Network,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  ArrowLeftRight
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types";
@@ -351,6 +352,15 @@ export default function SidebarLayout({
           requiresMIS: true,
         },
         {
+          href: "/asset-transfers",
+          label: "Tracking & Mutasi",
+          sub: "Riwayat Pindah Barang & POS",
+          icon: ArrowLeftRight,
+          badge: "Mutasi",
+          badgeColor: "bg-amber-50 text-amber-700 border-amber-200/60",
+          requiresMIS: true,
+        },
+        {
           href: "/network",
           label: "Data Jaringan",
           sub: "Router, Switch & AP Toko",
@@ -535,7 +545,7 @@ export default function SidebarLayout({
 
     // 3. PROCUREMENT SUPPORT: difokuskan pada pengadaan, pembelian, kasir POS & PC Office
     if (role === "IT_PROCUREMENT") {
-      return ["/dashboard", "/assets", "/office", "/asset-components", "/purchases", "/tickets", "/extensions", "/knowledge-base"].some(
+      return ["/dashboard", "/assets", "/office", "/asset-components", "/asset-transfers", "/purchases", "/tickets", "/extensions", "/knowledge-base"].some(
         (p) => href === p || href.startsWith(p + "/")
       );
     }
@@ -549,7 +559,7 @@ export default function SidebarLayout({
       role === "SPV_PLAZABALI" ||
       role === "SPV_SAM"
     ) {
-      return ["/dashboard", "/assets", "/pos-topology", "/edc", "/tickets", "/extensions", "/knowledge-base"].some(
+      return ["/dashboard", "/assets", "/pos-topology", "/asset-transfers", "/edc", "/tickets", "/extensions", "/knowledge-base"].some(
         (p) => href === p || href.startsWith(p + "/")
       );
     }

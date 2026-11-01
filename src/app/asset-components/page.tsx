@@ -48,6 +48,7 @@ import {
   Archive,
   Calendar,
   Zap,
+  ArrowLeftRight,
 } from "lucide-react";
 
 // Tipe representasi Komponen ID Barang terpadu
@@ -1047,6 +1048,14 @@ function AssetComponentsContent() {
                 <span>Tabel ID Barang</span>
               </button>
             </div>
+
+            <Link
+              href="/asset-transfers"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold rounded-xl shadow-2xs transition-colors"
+            >
+              <ArrowLeftRight className="w-3.5 h-3.5 text-amber-700" />
+              <span>Tracking Mutasi</span>
+            </Link>
 
             <button
               onClick={handleExportCsv}

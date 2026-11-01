@@ -202,6 +202,43 @@ export interface EdcAsset {
   updated_at?: string;
 }
 
+export interface AssetTransfer {
+  id?: number;
+  transfer_code: string;
+  transfer_type: 'REPLACE_AND_TRANSFER' | 'DIRECT_TRANSFER' | 'NEW_INSTALL' | 'RETURN_TO_SPARE';
+  component_type: string;
+  item_name: string;
+
+  // Source / Asal
+  source_type: string;
+  source_asset_code?: string;
+  source_location: string;
+  source_shop?: string;
+  source_item_model?: string;
+  source_item_sn?: string;
+
+  // Destination / Tujuan
+  dest_type: string;
+  dest_asset_code?: string;
+  dest_location: string;
+  dest_shop?: string;
+
+  // Unit Baru dari Pengadaan / MIS PROC (untuk REPLACE_AND_TRANSFER atau NEW_INSTALL)
+  new_item_model?: string;
+  new_item_sn?: string;
+  new_item_source?: string;
+
+  // Pelaksana & Waktu
+  performed_by: string;
+  transfer_date?: string;
+  reason: string;
+  reference_no?: string;
+  status: 'COMPLETED' | 'PENDING' | 'CANCELLED';
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface OfficeHardwareAsset {
   id?: number;
   asset_code: string;

@@ -628,7 +628,57 @@ export async function GET(
     }));
     data.childComponents = data.child_components;
 
-    data.change_history = (data.changeHistory || []).map((h: any) => ({
+    // Ambil riwayat pemindahan / mutasi barang terkait dari tabel asset_transfers
+    let transfers: any[] = [];
+    try {
+      const trfRes = await db.execute({
+        sql: `SELECT * FROM asset_transfers 
+              WHERE source_asset_code = ? 
+                 OR dest_asset_code = ? 
+                 OR source_asset_code LIKE ? 
+                 OR dest_asset_code LIKE ? 
+              ORDER BY transfer_date DESC, id DESC`,
+        args: [cleanCode, cleanCode, `%${cleanCode}%`, `%${cleanCode}%`],
+      });
+      transfers = trfRes.rows as any[];
+    } catch (e) {
+      console.warn("Transfers fetch error:", e);
+    }
+    data.transfers = transfers;
+
+    // Gabungkan riwayat transfer ke change_history terpadu
+    const unifiedHistory = [...(data.changeHistory || [])];
+    for (const trf of transfers) {
+      const isSource = trf.source_asset_code?.includes(cleanCode);
+      const isDest = trf.dest_asset_code?.includes(cleanCode);
+      let desc = trf.reason;
+      if (trf.transfer_type === "REPLACE_AND_TRANSFER") {
+        if (isSource) {
+          desc = `[MUTASI KELUAR] Unit ${trf.source_item_model || trf.component_type} di-replace dg ${trf.new_item_model} (${trf.new_item_source}), unit lama dipindahkan ke ${trf.dest_asset_code}. Alasan: ${trf.reason}`;
+        } else if (isDest) {
+          desc = `[MUTASI MASUK] Menerima pemindahan ${trf.component_type} (${trf.source_item_model}) dari ${trf.source_asset_code}. Alasan: ${trf.reason}`;
+        }
+      } else if (trf.transfer_type === "DIRECT_TRANSFER") {
+        if (isSource) {
+          desc = `[MUTASI KELUAR] ${trf.item_name} dialihkan ke ${trf.dest_asset_code} (${trf.dest_location}). Alasan: ${trf.reason}`;
+        } else if (isDest) {
+          desc = `[MUTASI MASUK] Menerima ${trf.item_name} dari ${trf.source_asset_code} (${trf.source_location}). Alasan: ${trf.reason}`;
+        }
+      } else if (trf.transfer_type === "NEW_INSTALL") {
+        desc = `[PASANG BARU] Pemasangan unit baru ${trf.new_item_model} dari ${trf.new_item_source}. Alasan: ${trf.reason}`;
+      }
+
+      unifiedHistory.push({
+        component: trf.component_type?.replace(/_/g, " ") || "MUTASI",
+        newModel: isSource && trf.new_item_model ? trf.new_item_model : (trf.source_item_model || trf.item_name),
+        price: trf.transfer_code,
+        store: trf.performed_by || "IT Support",
+        date: trf.transfer_date ? trf.transfer_date.slice(0, 10) : "2026-11-01",
+        notes: desc,
+      });
+    }
+
+    data.change_history = unifiedHistory.map((h: any) => ({
       component: h.component,
       newModel: h.newModel,
       price: h.price,

@@ -763,7 +763,7 @@ function ScanDetailContent() {
                   }`}
                 >
                   <Clock className="w-4 h-4" />
-                  <span>Riwayat Penggantian ({assetData.change_history?.length || 0})</span>
+                  <span>Riwayat Mutasi & Part ({assetData.change_history?.length || 0})</span>
                 </button>
 
                 <button
@@ -880,39 +880,64 @@ function ScanDetailContent() {
                   </div>
                 )}
 
-                {/* TAB: RIWAYAT PENGGANTIAN */}
+                {/* TAB: RIWAYAT PENGGANTIAN & MUTASI */}
                 {activeTab === "history" && (
                   <div className="space-y-3.5">
+                    <div className="flex items-center justify-between pb-1 flex-wrap gap-2">
+                      <span className="text-xs font-bold text-slate-500">
+                        Catatan audit trail penggantian komponen & mutasi pemindahan perangkat
+                      </span>
+                      <Link
+                        href="/asset-transfers"
+                        className="text-xs font-bold text-[#006622] hover:underline flex items-center gap-1"
+                      >
+                        <span>Lihat Semua Tracking Mutasi</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+
                     {assetData.change_history && assetData.change_history.length > 0 ? (
-                      assetData.change_history.map((hist, idx) => (
-                        <div
-                          key={idx}
-                          className="p-4 sm:p-5 rounded-2xl border border-slate-200/90 bg-white space-y-2.5 shadow-2xs hover:shadow-xs transition-shadow"
-                        >
-                          <div className="flex items-center justify-between text-xs gap-2 flex-wrap">
-                            <span className="font-black text-slate-900 text-sm">
-                              Penggantian {hist.component}
-                            </span>
-                            <span className="font-mono text-[11px] text-slate-600 font-bold bg-slate-100 px-2.5 py-0.5 rounded-lg border border-slate-200/70">
-                              {hist.date}
-                            </span>
+                      assetData.change_history.map((hist, idx) => {
+                        const isMutation = hist.notes?.includes("[MUTASI") || hist.notes?.includes("[PASANG BARU");
+                        return (
+                          <div
+                            key={idx}
+                            className={`p-4 sm:p-5 rounded-2xl border bg-white space-y-2.5 shadow-2xs hover:shadow-xs transition-shadow ${
+                              isMutation ? "border-amber-200/80 bg-amber-50/20" : "border-slate-200/90"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between text-xs gap-2 flex-wrap">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-black text-slate-900 text-sm">
+                                  {isMutation ? "Mutasi / Replace" : "Penggantian"} {hist.component}
+                                </span>
+                                {isMutation && (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase tracking-wide">
+                                    Mutasi / Transfer
+                                  </span>
+                                )}
+                              </div>
+                              <span className="font-mono text-[11px] text-slate-600 font-bold bg-slate-100 px-2.5 py-0.5 rounded-lg border border-slate-200/70">
+                                {hist.date}
+                              </span>
+                            </div>
+                            <p className="text-xs text-blue-700 font-bold font-mono">
+                              Part / Unit: {hist.newModel}
+                            </p>
+                            <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-wrap">
+                              <span>Petugas / Vendor: <strong className="text-slate-800">{hist.store}</strong></span>
+                              <span>•</span>
+                              <span>Ref / Biaya: <strong className="text-[#006622]">{hist.price}</strong></span>
+                              {hist.notes && (
+                                <>
+                                  <span>•</span>
+                                  <span className="text-slate-700 font-medium">Kronologi: <em className="text-slate-900 font-bold">{hist.notes}</em></span>
+                                </>
+                              )}
+                            </div>
                           </div>
-                          <p className="text-xs text-blue-700 font-bold font-mono">
-                            Part Baru: {hist.newModel}
-                          </p>
-                          <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-wrap">
-                            <span>Toko Pembelian: <strong className="text-slate-800">{hist.store}</strong></span>
-                            <span>•</span>
-                            <span>Biaya Pengadaan: <strong className="text-[#006622]">{hist.price}</strong></span>
-                            {hist.notes && (
-                              <>
-                                <span>•</span>
-                                <span>Keterangan: <em>{hist.notes}</em></span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      ))
+                        );
+                      })
                     ) : (
                       <div className="py-12 text-center space-y-1.5 text-slate-400">
                         <CheckCheck className="w-10 h-10 mx-auto text-emerald-500 opacity-70" />
