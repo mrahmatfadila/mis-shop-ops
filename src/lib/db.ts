@@ -1,5 +1,6 @@
 import { createClient } from "@libsql/client";
 import path from "path";
+import { runFullSeed } from "./seed";
 
 // Koneksi ke file database SQLite lokal
 const dbPath = path.resolve(process.cwd(), "shop_ops.db");
@@ -10,6 +11,13 @@ export const db = createClient({
 
 export async function initDb() {
   if ((globalThis as any).__db_initialized_v3) return;
+
+  // 1. Inisialisasi pembuatan tabel & data awal jika database baru/kosong
+  try {
+    await runFullSeed();
+  } catch (e) {
+    console.error("Gagal menjalankan runFullSeed:", e);
+  }
 
   try {
     await db.execute("PRAGMA journal_mode = WAL;");
