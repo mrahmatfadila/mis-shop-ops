@@ -1,6 +1,14 @@
 @echo off
 title MIS SHOP OPS - Update Otomatis dari Rumah (GitHub)
-cd /d "%~dp0"
+
+:: 0. Cegah glitch self-modifying batch dengan menjalankan dari folder TEMP
+if not "%1"=="--in-temp" (
+    copy /y "%~f0" "%temp%\run_update_mis.bat" >nul
+    call "%temp%\run_update_mis.bat" --in-temp "%~dp0"
+    exit /b
+)
+
+cd /d "%~2"
 echo ===================================================
 echo     UPDATE SISTEM MIS SHOP OPS DARI GITHUB
 echo ===================================================
@@ -15,15 +23,11 @@ for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":3000" ^| findstr "LISTENING
 echo.
 echo [2/5] Mengamankan backup database lokal...
 if not exist "backups" mkdir backups
-for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value 2^>nul') do set datetime=%%I
-if defined datetime (
-    set timestamp=%datetime:~0,8%_%datetime:~8,6%
-) else (
-    set timestamp=%random%
-)
+set "ts=%date:~-4%%date:~-10,2%%date:~-7,2%_%random%"
+set "ts=%ts: =0%"
 if exist "shop_ops.db" (
-    copy /y "shop_ops.db" "backups\shop_ops_%timestamp%.db" >nul
-    echo  -> Backup database tersimpan di backups\shop_ops_%timestamp%.db
+    copy /y "shop_ops.db" "backups\shop_ops_%ts%.db" >nul
+    echo  -> Backup tersimpan di backups\shop_ops_%ts%.db
     for %%A in ("shop_ops.db") do (
         if %%~zA LSS 10000 (
             echo  -> shop_ops.db kosong / belum lengkap (%%~zA bytes).
@@ -41,10 +45,15 @@ echo [3/5] Mengambil kode kodingan terbaru dari GitHub...
 git pull origin main
 if errorlevel 1 (
     echo.
-    echo [ERROR] Gagal menarik update dari GitHub!
-    echo Periksa koneksi internet kantor Anda.
-    pause
-    exit /b 1
+    echo [INFO] Mencoba sinkronisasi ulang dengan repository remote...
+    git checkout -- .
+    git pull origin main
+    if errorlevel 1 (
+        echo [ERROR] Gagal menarik update dari GitHub!
+        echo Periksa koneksi internet kantor Anda.
+        pause
+        exit /b 1
+    )
 )
 
 echo.
@@ -59,7 +68,7 @@ if errorlevel 1 (
 
 echo.
 echo [5/5] Menyalakan kembali server terbaru di background...
-wscript.exe "%~dp0jalankan-silent-background.vbs"
+wscript.exe "%~2jalankan-silent-background.vbs"
 timeout /t 5 >nul
 
 echo.
@@ -69,4 +78,4 @@ echo Server versi terbaru sekarang SUDAH AKTIF di background!
 echo Database dan data operasional Anda tetap aman terjaga.
 echo ===================================================
 echo.
-call "%~dp0status-server.bat"
+call "%~2status-server.bat"
