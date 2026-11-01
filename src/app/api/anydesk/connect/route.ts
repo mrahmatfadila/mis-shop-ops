@@ -52,29 +52,26 @@ export async function POST(request: Request) {
       });
     }
 
-    // 2. Luncurkan AnyDesk dengan parameter --with-password dan pipa password ke stdin
-    // Sintaks resmi AnyDesk: echo <password> | anydesk <target> --with-password
-    const args = cleanPassword ? [cleanTarget, "--with-password"] : [cleanTarget];
-
-    const child = spawn(anydeskExe, args, {
+    // 2. Luncurkan AnyDesk dengan aman
+    // CATATAN KRUSIAL: Pada AnyDesk v8 dan v9+, menyuntikkan password via argumen CLI `--with-password`
+    // dengan pipe stdin menyebabkan crash internal "Fatal Program Failure (Address: 0x2)" pada AnyDesk.
+    // Solusi resmi & stabil: Luncurkan AnyDesk langsung ke target, dan password otomatis disalin ke clipboard
+    // pengguna oleh aplikasi frontend sehingga pengguna cukup menekan Ctrl+V tanpa risiko crash.
+    const child = spawn(anydeskExe, [cleanTarget], {
       detached: true,
-      stdio: ["pipe", "ignore", "ignore"],
+      stdio: "ignore",
       windowsHide: false,
     });
-
-    if (cleanPassword && child.stdin) {
-      child.stdin.write(cleanPassword + "\n");
-      child.stdin.end();
-    }
 
     child.unref();
 
     return NextResponse.json({
       success: true,
-      method: "AUTO_CLI",
+      method: "CLI_SAFE",
       executable: anydeskExe,
       target: cleanTarget,
-      message: `AnyDesk berhasil dibuka ke ${cleanTarget} dan password telah otomatis diisikan oleh sistem!`,
+      password: cleanPassword,
+      message: `AnyDesk berhasil dibuka ke ${cleanTarget}. Password (${cleanPassword}) otomatis disalin ke clipboard!`,
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -83,4 +80,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

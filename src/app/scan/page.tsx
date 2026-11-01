@@ -259,7 +259,7 @@ function ScanDetailContent() {
       if (!data.success) {
         window.location.href = `anydesk:${target}`;
       }
-      setRemoteToast(`AnyDesk diluncurkan ke target ${target}. Password: cupcake2020`);
+      setRemoteToast(`AnyDesk dibuka ke target ${target}. Password (${pwd}) tersalin di clipboard! Tekan Ctrl+V jika diminta.`);
       setTimeout(() => setRemoteToast(null), 6000);
     } catch (e) {
       window.location.href = `anydesk:${target}`;

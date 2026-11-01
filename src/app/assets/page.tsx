@@ -452,7 +452,7 @@ function AssetsContent() {
   }, []);
 
   const handleDownloadBat = (target: string, pwd: string, code: string) => {
-    const batContent = `@echo off\r\necho Menghubungkan ke AnyDesk ${code} (${target})...\r\necho ${pwd} | "C:\\Program Files (x86)\\AnyDesk\\AnyDesk.exe" ${target} --with-password\r\nif %errorlevel% neq 0 (\r\n  echo ${pwd} | "C:\\Program Files\\AnyDesk\\AnyDesk.exe" ${target} --with-password\r\n)\r\n`;
+    const batContent = `@echo off\r\necho Menghubungkan ke AnyDesk ${code} (${target})...\r\necho Password: ${pwd} (Disalin ke clipboard)\r\necho|set /p="${pwd}"|clip\r\nstart "" "C:\\Program Files (x86)\\AnyDesk\\AnyDesk.exe" ${target}\r\nif %errorlevel% neq 0 (\r\n  start "" "C:\\Program Files\\AnyDesk\\AnyDesk.exe" ${target}\r\n)\r\n`;
     const blob = new Blob([batContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -2909,16 +2909,10 @@ function AssetsContent() {
                 )}
               </div>
 
-              {remoteToast.autoLogin ? (
-                <p className="text-[10px] text-emerald-400 mt-2 font-medium leading-snug flex items-center gap-1">
-                  <Check className="w-3 h-3 shrink-0" />
-                  <span>Password telah otomatis dimasukkan oleh sistem via AnyDesk CLI. Anda langsung terhubung!</span>
-                </p>
-              ) : (
-                <p className="text-[10px] text-slate-400 mt-2 leading-snug">
-                  Password telah disalin ke clipboard. Jika jendela AnyDesk meminta password, cukup tekan <strong>Ctrl + V</strong> lalu <strong>Enter</strong>.
-                </p>
-              )}
+              <p className="text-[10px] text-emerald-400 mt-2 font-medium leading-snug flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+                <span>AnyDesk terbuka! Password (<strong>{remoteToast.password}</strong>) otomatis tersalin di clipboard. Tekan <strong>Ctrl + V</strong> di AnyDesk jika diminta.</span>
+              </p>
 
               <div className="mt-2.5 pt-2 border-t border-slate-800 flex items-center justify-between">
                 <button
