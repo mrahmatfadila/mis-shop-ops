@@ -1,23 +1,41 @@
 import { createClient } from "@libsql/client";
 import path from "path";
+import fs from "fs";
 import { runFullSeed } from "./seed";
 
 // Koneksi ke file database SQLite lokal
 const dbPath = path.resolve(process.cwd(), "shop_ops.db");
+const templatePath = path.resolve(process.cwd(), "seed_template.db");
+
+// Auto-restore jika database belum ada atau berukuran kosong/korup (< 10KB)
+try {
+  const needsTemplate = !fs.existsSync(dbPath) || (fs.statSync(dbPath).size < 10000);
+  if (needsTemplate && fs.existsSync(templatePath)) {
+    fs.copyFileSync(templatePath, dbPath);
+    console.log("Database initialized from seed_template.db");
+  }
+} catch (e) {
+  console.error("Auto restore seed_template error:", e);
+}
 
 export const db = createClient({
   url: `file:${dbPath.replace(/\\/g, "/")}`,
 });
 
+let initPromise: Promise<void> | null = null;
+
 export async function initDb() {
   if ((globalThis as any).__db_initialized_v3) return;
+  if (initPromise) return initPromise;
 
-  // 1. Inisialisasi pembuatan tabel & data awal jika database baru/kosong
-  try {
-    await runFullSeed();
-  } catch (e) {
-    console.error("Gagal menjalankan runFullSeed:", e);
-  }
+  initPromise = (async () => {
+    try {
+      // 1. Inisialisasi pembuatan tabel & data awal jika database baru/kosong
+      try {
+        await runFullSeed();
+      } catch (e) {
+        console.error("Gagal menjalankan runFullSeed:", e);
+      }
 
   try {
     await db.execute("PRAGMA journal_mode = WAL;");
@@ -907,7 +925,12 @@ Memastikan seluruh keluhan teknis di toko Terminal 2, Terminal 3, dan Surabaya t
     }
   }
 
-  (globalThis as any).__db_initialized = true;
-  (globalThis as any).__db_initialized_v2 = true;
-  (globalThis as any).__db_initialized_v3 = true;
+    } finally {
+      (globalThis as any).__db_initialized = true;
+      (globalThis as any).__db_initialized_v2 = true;
+      (globalThis as any).__db_initialized_v3 = true;
+    }
+  })();
+
+  return initPromise;
 }

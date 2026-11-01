@@ -24,6 +24,13 @@ if defined datetime (
 if exist "shop_ops.db" (
     copy /y "shop_ops.db" "backups\shop_ops_%timestamp%.db" >nul
     echo  -> Backup database tersimpan di backups\shop_ops_%timestamp%.db
+    for %%A in ("shop_ops.db") do (
+        if %%~zA LSS 10000 (
+            echo  -> shop_ops.db kosong / belum lengkap (%%~zA bytes).
+            echo  -> Memulihkan database dari seed_template.db...
+            copy /y "seed_template.db" "shop_ops.db" >nul
+        )
+    )
 ) else if exist "seed_template.db" (
     copy /y "seed_template.db" "shop_ops.db" >nul
     echo  -> Menyiapkan database lokal dari template.

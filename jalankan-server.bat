@@ -16,9 +16,16 @@ if errorlevel 1 (
 )
 
 echo [2/4] Memeriksa database lokal...
-if not exist "shop_ops.db" (
+set DB_NEED_RESTORE=0
+if not exist "shop_ops.db" set DB_NEED_RESTORE=1
+if exist "shop_ops.db" (
+    for %%A in ("shop_ops.db") do (
+        if %%~zA LSS 10000 set DB_NEED_RESTORE=1
+    )
+)
+if "%DB_NEED_RESTORE%"=="1" (
     if exist "seed_template.db" (
-        echo  -> Menyiapkan shop_ops.db dari template awal...
+        echo  -> Menyiapkan database shop_ops.db dari seed_template.db...
         copy /y "seed_template.db" "shop_ops.db" >nul
         echo  -> Database siap digunakan!
     )
