@@ -8,11 +8,18 @@ cd /d "%~dp0"
 
 echo [1/4] Mengamankan backup database lokal...
 if not exist "backups" mkdir backups
-for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set datetime=%%I
-set timestamp=%datetime:~0,8%_%datetime:~8,6%
+for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value 2^>nul') do set datetime=%%I
+if defined datetime (
+    set timestamp=%datetime:~0,8%_%datetime:~8,6%
+) else (
+    set timestamp=%random%
+)
 if exist "shop_ops.db" (
     copy /y "shop_ops.db" "backups\shop_ops_%timestamp%.db" >nul
     echo  -> Backup database tersimpan di backups\shop_ops_%timestamp%.db
+) else if exist "seed_template.db" (
+    copy /y "seed_template.db" "shop_ops.db" >nul
+    echo  -> Menyiapkan database lokal dari template.
 )
 
 echo.

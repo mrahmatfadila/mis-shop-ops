@@ -6,7 +6,7 @@ echo ===================================================
 echo.
 cd /d "%~dp0"
 
-echo [1/3] Memeriksa Node.js dan Git...
+echo [1/4] Memeriksa Node.js dan Git...
 node -v >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] Node.js belum terinstall! Install dari https://nodejs.org
@@ -20,7 +20,8 @@ if errorlevel 1 (
     exit /b
 )
 
-echo [2/3] Menginstall library & dependensi (npm install)...
+echo.
+echo [2/4] Menginstall library & dependensi (npm install)...
 call npm install
 if errorlevel 1 (
     echo [ERROR] Gagal menginstall dependensi.
@@ -29,7 +30,20 @@ if errorlevel 1 (
 )
 
 echo.
-echo [3/3] Melakukan kompilasi produksi awal (npm run build)...
+echo [3/4] Menyiapkan database lokal awal...
+if not exist "shop_ops.db" (
+    if exist "seed_template.db" (
+        copy /y "seed_template.db" "shop_ops.db" >nul
+        echo  -> Database shop_ops.db berhasil disiapkan dari template.
+    ) else (
+        echo  -> Template database tidak ditemukan.
+    )
+) else (
+    echo  -> Database shop_ops.db sudah ada dan siap digunakan.
+)
+
+echo.
+echo [4/4] Melakukan kompilasi produksi awal (npm run build)...
 call npm run build
 if errorlevel 1 (
     echo [ERROR] Gagal melakukan build aplikasi.

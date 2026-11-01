@@ -6,7 +6,7 @@ echo ===================================================
 echo.
 cd /d "%~dp0"
 
-echo [1/2] Memeriksa instalasi Node.js...
+echo [1/3] Memeriksa instalasi Node.js...
 node -v >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] Node.js belum terinstall di komputer ini!
@@ -15,7 +15,16 @@ if errorlevel 1 (
     exit /b
 )
 
-echo [2/2] Menjalankan Server Produksi di Port 3000...
+echo [2/3] Memeriksa database lokal...
+if not exist "shop_ops.db" (
+    if exist "seed_template.db" (
+        echo  -> Menyiapkan shop_ops.db dari template awal...
+        copy /y "seed_template.db" "shop_ops.db" >nul
+        echo  -> Database siap digunakan!
+    )
+)
+
+echo [3/3] Menjalankan Server Produksi di Port 3000...
 echo Web dapat diakses di:
 echo - Dari PC ini       : http://localhost:3000
 echo - Dari PC Lain (LAN): http://[IP-KOMPUTER-INI]:3000
