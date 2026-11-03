@@ -1527,6 +1527,18 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
           </div>
         </div>
 
+        {/* Scroll hint on top */}
+        <div className="flex items-center justify-between text-xs text-slate-500 px-1 font-medium">
+          <span className="flex items-center gap-1.5 text-slate-700 font-bold">
+            <span className="w-2 h-2 rounded-full bg-[#006622] animate-pulse" />
+            Tampilan Tabel Diperbesar & Nyaman Dibaca
+          </span>
+          <span className="text-[11px] text-slate-500 flex items-center gap-1 font-semibold">
+            <span>Geser / scroll ke kanan untuk melihat periferal lengkap</span>
+            <span className="font-bold text-[#006622]">→</span>
+          </span>
+        </div>
+
         {/* Assets Master Table */}
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm relative">
           {isLoading ? (
@@ -1543,101 +1555,101 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
               description="Coba sesuaikan kata kunci pencarian atau filter divisi/status."
             />
           ) : (
-            <div className="w-full rounded-2xl">
-              <table className="w-full min-w-full table-fixed text-left border-separate border-spacing-0 text-[10px]">
+            <div className="w-full overflow-x-auto rounded-2xl scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
+              <table className="w-full min-w-[1950px] table-fixed text-left border-separate border-spacing-0 text-xs">
                 <colgroup>
-                  {/* 1-3: Identitas & Pengguna (21.0%) */}
-                  <col className="w-[2.5%]" />
-                  <col className="w-[10.5%]" />
-                  <col className="w-[8.0%]" />
-                  {/* 4-9: Spesifikasi PC & Hardware (49.5%) */}
-                  <col className="w-[4.5%]" />
-                  <col className="w-[7.0%]" />
-                  <col className="w-[13.0%]" />
-                  <col className="w-[11.0%]" />
-                  <col className="w-[5.0%]" />
-                  <col className="w-[9.0%]" />
-                  {/* 10-13: Periferal & Aksesori (25.5%) */}
-                  <col className="w-[8.5%]" />
-                  <col className="w-[7.5%]" />
-                  <col className="w-[5.0%]" />
-                  <col className="w-[4.5%]" />
-                  {/* 14: Aksi (4.0%) */}
-                  <col className="w-[4.0%]" />
+                  {/* 1-3: Identitas & Pengguna */}
+                  <col className="w-[50px] min-w-[50px]" />
+                  <col className="w-[180px] min-w-[180px]" />
+                  <col className="w-[160px] min-w-[160px]" />
+                  {/* 4-9: Spesifikasi PC & Hardware */}
+                  <col className="w-[110px] min-w-[110px]" />
+                  <col className="w-[160px] min-w-[160px]" />
+                  <col className="w-[230px] min-w-[230px]" />
+                  <col className="w-[200px] min-w-[200px]" />
+                  <col className="w-[110px] min-w-[110px]" />
+                  <col className="w-[150px] min-w-[150px]" />
+                  {/* 10-13: Periferal & Aksesori */}
+                  <col className="w-[150px] min-w-[150px]" />
+                  <col className="w-[150px] min-w-[150px]" />
+                  <col className="w-[125px] min-w-[125px]" />
+                  <col className="w-[125px] min-w-[125px]" />
+                  {/* 14: Aksi */}
+                  <col className="w-[90px] min-w-[90px]" />
                 </colgroup>
                 <thead>
                   {/* Tier 1: Kategori Kelompok Kolom */}
-                  <tr className="text-[10px] font-extrabold tracking-wide whitespace-nowrap h-[28px]">
+                  <tr className="text-xs sm:text-sm font-black tracking-wide whitespace-nowrap h-[34px]">
                     <th
                       colSpan={3}
-                      className="sticky top-14 z-20 px-1 py-1 text-center bg-slate-100 text-slate-800 border-b border-r border-slate-200 select-none shadow-2xs rounded-tl-2xl"
+                      className="sticky top-14 z-20 px-2 py-1.5 text-center bg-slate-100 text-slate-900 border-b border-r border-slate-300 select-none shadow-2xs rounded-tl-2xl"
                     >
                       Identitas, Pengguna & IP Jaringan
                     </th>
                     <th
                       colSpan={6}
-                      className="sticky top-14 z-20 px-1 py-1 text-center bg-blue-100 text-blue-900 border-b border-r border-slate-200 select-none shadow-2xs"
+                      className="sticky top-14 z-20 px-2 py-1.5 text-center bg-blue-100 text-blue-950 border-b border-r border-slate-300 select-none shadow-2xs"
                     >
                       Spesifikasi PC & Hardware
                     </th>
                     <th
                       colSpan={4}
-                      className="sticky top-14 z-20 px-1 py-1 text-center bg-emerald-100 text-[#006622] border-b border-r border-slate-200 select-none shadow-2xs"
+                      className="sticky top-14 z-20 px-2 py-1.5 text-center bg-emerald-100 text-[#006622] border-b border-r border-slate-300 select-none shadow-2xs"
                     >
                       Periferal & Aksesori
                     </th>
                     <th
                       rowSpan={2}
-                      className="sticky top-14 z-20 px-1 py-1 text-center bg-slate-100 text-slate-800 font-bold align-middle border-b border-slate-200 select-none shadow-2xs rounded-tr-2xl"
+                      className="sticky top-14 z-20 px-2 py-1.5 text-center bg-slate-100 text-slate-900 font-black align-middle border-b border-slate-300 select-none shadow-2xs rounded-tr-2xl"
                     >
                       Aksi
                     </th>
                   </tr>
                   {/* Tier 2: Sub-Kolom Spesifik */}
-                  <tr className="text-slate-900 font-black text-[10.5px] tracking-tight whitespace-nowrap h-[30px]">
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center font-black text-slate-700 bg-slate-100 border-b border-r border-slate-300 select-none">No</th>
-                    <th className="sticky top-[84px] z-20 px-1.5 py-1 bg-slate-100 text-slate-950 font-black border-b border-r border-slate-300 select-none">Nama Pengguna</th>
-                    <th className="sticky top-[84px] z-20 px-2 py-1 text-center bg-sky-100 text-sky-950 font-black border-b border-r border-slate-300 select-none min-w-[105px]" title="Alamat IP Jaringan & Uji Live Ping">IP Address & Ping</th>
+                  <tr className="text-slate-950 font-black text-xs sm:text-[13px] tracking-tight whitespace-nowrap h-[36px]">
+                    <th className="sticky top-[90px] z-20 px-1 py-1.5 text-center font-black text-slate-800 bg-slate-100 border-b border-r border-slate-300 select-none">No</th>
+                    <th className="sticky top-[90px] z-20 px-2.5 py-1.5 bg-slate-100 text-slate-950 font-black border-b border-r border-slate-300 select-none">Nama Pengguna</th>
+                    <th className="sticky top-[90px] z-20 px-2.5 py-1.5 text-center bg-sky-100 text-sky-950 font-black border-b border-r border-slate-300 select-none min-w-[105px]" title="Alamat IP Jaringan & Uji Live Ping">IP Address & Ping</th>
 
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-100 text-blue-950 font-black border-b border-r border-slate-300 select-none" title="Arahkan kursor (hover) untuk melihat Kode Set & rincian ID Barang di dalamnya">Kode Set</th>
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-100 text-blue-950 font-black border-b border-r border-slate-300 select-none">OS</th>
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-100 text-blue-950 font-black border-b border-r border-slate-300 select-none">Proc</th>
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-100 text-blue-950 font-black border-b border-slate-300 select-none">Mobo</th>
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-100 text-blue-950 font-black border-b border-r border-slate-300 select-none">RAM</th>
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-blue-100 text-blue-950 font-black border-b border-slate-300 select-none">Storage</th>
+                    <th className="sticky top-[90px] z-20 px-2 py-1.5 text-center bg-blue-100 text-blue-950 font-black border-b border-r border-slate-300 select-none" title="Arahkan kursor (hover) untuk melihat Kode Set & rincian ID Barang di dalamnya">Kode Set</th>
+                    <th className="sticky top-[90px] z-20 px-2 py-1.5 text-center bg-blue-100 text-blue-950 font-black border-b border-r border-slate-300 select-none">OS</th>
+                    <th className="sticky top-[90px] z-20 px-2 py-1.5 text-center bg-blue-100 text-blue-950 font-black border-b border-r border-slate-300 select-none">Proc</th>
+                    <th className="sticky top-[90px] z-20 px-2 py-1.5 text-center bg-blue-100 text-blue-950 font-black border-b border-slate-300 select-none">Mobo</th>
+                    <th className="sticky top-[90px] z-20 px-2 py-1.5 text-center bg-blue-100 text-blue-950 font-black border-b border-r border-slate-300 select-none">RAM</th>
+                    <th className="sticky top-[90px] z-20 px-2 py-1.5 text-center bg-blue-100 text-blue-950 font-black border-b border-slate-300 select-none">Storage</th>
 
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-emerald-100 text-emerald-950 font-black border-b border-r border-slate-300 select-none">Monitor</th>
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-emerald-100 text-emerald-950 font-black border-b border-r border-slate-300 select-none">Printer</th>
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-emerald-100 text-emerald-950 font-black border-b border-r border-slate-300 select-none">Keyboard</th>
-                    <th className="sticky top-[84px] z-20 px-0.5 py-1 text-center bg-emerald-100 text-emerald-950 font-black border-b border-slate-300 select-none">Mouse</th>
+                    <th className="sticky top-[90px] z-20 px-2 py-1.5 text-center bg-emerald-100 text-emerald-950 font-black border-b border-r border-slate-300 select-none">Monitor</th>
+                    <th className="sticky top-[90px] z-20 px-2 py-1.5 text-center bg-emerald-100 text-emerald-950 font-black border-b border-r border-slate-300 select-none">Printer</th>
+                    <th className="sticky top-[90px] z-20 px-2 py-1.5 text-center bg-emerald-100 text-emerald-950 font-black border-b border-r border-slate-300 select-none">Keyboard</th>
+                    <th className="sticky top-[90px] z-20 px-2 py-1.5 text-center bg-emerald-100 text-emerald-950 font-black border-b border-slate-300 select-none">Mouse</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {/* Location Banner Row */}
                   <tr className="bg-slate-100/90 border-t border-b border-slate-300">
-                    <td colSpan={14} className="px-3 py-2">
+                    <td colSpan={14} className="px-4 py-2.5">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-1">
                         <div className="flex items-center gap-2">
-                          <span className="relative flex h-2 w-2 flex-shrink-0">
+                          <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-[#006622]" />
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#006622]" />
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#006622]" />
                           </span>
-                          <span className="font-extrabold text-slate-900 text-xs tracking-tight uppercase">
+                          <span className="font-black text-slate-950 text-sm tracking-tight uppercase">
                             {pageTitle}
                           </span>
-                          <span className="px-2 py-0.2 rounded-full text-[9.5px] font-bold border shadow-2xs bg-emerald-50 text-[#006622] border-emerald-200">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold border shadow-2xs bg-emerald-50 text-[#006622] border-emerald-200">
                             {officeList.length} UNIT AKTIF • {groupedDivisions.length} Divisi
                           </span>
                         </div>
                         {/* Division pill tags on right */}
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline mr-0.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider hidden sm:inline mr-0.5">
                             Divisi:
                           </span>
                           {groupedDivisions.map((div) => (
                             <span
                               key={div.name}
-                              className="px-1.5 py-0.2 rounded bg-white border border-slate-200/90 text-slate-700 font-mono font-bold text-[9.5px] shadow-2xs"
+                              className="px-2 py-0.5 rounded bg-white border border-slate-200/90 text-slate-800 font-mono font-black text-xs shadow-2xs"
                             >
                               {div.name} ({div.items.length})
                             </span>
@@ -1651,20 +1663,20 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                   {groupedDivisions.map((div, dIdx) => (
                     <Fragment key={`${div.name}-${dIdx}`}>
                       {/* Division Sub-header Row */}
-                      <tr className="bg-slate-100/90 border-t border-b border-slate-300">
-                        <td colSpan={14} className="px-3 py-1.5 bg-slate-100/80">
+                      <tr className="bg-slate-100/95 border-t border-b border-slate-300">
+                        <td colSpan={14} className="px-4 py-2 bg-slate-100/90">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-[#006622]" />
-                              <span className="font-mono font-black text-slate-950 text-[12px] tracking-wider uppercase">
+                            <div className="flex items-center gap-2.5">
+                              <span className="w-2.5 h-2.5 rounded-full bg-[#006622]" />
+                              <span className="font-mono font-black text-slate-950 text-[13px] sm:text-sm tracking-wider uppercase">
                                 DIVISI : {div.name}
                               </span>
-                              <span className="px-1.5 py-0.5 rounded text-[10.5px] font-black border bg-white border-slate-300 text-slate-800 shadow-2xs">
+                              <span className="px-2 py-0.5 rounded text-xs font-black border bg-white border-slate-300 text-slate-800 shadow-2xs">
                                 • {div.items.length} Unit Perangkat
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <div className="text-[10px] font-mono font-bold text-slate-600 hidden sm:inline pr-1 truncate max-w-[450px]">
+                              <div className="text-xs font-mono font-bold text-slate-600 hidden sm:inline pr-1 truncate max-w-[550px]">
                                 Pengguna: {div.items.map((i) => i.user_name).join(", ")}
                               </div>
                             </div>
@@ -1678,15 +1690,15 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                         return (
                           <tr key={item.id} className="hover:bg-slate-100/60 border-b border-slate-200 transition-colors group">
                             {/* 1. NO */}
-                            <td className="px-0.5 py-1 text-center font-mono text-[11px] text-slate-800 font-bold border-r border-slate-200">
+                            <td className="px-1.5 py-2.5 text-center font-mono text-xs sm:text-[13px] text-slate-800 font-black border-r border-slate-200">
                               {index + 1}
                             </td>
 
                             {/* 2. Pengguna */}
-                            <td className="px-1.5 py-1 whitespace-nowrap border-r border-slate-200">
-                              <div className="flex items-center gap-1.5">
+                            <td className="px-2.5 py-2.5 whitespace-nowrap border-r border-slate-200">
+                              <div className="flex items-center gap-2">
                                 <span
-                                  className={`w-2 h-2 rounded-full shrink-0 ${
+                                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${
                                     item.status === "OPERASIONAL"
                                       ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)]"
                                       : item.status === "CADANGAN"
@@ -1695,23 +1707,23 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                   }`}
                                   title={`Status: ${item.status}`}
                                 />
-                                <span className="font-black text-slate-950 text-[11.5px] leading-tight" title={item.user_name}>
+                                <span className="font-black text-slate-950 text-xs sm:text-[13px] leading-tight" title={item.user_name}>
                                   {item.user_name}
                                 </span>
                               </div>
                             </td>
 
                             {/* 3. IP Address & Live Ping */}
-                            <td className="px-1 py-1 text-center whitespace-nowrap border-r border-slate-200 bg-sky-50/20">
+                            <td className="px-2 py-2.5 text-center whitespace-nowrap border-r border-slate-200 bg-sky-50/20">
                               {item.ip_address && item.ip_address !== "-" ? (
                                 (() => {
                                   const cleanIp = item.ip_address.trim();
                                   const ping = officePingState[cleanIp];
                                   return (
-                                    <div className="inline-flex flex-col items-center gap-0.5">
+                                    <div className="inline-flex flex-col items-center gap-1">
                                       {ping?.status === "TESTING" ? (
-                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
-                                          <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
+                                          <RefreshCw className="w-3 h-3 animate-spin" />
                                           <span>Ping...</span>
                                         </span>
                                       ) : ping?.status === "ONLINE" ? (
@@ -1719,43 +1731,43 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                           type="button"
                                           onClick={() => handlePingSingle(cleanIp, item.status)}
                                           title={`Online (${ping.latency || 2}ms) • Klik untuk uji ulang ping`}
-                                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-[#006622] border border-emerald-200 shadow-2xs hover:bg-emerald-100 hover:border-emerald-300 transition-all cursor-pointer group active:scale-95"
+                                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-black bg-emerald-50 text-[#006622] border border-emerald-200 shadow-2xs hover:bg-emerald-100 hover:border-emerald-300 transition-all cursor-pointer group active:scale-95"
                                         >
-                                          <span className="relative flex h-1.5 w-1.5">
+                                          <span className="relative flex h-2 w-2">
                                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                                           </span>
                                           <span>Online {ping.latency ? `(${ping.latency}ms)` : ""}</span>
-                                          <RefreshCw className="w-2 h-2 opacity-0 group-hover:opacity-100 text-emerald-600 transition-opacity ml-0.5" />
+                                          <RefreshCw className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 text-emerald-600 transition-opacity ml-0.5" />
                                         </button>
                                       ) : ping?.status === "OFFLINE" ? (
                                         <button
                                           type="button"
                                           onClick={() => handlePingSingle(cleanIp, item.status)}
                                           title="Offline / RTO • Klik untuk coba uji ping kembali"
-                                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs hover:bg-rose-100 hover:border-rose-300 transition-all cursor-pointer group active:scale-95"
+                                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-black bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs hover:bg-rose-100 hover:border-rose-300 transition-all cursor-pointer group active:scale-95"
                                         >
-                                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                          <span className="w-2 h-2 rounded-full bg-rose-500"></span>
                                           <span>Offline</span>
-                                          <RefreshCw className="w-2 h-2 opacity-0 group-hover:opacity-100 text-rose-600 transition-opacity ml-0.5" />
+                                          <RefreshCw className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 text-rose-600 transition-opacity ml-0.5" />
                                         </button>
                                       ) : (
                                         <button
                                           type="button"
                                           onClick={() => handlePingSingle(cleanIp, item.status)}
                                           title={`Klik untuk uji live ping ke ${cleanIp}`}
-                                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-white hover:bg-sky-50 text-sky-700 border border-sky-200 transition-all shadow-2xs hover:border-sky-300 active:scale-95 cursor-pointer"
+                                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black bg-white hover:bg-sky-50 text-sky-700 border border-sky-200 transition-all shadow-2xs hover:border-sky-300 active:scale-95 cursor-pointer"
                                         >
-                                          <Zap className="w-2 h-2 fill-sky-600 text-sky-600" />
+                                          <Zap className="w-2.5 h-2.5 fill-sky-600 text-sky-600" />
                                           <span>Tes Ping</span>
                                         </button>
                                       )}
-                                      <div className="inline-flex items-center gap-0.5">
+                                      <div className="inline-flex items-center gap-1">
                                         <button
                                           type="button"
                                           onClick={() => handlePingSingle(cleanIp, item.status)}
                                           title="Klik untuk uji ping ke IP ini"
-                                          className="font-mono font-black text-blue-900 hover:text-blue-700 text-[11px] tracking-tight cursor-pointer"
+                                          className="font-mono font-black text-blue-900 hover:text-blue-700 text-xs sm:text-[12.5px] tracking-tight cursor-pointer"
                                         >
                                           {cleanIp}
                                         </button>
@@ -1769,9 +1781,9 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                           className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-blue-900 p-0.5 shrink-0 transition-opacity cursor-pointer"
                                         >
                                           {isCopied ? (
-                                            <Check className="w-2.5 h-2.5 text-emerald-600" />
+                                            <Check className="w-3 h-3 text-emerald-600" />
                                           ) : (
-                                            <Copy className="w-2.5 h-2.5" />
+                                            <Copy className="w-3 h-3" />
                                           )}
                                         </button>
                                       </div>
@@ -1779,15 +1791,15 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                   );
                                 })()
                               ) : (
-                                <span className="text-slate-400 font-mono font-bold text-[10px]">—</span>
+                                <span className="text-slate-400 font-mono font-bold text-xs">—</span>
                               )}
                             </td>
 
                             {/* 4. Kode Set (Hover for Kode Set & Rincian ID Barang) */}
-                            <td className="px-0.5 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-200">
+                            <td className="px-2 py-2.5 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-200">
                               <Link
                                 href={`/asset-components?set=${encodeURIComponent(item.asset_code)}`}
-                                className={`font-mono font-black text-[10.5px] uppercase cursor-pointer hover:underline ${
+                                className={`font-mono font-black text-xs sm:text-[12.5px] uppercase cursor-pointer hover:underline ${
                                   item.device_type === "ROUTER"
                                     ? "text-orange-800"
                                     : item.device_type === "PABX"
@@ -1805,10 +1817,10 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                             </td>
 
                             {/* 5. OS */}
-                            <td className="px-0.5 py-1 text-center bg-blue-50/10 border-r border-slate-200">
+                            <td className="px-2 py-2.5 text-center bg-blue-50/10 border-r border-slate-200">
                               {item.os && item.os !== "-" ? (
                                 <span
-                                  className="text-[10.5px] text-slate-950 font-mono font-bold inline-block leading-tight cursor-pointer hover:text-blue-700 transition-colors"
+                                  className="text-xs sm:text-[12px] text-slate-950 font-mono font-bold inline-block leading-tight cursor-pointer hover:text-blue-700 transition-colors"
                                   title={item.os}
                                   onMouseEnter={(e) => handleShowDetail(e, "Sistem Operasi (OS)", item.os, item)}
                                   onMouseLeave={handleHideDetail}
@@ -1816,15 +1828,15 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                   {item.os}
                                 </span>
                               ) : (
-                                <span className="text-slate-400 font-mono font-bold text-[10px]">—</span>
+                                <span className="text-slate-400 font-mono font-bold text-xs">—</span>
                               )}
                             </td>
 
                             {/* 6. Proc */}
-                            <td className="px-1 py-1 text-center bg-blue-50/10 border-r border-slate-200">
+                            <td className="px-2 py-2.5 text-center bg-blue-50/10 border-r border-slate-200">
                               {item.processor && item.processor !== "-" ? (
                                 <span
-                                  className="text-[10.5px] font-mono font-bold text-slate-950 inline-block leading-tight cursor-pointer hover:text-blue-700 hover:underline"
+                                  className="text-xs sm:text-[12px] font-mono font-bold text-slate-950 inline-block leading-tight cursor-pointer hover:text-blue-700 hover:underline"
                                   title={item.processor}
                                   onMouseEnter={(e) => handleShowDetail(e, "Processor / CPU", item.processor, item)}
                                   onMouseLeave={handleHideDetail}
@@ -1832,15 +1844,15 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                   {item.processor}
                                 </span>
                               ) : (
-                                <span className="text-slate-400 font-mono font-bold text-[10px]">—</span>
+                                <span className="text-slate-400 font-mono font-bold text-xs">—</span>
                               )}
                             </td>
 
                             {/* 7. Mobo */}
-                            <td className="px-1 py-1 text-center bg-blue-50/10 border-r border-slate-200">
+                            <td className="px-2 py-2.5 text-center bg-blue-50/10 border-r border-slate-200">
                               {item.motherboard && item.motherboard !== "-" ? (
                                 <span
-                                  className="text-[10.5px] text-slate-950 font-mono font-bold inline-block leading-tight cursor-pointer hover:text-blue-700 transition-colors"
+                                  className="text-xs sm:text-[12px] text-slate-950 font-mono font-bold inline-block leading-tight cursor-pointer hover:text-blue-700 transition-colors"
                                   title={item.motherboard}
                                   onMouseEnter={(e) => handleShowDetail(e, "Motherboard PC", item.motherboard, item)}
                                   onMouseLeave={handleHideDetail}
@@ -1848,15 +1860,15 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                   {item.motherboard}
                                 </span>
                               ) : (
-                                <span className="text-slate-400 font-mono font-bold text-[10px]">—</span>
+                                <span className="text-slate-400 font-mono font-bold text-xs">—</span>
                               )}
                             </td>
 
                             {/* 8. RAM */}
-                            <td className="px-1 py-1 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-200">
+                            <td className="px-2 py-2.5 text-center whitespace-nowrap bg-blue-50/10 border-r border-slate-200">
                               {item.ram && item.ram !== "-" ? (
                                 <span
-                                  className="font-mono font-black text-slate-950 text-[10.5px] cursor-pointer hover:text-indigo-700 transition-colors inline-block"
+                                  className="font-mono font-black text-slate-950 text-xs sm:text-[12.5px] cursor-pointer hover:text-indigo-700 transition-colors inline-block"
                                   title={item.ram}
                                   onMouseEnter={(e) => handleShowDetail(e, "RAM Internal", item.ram, item)}
                                   onMouseLeave={handleHideDetail}
@@ -1869,21 +1881,21 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                   })()}
                                 </span>
                               ) : (
-                                <span className="text-slate-400 font-mono font-bold text-[10px]">—</span>
+                                <span className="text-slate-400 font-mono font-bold text-xs">—</span>
                               )}
                             </td>
 
                             {/* 9. Storage (Stacked Atas Bawah: SSD & HDD) */}
-                            <td className="px-1 py-1 text-center bg-blue-50/10 border-r border-slate-300">
+                            <td className="px-2 py-2 text-center bg-blue-50/10 border-r border-slate-300">
                               {(() => {
                                 const storage = parseStorage(item.hard_drive);
                                 const ssdStr = storage.ssd;
                                 const hddStr = storage.hdd;
-                                if (!ssdStr && !hddStr) return <span className="text-slate-400 font-mono font-bold text-[10px]">—</span>;
+                                if (!ssdStr && !hddStr) return <span className="text-slate-400 font-mono font-bold text-xs">—</span>;
                                 const ssdShort = typeof ssdStr === "string" ? formatStorageShort(ssdStr, "SSD") : null;
                                 const hddShort = typeof hddStr === "string" ? formatStorageShort(hddStr, "HDD") : null;
                                 return (
-                                  <div className="flex flex-col items-center justify-center text-[10px] font-mono font-bold leading-tight py-0.5 space-y-0.5">
+                                  <div className="flex flex-col items-center justify-center text-[11px] sm:text-xs font-mono font-bold leading-tight py-0.5 space-y-1">
                                     {ssdShort && (
                                       <span
                                         className="text-blue-950 font-black cursor-pointer hover:underline whitespace-nowrap"
@@ -1910,10 +1922,10 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                             </td>
 
                             {/* 10. Monitor */}
-                            <td className="px-1 py-1 text-center bg-emerald-50/10 border-r border-slate-200">
+                            <td className="px-2 py-2.5 text-center bg-emerald-50/10 border-r border-slate-200">
                               {item.monitor && item.monitor !== "-" ? (
                                 <span
-                                  className="text-[10.5px] text-slate-950 font-bold inline-block leading-tight cursor-pointer hover:text-emerald-800 hover:underline transition-colors"
+                                  className="text-xs sm:text-[12px] text-slate-950 font-bold inline-block leading-tight cursor-pointer hover:text-emerald-800 hover:underline transition-colors"
                                   title={item.monitor}
                                   onMouseEnter={(e) => handleShowDetail(e, "Monitor Display", item.monitor, item)}
                                   onMouseLeave={handleHideDetail}
@@ -1921,15 +1933,15 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                   {item.monitor}
                                 </span>
                               ) : (
-                                <span className="text-slate-400 font-mono font-bold text-[10px]">—</span>
+                                <span className="text-slate-400 font-mono font-bold text-xs">—</span>
                               )}
                             </td>
 
                             {/* 11. Printer */}
-                            <td className="px-1 py-1 text-center bg-emerald-50/10 border-r border-slate-200">
+                            <td className="px-2 py-2.5 text-center bg-emerald-50/10 border-r border-slate-200">
                               {item.printer && item.printer !== "-" ? (
                                 <span
-                                  className="text-[10.5px] font-black text-emerald-950 inline-block leading-tight cursor-pointer hover:underline"
+                                  className="text-xs sm:text-[12px] font-black text-emerald-950 inline-block leading-tight cursor-pointer hover:underline"
                                   title={item.printer}
                                   onMouseEnter={(e) => handleShowDetail(e, "Printer Terhubung", item.printer, item)}
                                   onMouseLeave={handleHideDetail}
@@ -1937,15 +1949,15 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                   {item.printer}
                                 </span>
                               ) : (
-                                <span className="text-slate-400 font-mono font-bold text-[10px]">—</span>
+                                <span className="text-slate-400 font-mono font-bold text-xs">—</span>
                               )}
                             </td>
 
                             {/* 12. Keyboard */}
-                            <td className="px-0.5 py-1 text-center bg-emerald-50/10 border-r border-slate-200">
+                            <td className="px-2 py-2.5 text-center bg-emerald-50/10 border-r border-slate-200">
                               {item.keyboard && item.keyboard !== "-" ? (
                                 <span
-                                  className="text-[10.5px] font-bold text-slate-950 inline-block leading-tight cursor-pointer hover:text-emerald-900 hover:underline"
+                                  className="text-xs sm:text-[12px] font-bold text-slate-950 inline-block leading-tight cursor-pointer hover:text-emerald-900 hover:underline"
                                   title={item.keyboard}
                                   onMouseEnter={(e) => handleShowDetail(e, "Keyboard Office", item.keyboard, item)}
                                   onMouseLeave={handleHideDetail}
@@ -1953,15 +1965,15 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                   {item.keyboard}
                                 </span>
                               ) : (
-                                <span className="text-slate-400 font-mono font-bold text-[10px]">—</span>
+                                <span className="text-slate-400 font-mono font-bold text-xs">—</span>
                               )}
                             </td>
 
                             {/* 13. Mouse */}
-                            <td className="px-0.5 py-1 text-center bg-emerald-50/10 border-r border-slate-300">
+                            <td className="px-2 py-2.5 text-center bg-emerald-50/10 border-r border-slate-300">
                               {item.mouse && item.mouse !== "-" ? (
                                 <span
-                                  className="text-[10.5px] font-bold text-slate-950 inline-block leading-tight cursor-pointer hover:text-emerald-900 hover:underline"
+                                  className="text-xs sm:text-[12px] font-bold text-slate-950 inline-block leading-tight cursor-pointer hover:text-emerald-900 hover:underline"
                                   title={item.mouse}
                                   onMouseEnter={(e) => handleShowDetail(e, "Mouse Office", item.mouse, item)}
                                   onMouseLeave={handleHideDetail}
@@ -1969,13 +1981,13 @@ export function OfficeLocationContent({ locationKey, pageTitle, pageSubtitle }: 
                                   {item.mouse}
                                 </span>
                               ) : (
-                                <span className="text-slate-400 font-mono font-bold text-[10px]">—</span>
+                                <span className="text-slate-400 font-mono font-bold text-xs">—</span>
                               )}
                             </td>
 
                             {/* 14. Aksi */}
-                            <td className="px-1 py-1 text-center whitespace-nowrap">
-                              <div className="flex items-center justify-center gap-0.5">
+                            <td className="px-2 py-2.5 text-center whitespace-nowrap">
+                              <div className="flex items-center justify-center gap-1">
                                 <button
                                   type="button"
                                   onClick={() => handleOpenSticker(item)}
