@@ -5,7 +5,7 @@ import SidebarLayout from "@/components/SidebarLayout";
 import ScannerModal from "@/components/ScannerModal";
 import BarcodeGeneratorModal from "@/components/BarcodeGeneratorModal";
 import TicketModal from "@/components/TicketModal";
-import { Asset, PosHardwareAsset } from "@/types";
+import { Asset, PosHardwareAsset, AssetTransfer } from "@/types";
 import {
   Laptop,
   Plus,
@@ -42,7 +42,8 @@ import {
   ShoppingCart,
   ScreenShare,
   Zap,
-  AlertTriangle
+  AlertTriangle,
+  ArrowLeftRight
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -162,6 +163,20 @@ function AssetsContent() {
   const [selectedPosForSticker, setSelectedPosForSticker] = useState<PosHardwareAsset | null>(null);
   const [selectedAssetForTicket, setSelectedAssetForTicket] = useState<Asset | null>(null);
 
+  // Data Tracking & Mutasi Barang untuk Hover Tooltip & Riwayat
+  const [transfersList, setTransfersList] = useState<AssetTransfer[]>([]);
+
+  useEffect(() => {
+    fetch("/api/transfers", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success && Array.isArray(j.data)) {
+          setTransfersList(j.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Floating Hover Detail for Hardware Specs & Peripherals
   const [hoverDetail, setHoverDetail] = useState<{
     x: number;
@@ -183,6 +198,16 @@ function AssetsContent() {
     lastChange: string;
     sn?: string;
     notes?: string;
+    tracking?: {
+      hasTransfer: boolean;
+      code?: string;
+      type?: string;
+      flow?: string;
+      date?: string;
+      performedBy?: string;
+      reason?: string;
+      referenceNo?: string;
+    };
   } | null>(null);
 
   const getCategorizedPosComponents = (pos: PosHardwareAsset) => {
@@ -398,6 +423,66 @@ function AssetsContent() {
     const { itemId, position, isSetAssetCode } = getComponentItemId(component, pos);
     const { sped, preferal } = isSetAssetCode ? getCategorizedPosComponents(pos) : { sped: [], preferal: [] };
 
+    // Cek tracking / riwayat pemindahan barang dari transfersList & notes
+    const compUpper = (component + " " + (model || "")).toUpperCase();
+    const matchedTrf = transfersList.find((t) => {
+      const isPosMatch = t.source_asset_code === pos.pos_code || t.dest_asset_code === pos.pos_code;
+      if (!isPosMatch) return false;
+      const cType = t.component_type?.toUpperCase() || "";
+      if (compUpper.includes("BARCODE") && cType.includes("BARCODE")) return true;
+      if (compUpper.includes("PRINTER") && cType.includes("PRINTER")) return true;
+      if (compUpper.includes("PASSPORT") && cType.includes("PASSPORT")) return true;
+      if (compUpper.includes("MONITOR") && cType.includes("MONITOR")) return true;
+      if (compUpper.includes("KEYBOARD") && cType.includes("KEYBOARD")) return true;
+      if (compUpper.includes("MOUSE") && cType.includes("MOUSE")) return true;
+      if (compUpper.includes("RAM") && cType.includes("RAM")) return true;
+      if ((compUpper.includes("SSD") || compUpper.includes("STORAGE")) && (cType.includes("SSD") || cType.includes("STORAGE"))) return true;
+      if (isSetAssetCode) return true;
+      return false;
+    });
+
+    let trackingInfo: any = { hasTransfer: false };
+
+    if (matchedTrf) {
+      const isSource = matchedTrf.source_asset_code === pos.pos_code;
+      let flowText = "";
+      if (matchedTrf.transfer_type === "REPLACE_AND_TRANSFER") {
+        flowText = isSource
+          ? `${matchedTrf.source_asset_code} (Replace baru MIS) ➔ Unit lama dipindah ke ${matchedTrf.dest_asset_code}`
+          : `Mutasi masuk dari ${matchedTrf.source_asset_code} ➔ ${matchedTrf.dest_asset_code}`;
+      } else if (matchedTrf.transfer_type === "DIRECT_TRANSFER") {
+        flowText = `${matchedTrf.source_asset_code} ➔ ${matchedTrf.dest_asset_code}`;
+      } else if (matchedTrf.transfer_type === "NEW_INSTALL") {
+        flowText = `${matchedTrf.new_item_source || "MIS PROC"} ➔ ${matchedTrf.dest_asset_code}`;
+      } else {
+        flowText = `${matchedTrf.source_asset_code} ➔ Cadangan Gudang`;
+      }
+
+      trackingInfo = {
+        hasTransfer: true,
+        code: matchedTrf.transfer_code,
+        type: matchedTrf.transfer_type,
+        flow: flowText,
+        date: matchedTrf.transfer_date ? matchedTrf.transfer_date.slice(0, 10) : "1 Nov 2026",
+        performedBy: matchedTrf.performed_by || "IT Support",
+        reason: matchedTrf.reason,
+        referenceNo: matchedTrf.reference_no,
+      };
+    } else if (pos.notes && (pos.notes.includes("[MUTASI") || pos.notes.includes("[TRANSFER"))) {
+      const mutasiMatch = pos.notes.match(/\[(MUTASI[^\]]+)\]/i);
+      if (mutasiMatch) {
+        trackingInfo = {
+          hasTransfer: true,
+          code: "MUTASI-LOG",
+          type: "MUTASI",
+          flow: `Tercatat pada riwayat unit ${pos.pos_code}`,
+          date: pos.updated_at ? new Date(pos.updated_at).toLocaleDateString("id-ID") : "Terdata",
+          performedBy: "IT Support",
+          reason: mutasiMatch[1],
+        };
+      }
+    }
+
     setHoverDetail({
       x: rect.left + rect.width / 2,
       y: rect.top,
@@ -418,6 +503,7 @@ function AssetsContent() {
       lastChange: dateStr,
       sn: pos.pos_sn && pos.pos_sn !== "-" ? pos.pos_sn : undefined,
       notes: customNote || extraNotes || (pos.notes && !pos.notes.startsWith("[REPLACE") ? pos.notes : "Kondisi normal / terpasang di unit kasir"),
+      tracking: trackingInfo,
     });
   };
 
@@ -2768,6 +2854,30 @@ function AssetsContent() {
                 </div>
               </div>
 
+              {/* 4. SEKSI TRACKING & MUTASI PERANGKAT POS */}
+              <div className="p-2 bg-amber-50/70 border border-amber-200/80 rounded-xl mb-2 space-y-1">
+                <div className="flex items-center justify-between text-[9px] pb-1 border-b border-amber-200/60">
+                  <span className="font-black text-amber-950 uppercase tracking-tight flex items-center gap-1">
+                    <ArrowLeftRight className="w-3 h-3 text-amber-700" />
+                    <span>Tracking Mutasi & Relokasi Kasir</span>
+                  </span>
+                  <span className="font-mono text-[8.5px] font-bold text-amber-900">
+                    {hoverDetail.tracking?.hasTransfer ? hoverDetail.tracking.code : "Siap Dimutasi"}
+                  </span>
+                </div>
+                {hoverDetail.tracking?.hasTransfer ? (
+                  <div className="text-[9px] text-slate-800 space-y-0.5">
+                    <div className="font-black text-amber-900">{hoverDetail.tracking.flow}</div>
+                    <div className="text-[8.5px] text-slate-600 font-medium">Petugas: {hoverDetail.tracking.performedBy} • {hoverDetail.tracking.date}</div>
+                    <div className="text-[8.5px] text-slate-700 italic">"{hoverDetail.tracking.reason}"</div>
+                  </div>
+                ) : (
+                  <div className="text-[9px] text-slate-500 italic">
+                    Perangkat belum memiliki catatan mutasi pemindahan antar toko / POS.
+                  </div>
+                )}
+              </div>
+
               {/* Klik untuk Rincian ID Barang Lengkap */}
               <div className="p-1.5 bg-slate-100/90 border border-slate-200 rounded-lg text-center text-[9px] text-slate-600 font-medium">
                 Klik unit untuk buka <strong className="text-indigo-700 font-bold">Rincian ID Barang Lengkap ↗</strong>
@@ -2857,6 +2967,50 @@ function AssetsContent() {
                     </div>
                   </div>
                 )}
+
+                {/* ── SEKSI TRACKING & MUTASI PEMINDAHAN BARANG ── */}
+                <div className="pt-2 border-t border-slate-200/80 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-800 flex items-center gap-1">
+                      <ArrowLeftRight className="w-3 h-3 text-[#006622]" />
+                      <span>Tracking Mutasi Barang:</span>
+                    </span>
+                    {hoverDetail.tracking?.hasTransfer ? (
+                      <span className="font-mono font-bold text-[8.5px] bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.2 rounded">
+                        {hoverDetail.tracking.code}
+                      </span>
+                    ) : (
+                      <span className="text-[8.5px] font-bold text-[#006622] bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded">
+                        ✓ Bawaan Asal
+                      </span>
+                    )}
+                  </div>
+
+                  {hoverDetail.tracking?.hasTransfer ? (
+                    <div className="p-2 rounded-xl bg-amber-50/80 border border-amber-200/90 space-y-1">
+                      <div className="flex items-center justify-between text-[9px]">
+                        <span className="text-slate-500 font-semibold">Alur:</span>
+                        <span className="font-bold text-amber-950 font-mono text-[9px] truncate max-w-[170px]" title={hoverDetail.tracking.flow}>
+                          {hoverDetail.tracking.flow}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px]">
+                        <span className="text-slate-500 font-semibold">Waktu & Petugas:</span>
+                        <span className="font-bold text-slate-800 text-[9px]">
+                          {hoverDetail.tracking.date} • {hoverDetail.tracking.performedBy}
+                        </span>
+                      </div>
+                      <div className="text-[8.5px] text-slate-800 bg-white/90 p-1.5 rounded-lg border border-amber-100/80 leading-snug">
+                        <strong className="text-amber-900">Kronologi: </strong>
+                        {hoverDetail.tracking.reason}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-200 text-[9px] text-slate-500 italic">
+                      Part bawaan asli unit kasir. Belum pernah dilakukan mutasi / relokasi.
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
